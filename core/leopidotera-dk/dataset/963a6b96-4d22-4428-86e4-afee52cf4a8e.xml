@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.2/eml.xsd"
+packageId="963a6b96-4d22-4428-86e4-afee52cf4a8e"  system="http://gbif.org" scope="system"
+xml:lang="da">
+
+    <dataset>
+            <alternateIdentifier>10.15468/q3yy4u</alternateIdentifier>
+                <alternateIdentifier>88e7c4bf-8955-480e-94ca-d64885b84d57</alternateIdentifier>
+        <title>Species recordings from the Danish National portal Arter.dk</title>
+            <creator>
+            <individualName>
+                    <surName>Arter project group</surName>
+            </individualName>
+<organizationName>The Danish Environmental Protection Agency, Natural History Museum of Denmark, Natural History Museum of Aarhus</organizationName><electronicMailAddress>kontakt@arter.dk</electronicMailAddress>            </creator>
+            <metadataProvider>
+            <individualName>
+                    <surName>Arter project group</surName>
+            </individualName>
+<organizationName>The Danish Environmental Protection Agency, Natural History Museum of Denmark, Natural History Museum of Aarhus</organizationName><electronicMailAddress>kontakt@arter.dk</electronicMailAddress>            </metadataProvider>
+            <associatedParty>
+            <individualName>
+                    <surName>Arter project group</surName>
+            </individualName>
+<organizationName>The Danish Environmental Protection Agency, Natural History Museum of Denmark, Natural History Museum of Aarhus</organizationName><electronicMailAddress>kontakt@arter.dk</electronicMailAddress>            </associatedParty>
+            <pubDate>
+                2020-09-24
+            </pubDate>
+        <language>ENGLISH</language>
+            <abstract>
+                    <para>Database containing observations of organisms at all taxonomic levels and within all taxonomic kingdoms mainly from Denmark. New observations are continuously added through the registration portal https://arter.dk. The portal is a collaboration project between the Danish Environmental Protection Agency, the Natural History Museum of Denmark and the Natural History Museum Aarhus. The project received generous financial support from Aage V. Jensen Naturfond and 15. Juni Fonden as well as an early contribution from the Danish state. The aim of Arter is to gather all available information about observations of Danish biodiversity and make the data available to the general public. Futhermore the portal offers free access to knowledge about the Danish biodiversity on species level making it easier for the general public to obtain knowledge about the species and protect same. The portal contains old finds as well as new ones and the users continously contribute to the overview of Danish biodiversity by reporting their finds directly into Arter.</para>
+            </abstract>
+                <keywordSet>
+                        <keyword>Photo records</keyword>
+                        <keyword>Europe</keyword>
+                        <keyword>Denmark</keyword>
+                        <keyword>Citizen Science</keyword>
+                        <keyword>Danish National Species Portal</keyword>
+                        <keyword>Observations</keyword>
+                        <keyword>Species Recordings</keyword>
+                        <keyword>Arter.dk</keyword>
+                        <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+                </keywordSet>
+                <keywordSet>
+                        <keyword>Occurrence</keyword>
+                        <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+                </keywordSet>
+                <keywordSet>
+                        <keyword>Observation</keyword>
+                        <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+                </keywordSet>
+            <intellectualRights>
+                    <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+            </intellectualRights>
+            <distribution scope="document">
+                <online>
+                    <url function="information">http://arter.dk</url>
+                </online>
+            </distribution>
+            <coverage>
+                    <geographicCoverage>
+                            <geographicDescription>EURO DK</geographicDescription>
+                            <boundingCoordinates>
+                                <westBoundingCoordinate>6.7</westBoundingCoordinate>
+                                <eastBoundingCoordinate>15.6</eastBoundingCoordinate>
+                                <northBoundingCoordinate>58</northBoundingCoordinate>
+                                <southBoundingCoordinate>54.5</southBoundingCoordinate>
+                            </boundingCoordinates>
+                    </geographicCoverage>
+                    <temporalCoverage>
+                            <singleDateTime>
+                                <calendarDate>                2020-01-01
+</calendarDate>
+                            </singleDateTime>
+                    </temporalCoverage>
+                        <taxonomicCoverage>
+                                <generalTaxonomicCoverage>Animalia and Plantae and Fungi and Mycetozoa</generalTaxonomicCoverage>
+                                <taxonomicClassification>
+                                        <taxonRankName>Kingdom</taxonRankName>
+                                    <taxonRankValue>Animalia</taxonRankValue>
+                                </taxonomicClassification>
+                                <taxonomicClassification>
+                                        <taxonRankName>Kingdom</taxonRankName>
+                                    <taxonRankValue>Plantae</taxonRankValue>
+                                </taxonomicClassification>
+                                <taxonomicClassification>
+                                        <taxonRankName>Kingdom</taxonRankName>
+                                    <taxonRankValue>Fungi</taxonRankValue>
+                                </taxonomicClassification>
+                                <taxonomicClassification>
+                                        <taxonRankName>Unranked</taxonRankName>
+                                    <taxonRankValue>Mycetozoa</taxonRankValue>
+                                </taxonomicClassification>
+                        </taxonomicCoverage>
+            </coverage>
+            <maintenance>
+                <description>
+                    <para></para>
+                </description>
+                <maintenanceUpdateFrequency>daily</maintenanceUpdateFrequency>
+            </maintenance>
+            <contact>
+            <individualName>
+                    <surName>Arter project group</surName>
+            </individualName>
+<organizationName>The Danish Environmental Protection Agency, Natural History Museum of Denmark, Natural History Museum of Aarhus</organizationName><electronicMailAddress>kontakt@arter.dk</electronicMailAddress>            </contact>
+            <methods>
+                    <methodStep>
+                        <description>
+                            <para>Observations of organisms from all taxonomic kingdoms done by mainly  amateur nature enthusiasts. Geographical precision is obtained via the geographical data linked to photos, when available, location data from the user&apos;s device, such as a mobile phone or computer, or delivered manually by the user. Vallidation is achieved throuch community and expert validation with validation based on likelihood to come later on.</para>
+                        </description>
+                    </methodStep>
+                    <sampling>
+                        <studyExtent>
+                            <description>
+                                <para>Denmark</para>
+                            </description>
+                        </studyExtent>
+                        <samplingDescription>
+                            <para>Observations of organisms from all taxonomic kingdoms done by mainly  amateur 
+nature enthusiasts. Geographical precision is obtained via the geographical data linked to photos, when available, location data from the user&apos;s device, such as a mobile phone or computer, or delivered manually by the user. Vallidation is achieved throuch community and expert validation with validation based on likelihood to come later on.</para>
+                        </samplingDescription>
+                    </sampling>
+            </methods>
+
+            <project >
+                <title>Species recordings from the Danish National portal Arter.dk</title>
+                    <personnel>
+            <individualName>
+                    <surName>Arter project group</surName>
+            </individualName>
+<electronicMailAddress>kontakt@arter.dk</electronicMailAddress>            <role>ADMINISTRATIVE_POINT_OF_CONTACT</role>
+                    </personnel>
+                <abstract>
+                    <para></para>
+                </abstract>
+                <funding>
+                    <para>Arter has received generous financial support from Aage V. Jensen Naturfond and 15. Juni Fonden as well as an early contribution from the Danish state.</para>
+                </funding>
+            </project>
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2023-09-12T10:27:46Z</dateStamp>
+                <citation>Arter project group (2020). Species recordings from the Danish National portal Arter.dk. Miljøstyrelsen / The Danish Environmental Protection Agency. Occurrence dataset https://doi.org/10.15468/q3yy4u accessed via GBIF.org on 2023-09-12.</citation>
+                    <resourceLogoUrl>https://arter.s1.umbraco.io/media/rd4joym3/arter-logomark-pos.jpg</resourceLogoUrl>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+
+</eml:eml>

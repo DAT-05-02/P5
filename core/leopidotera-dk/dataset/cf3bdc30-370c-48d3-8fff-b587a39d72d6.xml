@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.2/eml.xsd"
+packageId="cf3bdc30-370c-48d3-8fff-b587a39d72d6"  system="http://gbif.org" scope="system"
+xml:lang="en">
+
+    <dataset>
+            <alternateIdentifier>10.15468/ykxm8x</alternateIdentifier>
+                <alternateIdentifier>https://ipt.vtatlasoflife.org/resource?r=ebutterfly</alternateIdentifier>
+                <alternateIdentifier>https://ipt.vtecostudies.org/ipt-2.3.5/resource?r=ebutterfly</alternateIdentifier>
+                <alternateIdentifier>cf3bdc30-370c-48d3-8fff-b587a39d72d6</alternateIdentifier>
+                <alternateIdentifier>http://ipt.vtecostudies.org/ipt-2.3.5/resource?r=ebutterfly</alternateIdentifier>
+        <title>eButterfly Surveys</title>
+            <creator>
+            <individualName>
+<givenName>Maxim</givenName>                    <surName>Larrivée</surName>
+            </individualName>
+<organizationName>Insectarium de Montréal - Espace pour la vie</organizationName><positionName>Director</positionName>            <address>
+<administrativeArea>Quebec</administrativeArea><country>CANADA</country>            </address>
+<electronicMailAddress>maxim.larrivee@ville.montreal.qc.ca</electronicMailAddress>            <userId directory="http://orcid.org/">0000-0002-2925-3736</userId>
+            </creator>
+            <creator>
+            <individualName>
+<givenName>Kent</givenName>                    <surName>McFarland</surName>
+            </individualName>
+<organizationName>Vermont Center for Ecostudies</organizationName><positionName>conservation biologist</positionName>            <address>
+<deliveryPoint>PO Box 420</deliveryPoint><city>Norwich</city><administrativeArea>Vermont</administrativeArea><postalCode>05091</postalCode><country>UNITED_STATES</country>            </address>
+<phone>802-649-1431</phone><electronicMailAddress>kmcfarland@vtecostudies.org</electronicMailAddress>            <userId directory="http://orcid.org/">0000-0001-7809-5503</userId>
+            </creator>
+            <creator>
+            <individualName>
+<givenName>Xinbao</givenName>                    <surName>Zhang</surName>
+            </individualName>
+<organizationName>eButterfly.org</organizationName><positionName>software engineer</positionName>            <address>
+<country>CANADA</country>            </address>
+            </creator>
+            <creator>
+            <individualName>
+<givenName>Kathleen</givenName>                    <surName>Prudic</surName>
+            </individualName>
+<organizationName>University of Arizona</organizationName><positionName>Assistant Professor</positionName>            <address>
+<city>Tuscon</city><administrativeArea>Arizona</administrativeArea><postalCode>85719</postalCode><country>UNITED_STATES</country>            </address>
+<electronicMailAddress>klprudic@email.arizona.edu</electronicMailAddress>            <userId directory="http://orcid.org/">0000-0001-8242-7769</userId>
+            </creator>
+            <creator>
+            <individualName>
+<givenName>Rodrigo</givenName>                    <surName>Solis</surName>
+            </individualName>
+<organizationName>eButterfly.org</organizationName><positionName>human network and data coordinator</positionName><electronicMailAddress>rsolis@sfu.ca</electronicMailAddress>            </creator>
+            <creator>
+            <individualName>
+<givenName>Michael</givenName>                    <surName>Bunsen</surName>
+            </individualName>
+<organizationName>eButterfly.org</organizationName><positionName>software engineer</positionName><electronicMailAddress>notbot@gmail.com</electronicMailAddress>            </creator>
+            <creator>
+            <individualName>
+<givenName>Jeremy</givenName>                    <surName>Kerr</surName>
+            </individualName>
+<organizationName>University of Ottawa</organizationName><positionName>University Research Chair in Macroecology &amp; Conservation</positionName>            <address>
+<city>Ottawa</city><administrativeArea>Ontario</administrativeArea><country>CANADA</country>            </address>
+<electronicMailAddress>jkerr@uOttawa.ca</electronicMailAddress><onlineUrl>https://macroecology.ca/</onlineUrl>            <userId directory="http://orcid.org/">0000-0002-3972-7560</userId>
+            </creator>
+            <metadataProvider>
+            <individualName>
+<givenName>Kent</givenName>                    <surName>McFarland</surName>
+            </individualName>
+<organizationName>Vermont Center for Ecostudies</organizationName><positionName>conservation biologist</positionName>            <address>
+<deliveryPoint>PO Box 420</deliveryPoint><city>Norwich</city><administrativeArea>Vermont</administrativeArea><postalCode>05055</postalCode><country>UNITED_STATES</country>            </address>
+<electronicMailAddress>kmcfarland@vtecostudies.org</electronicMailAddress>            <userId directory="http://orcid.org/">0000-0001-7809-5503</userId>
+            </metadataProvider>
+            <pubDate>
+                2023-09-12
+            </pubDate>
+        <language>ENGLISH</language>
+            <abstract>
+                    <para>eButterfly was created in 2011 based upon two simple ideas. First, many people are passionate about observing butterflies and, second, every butterfly observation has potential research value for fundamental and conservation research. Even observations of common species from well-sampled areas have value for monitoring population change, phenology, and for other spatiotemporal studies. Using informal science education, eButterfly steers participants into standardized data collection and provides extensive resources to improve observers’ capacities for butterfly detection and identification. eButterfly users document the presence or presumed absence of species as well as abundance through checklist data collection. To report butterfly observations, a web interface engages participants to submit observations through three interactive steps designed to collect location, effort, and the species and numbers detected. eButterfly encourages participants to submit photos of their observations as vouchers for species verification. eButterfly - an international, data driven project dedicated to butterfly biodiversity, conservation, and education - is a joint initiative of the  Insectarium de Montréal - Espace pour la vie, Vermont Center for Ecostudies, University of Arizona, and University of Ottawa.</para>
+                    <para>Through time, each participant, each observation, each checklist, and each verification builds the database. eButterfly then shares this treasure trove of butterfly data with a global community of community scientists, educators, lepidopterists, conservationists, and land managers. In time, this information will become the foundation for a better understanding of butterfly distribution and population trends.</para>
+            </abstract>
+                <keywordSet>
+                        <keyword>Metadata</keyword>
+                        <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+                </keywordSet>
+                <keywordSet>
+                        <keyword>Samplingevent</keyword>
+                        <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+                </keywordSet>
+            <intellectualRights>
+                    <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+            </intellectualRights>
+            <distribution scope="document">
+                <online>
+                    <url function="information">http://www.e-butterfly.org</url>
+                </online>
+            </distribution>
+            <coverage>
+                    <geographicCoverage>
+                            <geographicDescription>Panama and Caribbean islands north through United States and Canada in the northwestern Hemisphere, including Hawaii and Bermuda.</geographicDescription>
+                            <boundingCoordinates>
+                                <westBoundingCoordinate>-169.453</westBoundingCoordinate>
+                                <eastBoundingCoordinate>-42.188</eastBoundingCoordinate>
+                                <northBoundingCoordinate>83.677</northBoundingCoordinate>
+                                <southBoundingCoordinate>5.966</southBoundingCoordinate>
+                            </boundingCoordinates>
+                    </geographicCoverage>
+                        <taxonomicCoverage>
+                                <generalTaxonomicCoverage>taxonomic authority: Warren, A. D., K. J. Davis, N. V. Grishin, J. P. Pelham, E. M. Stangeland. 2012. Interactive Listing of American Butterflies. http://www.butterfliesofamerica.com/</generalTaxonomicCoverage>
+                                <taxonomicClassification>
+                                        <taxonRankName>Superfamily</taxonRankName>
+                                    <taxonRankValue>Papilionoidea</taxonRankValue>
+                                        <commonName>Butterflies</commonName>
+                                </taxonomicClassification>
+                        </taxonomicCoverage>
+            </coverage>
+            <maintenance>
+                <description>
+                    <para></para>
+                </description>
+                <maintenanceUpdateFrequency>daily</maintenanceUpdateFrequency>
+            </maintenance>
+            <contact>
+            <individualName>
+<givenName>Maxim</givenName>                    <surName>Larrivée</surName>
+            </individualName>
+<organizationName>Insectarium de Montréal - Espace pour la vie</organizationName><positionName>Director</positionName>            <address>
+<administrativeArea>Quebec</administrativeArea><country>CANADA</country>            </address>
+<electronicMailAddress>maxim.larrivee@ville.montreal.qc.ca</electronicMailAddress>            <userId directory="http://orcid.org/">0000-0002-2925-3736</userId>
+            </contact>
+            <contact>
+            <individualName>
+<givenName>Kent</givenName>                    <surName>McFarland</surName>
+            </individualName>
+<organizationName>Vermont Center for Ecostudies</organizationName><positionName>conservation biologist</positionName>            <address>
+<deliveryPoint>PO Box 420</deliveryPoint><city>Norwich</city><administrativeArea>Vermont</administrativeArea><postalCode>05055</postalCode><country>UNITED_STATES</country>            </address>
+<phone>802-649-1431</phone><electronicMailAddress>kmcfarland@vtecostudies.org</electronicMailAddress>            <userId directory="http://orcid.org/">0000-0001-7809-5503</userId>
+            </contact>
+            <methods>
+                    <methodStep>
+                        <description>
+                            <para>eButterfly documents the presence or presumed absence of species as well as abundance through checklist data. To report butterfly observations, a web interface engages participants to submit observations through three interactive steps. After logging into their eButterfly account to enter observations, participants are asked where they observed butterflies using an online mapping tool to select an existing or new location. Step two asks participants to indicate which of four different protocols they used to count butterflies. Traveling and area counts are effort-based sampling protocols, which require submitting both the amount of time spent butterfly watching and the distance traveled or area searched. Timed counts lack the spatial component and only record the total amount of time spent observing butterflies. The fourth protocol is a less rigorous option, called ‘‘casual observation”, which requires only date, location, and species observed to describe the sampling event. Participants are encouraged to use the most rigorous protocols when possible. The final step presents a checklist of the butterflies known from the state or province where the outing occurred. The participant fills in the number of individuals seen for each species and can upload photographs they captured of those species during the outing. Although “sight only” observations are accepted, eButterfly encourages participants to include photos with their observations for species verification. Observations are tagged as photograph, specimen, or sight observations. Other ancillary information such as counts of each life stage, host plants, sex, behaviors, and other notes, can also be added. At the end of the checklist, participants are presented with a final question that asks if they are submitting a checklist of all butterflies observed during the count. This is an important question that allows data consumers to determine if this is a complete presence/presumed absence checklist, which is more informative than presence-only data.</para>
+                        </description>
+                    </methodStep>
+                    <sampling>
+                        <studyExtent>
+                            <description>
+                                <para>eButterfly users conduct butterfly checklist surveys anywhere they choose from Panama and the Caribbean islands, west to Hawaii and north to arctic Canada and Alaska.</para>
+                            </description>
+                        </studyExtent>
+                        <samplingDescription>
+                            <para>An observer(s) are asked to checklist survey butterflies. They visit a site and find and count as many butterflies as possible. Effort is tracked by the distance walked or area searched. Amount of time searching is recorded. Incidental observations - observing butterflies was not their primary purpose or they lack information about how many other butterfly species are in the area during the observation period (e.g.butterflying while driving or gardening- are also accepted.</para>
+                        </samplingDescription>
+                    </sampling>
+                    <qualityControl>
+                        <description>
+                            <para>Observers are encouraged to photograph every species they encounter, rare or common, to act as vouchers for their observations. eButterfly encourages participants to submit photos of their observations as vouchers for species verification. Photographs are processed in a way that is comparable to how a natural history museum traditionally works with a specimen. The eButterfly participant is analogous to the collector, the crowd-sourced identification system is analogous to the determiner, and eButterfly acts as the curator. eButterfly users validate or suggest corrections to observations with and without photographs based on species’ known ranges and phenology. Additionally, eButterfly users can add identifications and report and comment on others’ observations,  and this provides another mechanism for increased data quality.</para>
+                        </description>
+                    </qualityControl>
+            </methods>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2023-09-12T10:27:48Z</dateStamp>
+                <citation>Larrivée M, McFarland K, Zhang X, Prudic K, Solis R, Bunsen M, Kerr J (2023). eButterfly Surveys. Version 1.514. Vermont Center for Ecostudies. Sampling event dataset https://doi.org/10.15468/ykxm8x accessed via GBIF.org on 2023-09-12.</citation>
+                    <bibliography>
+                <citation identifier="https://doi.org/10.3390/insects8020053">Prudic, K.L.; McFarland, K.P.; Oliver, J.C.; Hutchinson, R.A.; Long, E.C.; Kerr, J.T.; Larrivée, M. (2017) eButterfly: Leveraging Massive Online Citizen Science for Butterfly Conservation. Insects 8 (2), 53.</citation>
+                <citation identifier="http://www.e-butterfly.org">Larrivee M, Prudic KL, McFarland KP, Zhang, X. and J Kerr 2020. eButterfly: a citizen-based butterfly database in the biological sciences. http://www.e-butterfly.org</citation>
+                <citation identifier=" https://doi.org/10.1111/gcb.14358">Soroye, P., Ahmed, N., &amp; Kerr, J. T. (2018). Opportunistic citizen science data transform understanding of species distributions, phenology, and diversity gradients for global change research. Global change biology, 24(11), 5281-5291.</citation>
+                    </bibliography>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+
+</eml:eml>

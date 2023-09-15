@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.2/eml.xsd"
+packageId="9be3b97c-bc8c-490c-8021-dc7c75408076"  system="http://gbif.org" scope="system"
+xml:lang="en">
+
+    <dataset>
+            <alternateIdentifier>10.15468/iyehoe</alternateIdentifier>
+                <alternateIdentifier>https://ecdysis.org/collections/misc/collprofiles.php?collid=84</alternateIdentifier>
+                <alternateIdentifier>https://serv.biokic.asu.edu/ecdysis/collections/misc/collprofiles.php?collid=84</alternateIdentifier>
+                <alternateIdentifier>https://biokic2.rc.asu.edu:443/portal/collections/misc/collprofiles.php?collid=15</alternateIdentifier>
+                <alternateIdentifier>https://scan-bugs.org:443/portal/collections/misc/collprofiles.php?collid=15</alternateIdentifier>
+                <alternateIdentifier>http://scan-bugs.org/portal/collections/misc/collprofiles.php?collid=15</alternateIdentifier>
+                <alternateIdentifier>http://symbiota4.acis.ufl.edu/scan/portal/collections/misc/collprofiles.php?collid=15</alternateIdentifier>
+        <title>Entomology Collection at the Natural History Museum of Utah</title>
+            <creator>
+<organizationName>Ecdysis Portal</organizationName><electronicMailAddress>ajohnston@asu.edu</electronicMailAddress><onlineUrl>https://ecdysis.org/index.php</onlineUrl>            </creator>
+            <metadataProvider>
+<organizationName>Ecdysis Portal</organizationName><electronicMailAddress>ajohnston@asu.edu</electronicMailAddress><onlineUrl>https://ecdysis.org/index.php</onlineUrl>            </metadataProvider>
+            <associatedParty>
+            <individualName>
+<givenName>Christy</givenName>                    <surName>Bills</surName>
+            </individualName>
+<positionName>Collections Manager</positionName><electronicMailAddress>cbills@nhmu.utah.edu</electronicMailAddress>            <role>CONTENT_PROVIDER</role>
+            </associatedParty>
+            <pubDate>
+                2023-09-01
+            </pubDate>
+        <language>ENGLISH</language>
+            <abstract>
+                    <para>The Entomology Collection at the Natural History Museum of Utah consists of approximately 250,000 pinned and alcohol specimens from around the world, with greatest specimen numbers from the intermountain west. The collection dates back to the late 1800s, with heaviest collection periods in the 1930s and 1960s. The collection was relocated in 2012 to a new facility with optimal storage conditions. Areas of greatest strength include Lepidoptera, Cicadidae and Cicindelidae. Future project emphasis is on databasing the collection to increase research utilization of the collection.</para>
+            </abstract>
+            <intellectualRights>
+                    <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+            </intellectualRights>
+            <contact>
+<organizationName>Entomology Collection at the Natural History Museum of Utah</organizationName><electronicMailAddress>cbills@nhmu.utah.edu</electronicMailAddress>            </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2023-09-12T10:27:47Z</dateStamp>
+                <citation>Natural History Museum of Utah (UMNH) (2023). Entomology Collection at the Natural History Museum of Utah. Occurrence dataset https://doi.org/10.15468/iyehoe accessed via GBIF.org on 2023-09-12.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+
+</eml:eml>

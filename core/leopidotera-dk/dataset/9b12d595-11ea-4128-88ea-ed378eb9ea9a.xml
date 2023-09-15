@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.2/eml.xsd"
+packageId="9b12d595-11ea-4128-88ea-ed378eb9ea9a"  system="http://gbif.org" scope="system"
+xml:lang="en">
+
+    <dataset>
+            <alternateIdentifier>10.15468/iuhxpw</alternateIdentifier>
+                <alternateIdentifier>https://scan-bugs.org:443/portal/collections/misc/collprofiles.php?collid=108</alternateIdentifier>
+                <alternateIdentifier>http://scan-bugs.org/portal/collections/misc/collprofiles.php?collid=108</alternateIdentifier>
+                <alternateIdentifier>http://symbiota4.acis.ufl.edu/scan/portal/collections/misc/collprofiles.php?collid=108</alternateIdentifier>
+        <title>Mississippi Entomological Museum</title>
+            <creator>
+<organizationName>SCAN</organizationName><electronicMailAddress>scan_noreply@asu.edu</electronicMailAddress><onlineUrl>https://scan-bugs.org:443/portal/index.php</onlineUrl>            </creator>
+            <metadataProvider>
+<organizationName>SCAN</organizationName><electronicMailAddress>scan_noreply@asu.edu</electronicMailAddress><onlineUrl>https://scan-bugs.org:443/portal/index.php</onlineUrl>            </metadataProvider>
+            <associatedParty>
+<organizationName>Mississippi Entomological Museum</organizationName><positionName>Collection Manager</positionName>            <address>
+<deliveryPoint>(100 Old Highway 12)</deliveryPoint><city>Mississippi State</city><administrativeArea>MS</administrativeArea><postalCode>39762</postalCode>            </address>
+<electronicMailAddress>Jgh4@entomology.msstate.edu</electronicMailAddress>            <role>CONTENT_PROVIDER</role>
+            </associatedParty>
+            <pubDate>
+                2023-05-17
+            </pubDate>
+        <language>ENGLISH</language>
+            <abstract>
+                    <para>The Mississippi Entomological Museum is located in the Department of Entomology and Plant Pathology at Mississippi State University near Starkville, Mississippi. The Mississippi Entomological Museum was formed in 1979, under the leadership of Dr. William H. Cross, to combine several private and institutional collections that were present in the state. The research collection contains more than 1,300,000 pinned specimens, and more than 35,000 are being added annually. The Mississippi Entomological Museum includes collections, beginning in the late 1800&amp;#39;s of H. E. Weed, Henry Dietrich, J. M. Langston, R. W. Harned, Gladys Hoke-Lobdell, E. W. Stafford, M. R. Smith, William H. Cross, Leon W. Hepner, Bryant Mather, and Charles Bryson. Exotic material includes taxa from Central and South America, the Seychelles, New Caledonia, and the Fiji Islands. The MacDonald Collection, emphasizing Lepidoptera of Panama, is housed in the Mississippi Entomological Museum as well as the Ross E. Hutchins collection of photographs, which are primarily of insects and other natural history subjects, and the James Solomon collection of wood damage. More information about the collection is available at http://mississippientomologicalmuseum.org.msstate.edu/. For information pertaining to loans, contact the Curator, Terence Schiefer (tschiefer&amp;#64;entomology.msstate.edu).</para>
+            </abstract>
+            <intellectualRights>
+                    <para>To the extent possible under law, the publisher has waived all rights to these data and has dedicated them to the <ulink url="http://creativecommons.org/publicdomain/zero/1.0/legalcode"><citetitle>Public Domain (CC0 1.0)</citetitle></ulink>. Users may copy, modify, distribute and use the work, including for commercial purposes, without restriction.</para>
+            </intellectualRights>
+            <contact>
+<organizationName>Mississippi Entomological Museum</organizationName><electronicMailAddress>Jgh4@entomology.msstate.edu</electronicMailAddress><onlineUrl>http://mississippientomologicalmuseum.org.msstate.edu/</onlineUrl>            </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2023-09-12T10:27:47Z</dateStamp>
+                <citation>Mississippi Entomological Museum (2023). Mississippi Entomological Museum. Occurrence dataset https://doi.org/10.15468/iuhxpw accessed via GBIF.org on 2023-09-12.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+
+</eml:eml>

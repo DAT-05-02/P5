@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.2/eml.xsd"
+packageId="e3ce628e-9683-4af7-b7a9-47eef785d3bb"  system="http://gbif.org" scope="system"
+xml:lang="en">
+
+    <dataset>
+            <alternateIdentifier>10.15468/slqqt8</alternateIdentifier>
+                <alternateIdentifier>https://collections.ala.org.au/public/show/dr1902</alternateIdentifier>
+                <alternateIdentifier>44cb7442-cdcc-35b4-9d01-9f4715db3637</alternateIdentifier>
+                <alternateIdentifier>http://collections.ala.org.au/public/show/dr1902</alternateIdentifier>
+                <alternateIdentifier>e3ce628e-9683-4af7-b7a9-47eef785d3bb</alternateIdentifier>
+                <alternateIdentifier>a034abf2-d161-329e-9a17-96bed567d828</alternateIdentifier>
+                <alternateIdentifier>ab0ed58a-2264-32d9-b510-531ce9173806</alternateIdentifier>
+        <title>Earth Guardians Weekly Feed</title>
+            <creator>
+<organizationName>Questagame</organizationName>            </creator>
+            <metadataProvider>
+<organizationName>Questagame</organizationName>            </metadataProvider>
+            <associatedParty>
+<organizationName>Atlas of Living Australia</organizationName>            <address>
+<deliveryPoint>CSIRO Ecosystems Services</deliveryPoint><city>Canberra</city><administrativeArea>ACT</administrativeArea><postalCode>2601</postalCode><country>AUSTRALIA</country>            </address>
+<electronicMailAddress>info@ala.org.au</electronicMailAddress>            <role>DISTRIBUTOR</role>
+            </associatedParty>
+            <pubDate>
+                2023-04-26
+            </pubDate>
+        <language>ENGLISH</language>
+            <abstract>
+                    <para>Our data uses the BioExpertise Engine (BEE) to accurately identify and verify observations (see https://bioexpertise.org). The BEE platform uses an anonymous, double-blind peer review system to prevent bias. 
+
+Anyone can give an ID, but IDs are weighted according to expertise levels as a way to ensure the highest accuracy possible while delivering the fastest possible results. Our proprietary consensus algorithm (patent pending) assigns a consensus threshold to every taxon level.  
+
+So it?s possible, for example, that many people can agree on a taxa but the combined expertise levels are too low to surpass the threshold required for verification, and the system will subsequently verify a less precise taxa. 
+Similarly, identifications from just a couple high level experts may be enough to verify a precise, species level taxa.  
+
+BEE rewards digital BioCoin (see https://biocoin.life) for correct IDs, thus increasing reliability and trust while accelerating growth. The BioCoin helps ensure that expertise is valued and taken seriously, thus reducing bias even further and helping ensure the system is inclusive, non-biased and scalable (as opposed to social networks which often produce exclusive groups and depend on popularity to scale). 
+
+By having a stake in the outcome, participants are more judicious in their engagement. For example, anyone can challenge a verified ID at any time, which resubmits the sighting through the same double-blind peer-review process. However, it costs BioCoin to do so. Challengers, meanwhile, can receive a significant BioCoin reward for improving the ID. 
+
+The system awards expertise levels by category according to past behaviour on the system and/or through an application process at https://questagame.com/expertise. 
+
+IMPORTANT: BEE is an open data system with APIs (https://biosmart.life/apis) that do not require individual accounts (it?s not a social network or an open ?crowdsourcing? system). These APIs allow any citizen science project, using a single group account, to receive verified identifications for their community?s observations. We welcome partnerships and collaboration, and we strongly promote open data exchange while at the same time protecting individual rights to the data. For more information, see BioSMART.LIFE (https://biosmart.life/) or contact info&amp;#64;questagame.com.</para>
+            </abstract>
+            <intellectualRights>
+                    <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by-nc/4.0/legalcode"><citetitle>Creative Commons Attribution Non Commercial (CC-BY-NC) 4.0 License</citetitle></ulink>.</para>
+            </intellectualRights>
+            <distribution scope="document">
+                <online>
+                    <url function="information">https://www.earthguardians.life/</url>
+                </online>
+            </distribution>
+            <contact>
+<organizationName>Atlas of Living Australia</organizationName>            <address>
+<deliveryPoint>CSIRO Ecosystems Services</deliveryPoint><city>Canberra</city><administrativeArea>ACT</administrativeArea><postalCode>2601</postalCode><country>AUSTRALIA</country>            </address>
+<electronicMailAddress>info@ala.org.au</electronicMailAddress>            </contact>
+            <methods>
+            </methods>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2023-09-12T10:27:49Z</dateStamp>
+                <citation>Questagame (2023). Earth Guardians Weekly Feed. Occurrence dataset https://doi.org/10.15468/slqqt8 accessed via GBIF.org on 2023-09-12.</citation>
+                    <resourceLogoUrl>https://collections.ala.org.au/data/dataProvider/QuestaGame-logo.png</resourceLogoUrl>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+
+</eml:eml>

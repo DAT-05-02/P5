@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.2/eml.xsd"
+packageId="042051f6-e602-4281-8ac3-d683811f0631"  system="http://gbif.org" scope="system"
+xml:lang="en">
+
+    <dataset>
+            <alternateIdentifier>10.15468/m2htqa</alternateIdentifier>
+                <alternateIdentifier>https://ecdysis.org/collections/misc/collprofiles.php?collid=98</alternateIdentifier>
+                <alternateIdentifier>https://scan-bugs.org:443/portal/collections/misc/collprofiles.php?collid=75</alternateIdentifier>
+                <alternateIdentifier>http://scan-bugs.org/portal/collections/misc/collprofiles.php?collid=75</alternateIdentifier>
+        <title>Virginia Polytechnic Institute and State University Insect Collection</title>
+            <creator>
+<organizationName>Ecdysis Portal</organizationName><electronicMailAddress>ajohnston@asu.edu</electronicMailAddress><onlineUrl>https://ecdysis.org/index.php</onlineUrl>            </creator>
+            <metadataProvider>
+<organizationName>Ecdysis Portal</organizationName><electronicMailAddress>ajohnston@asu.edu</electronicMailAddress><onlineUrl>https://ecdysis.org/index.php</onlineUrl>            </metadataProvider>
+            <associatedParty>
+            <individualName>
+<givenName>Paul</givenName>                    <surName>Marek</surName>
+            </individualName>
+<positionName>Curator</positionName><electronicMailAddress>pmarek@vt.edu</electronicMailAddress>            <role>CONTENT_PROVIDER</role>
+            </associatedParty>
+            <pubDate>
+                2023-09-01
+            </pubDate>
+        <language>ENGLISH</language>
+            <abstract>
+                    <para>The Virginia Polytechnic Institute and State University Insect Collection is the oldest and largest entomological collection in Virginia. Founded in 1888 by W.B. Alwood at the university’s first experimental station with just a few insects collected from his apple orchards, the collection now composes more than 500,000 specimens. The collection contains many entomological treasures like American Burying Beetles collected from Blacksburg in 1889 (now extinct from the state), colorful Malaysian butterflies, a herbarium of plant pests, and an extensive slide collection of 50,000 soil mites. In addition to pinned dried specimens, the VTEC holds an alcohol collection of aquatic insects and Appalachian millipedes.</para>
+            </abstract>
+            <intellectualRights>
+                    <para>To the extent possible under law, the publisher has waived all rights to these data and has dedicated them to the <ulink url="http://creativecommons.org/publicdomain/zero/1.0/legalcode"><citetitle>Public Domain (CC0 1.0)</citetitle></ulink>. Users may copy, modify, distribute and use the work, including for commercial purposes, without restriction.</para>
+            </intellectualRights>
+            <contact>
+<organizationName>Virginia Polytechnic Institute and State University Insect Collection</organizationName><electronicMailAddress>pmarek@vt.edu</electronicMailAddress><onlineUrl>http://collection.ento.vt.edu/</onlineUrl>            </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2023-09-12T10:27:45Z</dateStamp>
+                <citation>Virginia Tech Insect Collection (2023). Virginia Polytechnic Institute and State University Insect Collection. Occurrence dataset https://doi.org/10.15468/m2htqa accessed via GBIF.org on 2023-09-12.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+
+</eml:eml>

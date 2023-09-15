@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.2/eml.xsd"
+packageId="10.15468/dl.e5yf4j"  system="http://gbif.org" scope="system"
+xml:lang="en">
+
+    <dataset>
+                <alternateIdentifier>0014307-230828120925497</alternateIdentifier>
+        <title>GBIF Occurrence Download 10.15468/dl.e5yf4j</title>
+            <creator>
+            <individualName>
+                    <surName>GBIF Download Service</surName>
+            </individualName>
+<electronicMailAddress>support@gbif.org</electronicMailAddress>            </creator>
+            <metadataProvider>
+            <individualName>
+                    <surName>GBIF Download Service</surName>
+            </individualName>
+<electronicMailAddress>support@gbif.org</electronicMailAddress>            </metadataProvider>
+            <pubDate>
+                2023-09-12
+            </pubDate>
+        <language>ENGLISH</language>
+            <abstract>
+                    <para>A dataset containing all occurrences available in GBIF matching the query:
+{
+  &quot;and&quot; : [
+    &quot;Country is Denmark&quot;,
+    &quot;MediaType is Image&quot;,
+    &quot;OccurrenceStatus is Present&quot;,
+    &quot;TaxonKey is Lepidoptera&quot;
+  ]
+}
+The dataset includes records from the following constituent datasets. The full metadata for each constituent is also included in this archive:
+94 records from International Barcode of Life project (iBOL)
+1 records from Virginia Polytechnic Institute and State University Insect Collection
+10 records from Lepidoptera Eastern Fennoscandia (Luomus) (LEPFEN)
+77491 records from iNaturalist Research-grade Observations
+2604 records from Observation.org, Nature data from around the World
+28925 records from Species recordings from the Danish National portal Arter.dk
+1 records from Entomology Division, Yale Peabody Museum
+55 records from Mississippi Entomological Museum
+2 records from Entomology Collection at the Natural History Museum of Utah
+1 records from eButterfly Surveys
+746 records from NHMD Entomology Collection
+1 records from BoBO - Botanic Garden and Botanical Museum Berlin Observations
+2 records from Earth Guardians Weekly Feed
+94 records from Naturalis Biodiversity Center (NL) - Lepidoptera
+640 records from Lepidoptera World (Luomus) (LEPW)</para>
+            </abstract>
+            <contact>
+            <individualName>
+                    <surName>GBIF Download Service</surName>
+            </individualName>
+<electronicMailAddress>support@gbif.org</electronicMailAddress>            </contact>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2023-09-12T10:27:50Z</dateStamp>
+                <citation identifier="10.15468/dl.e5yf4j">GBIF Occurrence Download 10.15468/dl.e5yf4j</citation>
+                    <physical>
+                        <objectName>Darwin Core Archive</objectName>
+                        <characterEncoding>UTF-8</characterEncoding>
+                        <dataFormat>
+                            <externallyDefinedFormat>
+                                <formatName>Darwin Core Archive</formatName>
+                            </externallyDefinedFormat>
+                        </dataFormat>
+                        <distribution>
+                            <online>
+                                <url function="download">https://api.gbif.org/v1/occurrence/download/request/0014307-230828120925497.zip</url>
+                            </online>
+                        </distribution>
+                    </physical>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+
+</eml:eml>
