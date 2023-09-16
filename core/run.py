@@ -10,4 +10,4 @@ if __name__ == "__main__":
     # Uncomment below depending on how many images you want to download
     #
     df = df[10000:10101]
-    fetch_images(df, "references")
+    fetch_images(df, "identifier")
