@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eml:eml xmlns:eml="eml://ecoinformatics.org/eml-2.1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="eml://ecoinformatics.org/eml-2.1.1 http://rs.gbif.org/schema/eml-gbif-profile/1.2/eml.xsd"
+packageId="e0459621-92c2-40ac-9934-72b3b1384dc3"  system="http://gbif.org" scope="system"
+xml:lang="en">
+
+    <dataset>
+            <alternateIdentifier>10.15468/nnobcm</alternateIdentifier>
+                <alternateIdentifier>e9a9d022-6c43-11eb-a20c-dbb51733737e</alternateIdentifier>
+                <alternateIdentifier>http://danbif.au.dk/ipt/resource?r=ento-collections-natural-history-museum-denmark</alternateIdentifier>
+                <alternateIdentifier>http://danbif.au.dk/ipt/resource.do?r=ento-collections-natural-history-museum-denmark</alternateIdentifier>
+                <alternateIdentifier>e0459621-92c2-40ac-9934-72b3b1384dc3</alternateIdentifier>
+        <title>NHMD Entomology Collection</title>
+            <creator>
+            <individualName>
+<givenName>Nikolaj</givenName>                    <surName>Scharff</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Curator of Arachnida</positionName>            <address>
+<deliveryPoint>Universitetsparken 15</deliveryPoint><city>Copenhagen</city><administrativeArea>Capital Region of Denmark</administrativeArea><postalCode>2100</postalCode><country>DENMARK</country>            </address>
+<electronicMailAddress>nscharff@snm.ku.dk</electronicMailAddress>            </creator>
+            <metadataProvider>
+            <individualName>
+<givenName>Thomas</givenName>                    <surName>Pape</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Curator of Diptera and Lepidoptera</positionName><electronicMailAddress>tpape@snm.ku.dk</electronicMailAddress>            </metadataProvider>
+            <metadataProvider>
+            <individualName>
+<givenName>Alexey</givenName>                    <surName>Solodovnikov</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Curator of Coleoptera</positionName><electronicMailAddress>asolodovnikov@snm.ku.dk</electronicMailAddress>            </metadataProvider>
+            <metadataProvider>
+            <individualName>
+<givenName>Lars</givenName>                    <surName>Vilhelmsen</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Curator of Hymenoptera, Hemiptera and lesser orders</positionName><electronicMailAddress>lbvilhelmsen@snm.ku.dk</electronicMailAddress>            </metadataProvider>
+            <metadataProvider>
+            <individualName>
+<givenName>Henrik</givenName>                    <surName>Enghoff</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Curator of Myriapoda</positionName><electronicMailAddress>henghoff@snm.ku.dk</electronicMailAddress>            </metadataProvider>
+            <metadataProvider>
+            <individualName>
+<givenName>Anders Alexander</givenName>                    <surName>Illum</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Collection manager</positionName><electronicMailAddress>andersaillum@snm.ku.dk</electronicMailAddress>            </metadataProvider>
+            <metadataProvider>
+            <individualName>
+<givenName>Sree Gayathree</givenName>                    <surName>Selvantharan</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Collection manager</positionName><electronicMailAddress>selvantharan@snm.ku.dk</electronicMailAddress>            </metadataProvider>
+            <metadataProvider>
+            <individualName>
+<givenName>Jan</givenName>                    <surName>Pedersen</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Collection manager</positionName><electronicMailAddress>japedersen@snm.ku.dk</electronicMailAddress>            </metadataProvider>
+            <associatedParty>
+            <individualName>
+<givenName>Nikolaj</givenName>                    <surName>Scharff</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Curator of Arachnida</positionName>            <address>
+<deliveryPoint>Universitetsparken 15</deliveryPoint><city>Copenhagen</city><administrativeArea>Capital Region of Denmark</administrativeArea><postalCode>2100</postalCode><country>DENMARK</country>            </address>
+<electronicMailAddress>nscharff@snm.ku.dk</electronicMailAddress>            <role>CURATOR</role>
+            </associatedParty>
+            <associatedParty>
+            <individualName>
+<givenName>Thomas</givenName>                    <surName>Pape</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Curator of Diptera and Lepidoptera</positionName><electronicMailAddress>tpape@snm.ku.dk</electronicMailAddress>            <role>CURATOR</role>
+            </associatedParty>
+            <associatedParty>
+            <individualName>
+<givenName>Alexey</givenName>                    <surName>Solodovnikov</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Curator of Coleoptera</positionName><electronicMailAddress>asolodovnikov@snm.ku.dk</electronicMailAddress>            <role>CURATOR</role>
+            </associatedParty>
+            <associatedParty>
+            <individualName>
+<givenName>Lars</givenName>                    <surName>Vilhelmsen</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Curator of Hymenoptera, Hemiptera and lesser orders</positionName><electronicMailAddress>lbvilhelmsen@snm.ku.dk</electronicMailAddress>            <role>CURATOR</role>
+            </associatedParty>
+            <associatedParty>
+            <individualName>
+<givenName>Henrik</givenName>                    <surName>Enghoff</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Curator of Myriapoda</positionName><electronicMailAddress>henghoff@snm.ku.dk</electronicMailAddress>            <role>CURATOR</role>
+            </associatedParty>
+            <associatedParty>
+            <individualName>
+<givenName>Fedor Alexander</givenName>                    <surName>Steeman</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Data Coordinator</positionName>            <address>
+<deliveryPoint>Universitetsparken 15</deliveryPoint><city>Copenhagen</city><administrativeArea>Capital Region of Denmark</administrativeArea><postalCode>2100</postalCode><country>DENMARK</country>            </address>
+<phone>+45 22369539</phone><electronicMailAddress>fedor.steeman@snm.ku.dk</electronicMailAddress>            <userId directory="http://orcid.org/">0000-0002-2153-8104</userId>
+            <role>DISTRIBUTOR</role>
+            </associatedParty>
+            <associatedParty>
+            <individualName>
+<givenName>Zsuzsanna</givenName>                    <surName>Papp</surName>
+            </individualName>
+<organizationName>Natural History Museum of Denmark</organizationName><positionName>Data Coordinator</positionName>            <address>
+<deliveryPoint>Universitetsparken 15</deliveryPoint><city>Copenhagen</city><administrativeArea>Capital Region of Denmark</administrativeArea><postalCode>2100</postalCode><country>DENMARK</country>            </address>
+<electronicMailAddress>zsuzsanna.papp@snm.ku.dk</electronicMailAddress>            <role>DISTRIBUTOR</role>
+            </associatedParty>
+            <pubDate>
+                2023-09-01
+            </pubDate>
+        <language>ENGLISH</language>
+            <abstract>
+                    <para>The entomological collection (including myriapods and arachnids) is the largest in the museum. It includes ca. NN dry insect specimens on pins in ca. NN drawers, and ca. NN specimens in alcohol in multiple containers. There is a growing DNA-grade insect tissue collection (mainly beetles) kept at low temperatures. The entomological collection has global coverage with particularly good representation of the Palearctic material and samples from East Africa. The Danish fauna is also very well represented. The collection includes many historical and recent nomenclatural types which are kept under particular care, where the material by Fabricius is the most notable.</para>
+                    <para>Den entomologiske samling (inklusive myriapoder og arachnider) er den største på museet. Det inkluderer ca. NN tørre insektprøver på stifter i ca. NN-skuffer og ca. NN-prøver i alkohol i flere beholdere. Der er en voksende indsamling af insektvæv af DNA-kvalitet (hovedsagelig biller), der holdes ved lave temperaturer. Den entomologiske samling har global dækning med særlig god repræsentation af det palearktiske materiale og prøver fra Østafrika. Den danske fauna er også meget godt repræsenteret. Samlingen indeholder mange historiske og nylige nomenklaturlige typer, der holdes under særlig omhu, hvor materialet fra Fabricius er det mest bemærkelsesværdige.</para>
+            </abstract>
+                <keywordSet>
+                        <keyword>Copenhagen</keyword>
+                        <keyword>arachnida</keyword>
+                        <keyword>crustacea</keyword>
+                        <keyword>entomology</keyword>
+                        <keyword>Denmark</keyword>
+                        <keyword>myriapoda</keyword>
+                        <keyword>insects</keyword>
+                        <keyword>zoology</keyword>
+                        <keyword>insecta</keyword>
+                        <keywordThesaurus>n/a</keywordThesaurus>
+                </keywordSet>
+                <keywordSet>
+                        <keyword>Specimen</keyword>
+                        <keywordThesaurus>GBIF Dataset Subtype Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_subtype.xml</keywordThesaurus>
+                </keywordSet>
+                <keywordSet>
+                        <keyword>Occurrence</keyword>
+                        <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type.xml</keywordThesaurus>
+                </keywordSet>
+            <intellectualRights>
+                    <para>This work is licensed under a <ulink url="http://creativecommons.org/licenses/by/4.0/legalcode"><citetitle>Creative Commons Attribution (CC-BY) 4.0 License</citetitle></ulink>.</para>
+            </intellectualRights>
+
+    </dataset>
+
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2023-09-12T10:27:48Z</dateStamp>
+                <citation>Scharff N, Pape T, Solodovnikov A, Vilhelmsen L, Enghoff H, Illum A A, Selvantharan S G, Pedersen J (2023). NHMD Entomology Collection. Natural History Museum of Denmark. Occurrence dataset https://doi.org/10.15468/nnobcm accessed via GBIF.org on 2023-09-12.</citation>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+
+</eml:eml>

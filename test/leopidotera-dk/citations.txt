@@ -1,0 +1,16 @@
+When using this dataset please use the following citation and pay attention to the rights documented in rights.txt:
+The International Barcode of Life Consortium (2023). International Barcode of Life project (iBOL). Occurrence dataset https://doi.org/10.15468/inygc6 accessed via GBIF.org on 2023-09-12.
+Virginia Tech Insect Collection (2023). Virginia Polytechnic Institute and State University Insect Collection. Occurrence dataset https://doi.org/10.15468/m2htqa accessed via GBIF.org on 2023-09-12.
+Finnish Biodiversity Information Facility (2023). Lepidoptera Eastern Fennoscandia (Luomus) (LEPFEN). Occurrence dataset https://doi.org/10.15468/vcddkt accessed via GBIF.org on 2023-09-12.
+iNaturalist contributors, iNaturalist (2023). iNaturalist Research-grade Observations. iNaturalist.org. Occurrence dataset https://doi.org/10.15468/ab3s5x accessed via GBIF.org on 2023-09-12.
+de Vries H, Lemmens M (2023). Observation.org, Nature data from around the World. Observation.org. Occurrence dataset https://doi.org/10.15468/5nilie accessed via GBIF.org on 2023-09-12.
+Arter project group (2020). Species recordings from the Danish National portal Arter.dk. Miljøstyrelsen / The Danish Environmental Protection Agency. Occurrence dataset https://doi.org/10.15468/q3yy4u accessed via GBIF.org on 2023-09-12.
+Gall L (2023). Entomology Division, Yale Peabody Museum. Yale University Peabody Museum. Occurrence dataset https://doi.org/10.15468/95waq3 accessed via GBIF.org on 2023-09-12.
+Mississippi Entomological Museum (2023). Mississippi Entomological Museum. Occurrence dataset https://doi.org/10.15468/iuhxpw accessed via GBIF.org on 2023-09-12.
+Natural History Museum of Utah (UMNH) (2023). Entomology Collection at the Natural History Museum of Utah. Occurrence dataset https://doi.org/10.15468/iyehoe accessed via GBIF.org on 2023-09-12.
+Larrivée M, McFarland K, Zhang X, Prudic K, Solis R, Bunsen M, Kerr J (2023). eButterfly Surveys. Version 1.514. Vermont Center for Ecostudies. Sampling event dataset https://doi.org/10.15468/ykxm8x accessed via GBIF.org on 2023-09-12.
+Scharff N, Pape T, Solodovnikov A, Vilhelmsen L, Enghoff H, Illum A A, Selvantharan S G, Pedersen J (2023). NHMD Entomology Collection. Natural History Museum of Denmark. Occurrence dataset https://doi.org/10.15468/nnobcm accessed via GBIF.org on 2023-09-12.
+Botanic Garden and Botanical Museum Berlin (2019). BoBO - Botanic Garden and Botanical Museum Berlin Observations. Occurrence dataset https://doi.org/10.15468/9ll2gz accessed via GBIF.org on 2023-09-12.
+Questagame (2023). Earth Guardians Weekly Feed. Occurrence dataset https://doi.org/10.15468/slqqt8 accessed via GBIF.org on 2023-09-12.
+de Vos R, Creuwels J (2023). Naturalis Biodiversity Center (NL) - Lepidoptera. Naturalis Biodiversity Center. Occurrence dataset https://doi.org/10.15468/n4q0sa accessed via GBIF.org on 2023-09-12.
+Finnish Biodiversity Information Facility (2023). Lepidoptera World (Luomus) (LEPW). Occurrence dataset https://doi.org/10.15468/mcarqb accessed via GBIF.org on 2023-09-12.

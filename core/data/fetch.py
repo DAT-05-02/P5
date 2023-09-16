@@ -1,24 +1,24 @@
-import pandas as pd
 import requests, math
 from PIL import Image
 from core.data import *
 
 
 def setup(dataset_path: str, dataset_csv_filename: str):
+    """
+    Args:
+        dataset_path: path to original dataset file
+        dataset_csv_filename: filename for the csv file
+
+    Returns: pandas.DataFrame object with data
+    """
     if not os.path.exists(dataset_csv_filename):
-        return convert_to_csv(read_path=dataset_path, save_path=dataset_csv_filename)
+        return pd.read_csv(dataset_path, sep="	", low_memory=False).to_csv(dataset_csv_filename, index=None)
     else:
         return pd.read_csv(dataset_csv_filename, low_memory=False)
 
 
-def convert_to_csv(read_path, save_path):
-    read_file = pd.read_csv(read_path, sep="	", low_memory=False)
-    read_file.to_csv(save_path, index=None)
-    return read_file
-
-
-def img_path_from_row(row, index):
-    extension = row['identifier'].split(".")[-1]
+def img_path_from_row(row, index, row_value="identifier"):
+    extension = row[row_value].split(".")[-1]
     return f"{IMG_PATH}{index}.{extension}"
 
 

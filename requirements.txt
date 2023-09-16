@@ -1,2 +1,4 @@
+requests
 pillow
 pandas
+pytest
