@@ -1,3 +1,5 @@
+import logging
+
 import requests, math
 from PIL import Image
 from core.data import *
