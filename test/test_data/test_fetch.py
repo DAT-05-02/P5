@@ -41,7 +41,7 @@ def test_setup(fetcher: FetchTester):
 @pytest.mark.parametrize("index", [5, 10, 100, 15004, 110521])
 def test_img_path_from_row(index, fetcher: FetchTester):
     supported_ext = [fetcher.img_path + str(index) + w for w in Image.registered_extensions().keys()]
-    assert img_path_from_row(row=fetcher.df.iloc[index], column="identifier") in supported_ext
+    assert img_path_from_row(index=index, row=fetcher.df.iloc[index], column="identifier") in supported_ext
 
 
 def random_index(df):
