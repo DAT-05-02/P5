@@ -2,6 +2,7 @@ import logging
 import os
 import random
 import pandas
+import pandas as pd
 import pytest
 from PIL import Image
 
@@ -16,7 +17,7 @@ class FetchTester:
                  img_path="image_db/",
                  csv_name="leopidotera-dk.csv",
                  img_col="identifier"):
-        self.df: pandas.DataFrame = setup_dataset(import_path, save_path)
+        self.df: pd.DataFrame = pd.DataFrame()
         self.save_path = save_path
         self.img_path = img_path
         self.import_path = import_path
@@ -29,10 +30,18 @@ def fetcher() -> FetchTester:
     return FetchTester()
 
 
+def test_setup(fetcher: FetchTester):
+    if os.path.exists(fetcher.save_path):
+        os.remove(fetcher.save_path)
+    assert os.path.exists(fetcher.import_path)
+    fetcher.df = setup_dataset(dataset_path=fetcher.import_path, dataset_csv_filename=fetcher.save_path)
+    assert os.path.exists(fetcher.save_path) is True
+
+
 @pytest.mark.parametrize("index", [5, 10, 100, 15004, 110521])
 def test_img_path_from_row(index, fetcher: FetchTester):
     supported_ext = [fetcher.img_path + str(index) + w for w in Image.registered_extensions().keys()]
-    assert img_path_from_row(index=index, row=fetcher.df.iloc[index], row_value="identifier") in supported_ext
+    assert img_path_from_row(row=fetcher.df.iloc[index], column="identifier") in supported_ext
 
 
 def random_index(df):
@@ -51,11 +60,3 @@ def test_fetch_images(fetcher: FetchTester, n_times):
     fetch_images(df, fetcher.img_col)
     file_count = sum(len(files) for _, _, files in os.walk(fetcher.img_path))
     assert file_count == amount
-
-
-def test_setup(fetcher: FetchTester):
-    if os.path.exists(fetcher.save_path):
-        os.remove(fetcher.save_path)
-    assert os.path.exists(fetcher.import_path)
-    fetcher.df = setup_dataset(dataset_path=fetcher.import_path, dataset_csv_filename=fetcher.save_path)
-    assert os.path.exists(fetcher.save_path) is True
