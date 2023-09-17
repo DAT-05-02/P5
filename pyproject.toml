@@ -4,3 +4,6 @@ pythonpath="core"
 addopts = [
     "--import-mode=importlib",
 ]
+testpaths = [
+    "test"
+]
