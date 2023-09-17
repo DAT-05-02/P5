@@ -1,12 +1,13 @@
-import logging
-
-import requests, math
+from concurrent.futures import ThreadPoolExecutor
+import requests
 from PIL import Image
+
 from core.data import *
+from util.util import timing
 
 
-def setup(dataset_path: str, dataset_csv_filename: str):
-    """
+def setup_dataset(dataset_path: str, dataset_csv_filename: str):
+    """ Loads a file, converts to csv if none exists, or loads an exisiting csv into a pd.DateFrame object
     Args:
         dataset_path: path to original dataset file
         dataset_csv_filename: filename for the csv file
@@ -24,19 +25,17 @@ def img_path_from_row(row, index, row_value="identifier"):
     return f"{IMG_PATH}{index}.{extension}"
 
 
-def loading_bar(i, max):
-    bl = 50
-    i = max - i
-    chars = math.ceil(i * (bl / max))
-    p = math.ceil((i / max) * 100)
-    print('▮' * chars + '▯' * (bl - chars), str(p) + '%', end='\r')
-
-
+@timing
 def fetch_images(df: pd.DataFrame, col: str):
-    r_count = len(df)
-    for index, row in df.iterrows():
-        path = img_path_from_row(row, index)
+    def save_img(row, path):
         if not os.path.exists(path):
-            # TODO should compress/resize to agreed upon size
             Image.open(requests.get(row[col], stream=True).raw).save(path)
-        loading_bar(df.index[-1] - index, r_count)
+
+    r_count = len(df)
+    with ThreadPoolExecutor(r_count) as executor:
+        # TODO should compress/resize to agreed upon size
+       futures = [executor.submit(save_img(row, img_path_from_row(row, index))) for index, row in df.iterrows()]
+
+
+
+
