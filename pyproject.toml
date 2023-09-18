@@ -2,7 +2,7 @@
 line-length = 121
 
 [tool.pytest.ini_options]
-pythonpath=["core/"]
+pythonpath=["."]
 addopts = [
     "--import-mode=prepend",
 ]

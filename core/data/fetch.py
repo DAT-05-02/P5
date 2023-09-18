@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 import os
 from PIL import Image
-from util.util import timing
+from core.util.util import timing
 
 IMG_PATH = "image_db/"
 
