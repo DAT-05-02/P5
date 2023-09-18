@@ -2,9 +2,10 @@ from concurrent.futures import ThreadPoolExecutor
 import requests
 import pandas as pd
 import os
-from core.data import IMG_PATH
 from PIL import Image
 from util.util import timing
+
+IMG_PATH = "image_db/"
 
 
 def setup_dataset(dataset_path: str, dataset_csv_filename: str):
@@ -15,6 +16,8 @@ def setup_dataset(dataset_path: str, dataset_csv_filename: str):
 
     Returns: pandas.DataFrame object with data
     """
+    if not os.path.exists(IMG_PATH):
+        os.makedirs(IMG_PATH)
     if not os.path.exists(dataset_csv_filename):
         df = pd.read_csv(dataset_path, sep="	", low_memory=False)
         df.to_csv(dataset_csv_filename, index=None)
