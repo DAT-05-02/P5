@@ -1,9 +1,11 @@
+[tool.ruff]
+line-length = 121
 
 [tool.pytest.ini_options]
-pythonpath="core"
+pythonpath=[".", "core/", "test/"]
 addopts = [
     "--import-mode=importlib",
 ]
 testpaths = [
-    "test"
+    "test/"
 ]

@@ -2,3 +2,4 @@ requests
 pillow
 pandas
 pytest
+ruff
