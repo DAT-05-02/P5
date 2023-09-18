@@ -1,8 +1,9 @@
 from concurrent.futures import ThreadPoolExecutor
 import requests
+import pandas as pd
+import os
+from core.data import IMG_PATH
 from PIL import Image
-
-from core.data import *
 from util.util import timing
 
 
@@ -48,7 +49,7 @@ def fetch_images(df: pd.DataFrame, col: str):
     r_count = len(df)
     with ThreadPoolExecutor(r_count) as executor:
         # TODO should compress/resize to agreed upon size
-       futures = [executor.submit(save_img(row, img_path_from_row(row, index))) for index, row in df.iterrows()]
+       [executor.submit(save_img(row, img_path_from_row(row, index))) for index, row in df.iterrows()]
 
 
 

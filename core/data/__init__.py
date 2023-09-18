@@ -1,5 +1,4 @@
 import os
-import pandas as pd
 
 IMG_PATH = "image_db/"
 
