@@ -11,8 +11,8 @@ from core.data.fetch import img_path_from_row, setup_dataset, fetch_images
 class FetchTester:
 
     def __init__(self,
-                 save_path="test/leopidotera-dk/leopidotera-dk.csv",
-                 import_path="test/leopidotera-dk/multimedia.txt",
+                 save_path="leopidotera-dk/leopidotera-dk.csv",
+                 import_path="leopidotera-dk/multimedia.txt",
                  img_path="image_db/",
                  csv_name="leopidotera-dk.csv",
                  img_col="identifier"):
