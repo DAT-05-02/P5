@@ -1,7 +1,6 @@
 import logging
 import os
 import random
-import pandas
 import pandas as pd
 import pytest
 from PIL import Image

@@ -1,9 +1,11 @@
 from concurrent.futures import ThreadPoolExecutor
 import requests
+import pandas as pd
+import os
 from PIL import Image
-
-from core.data import *
 from util.util import timing
+
+IMG_PATH = "image_db/"
 
 
 def setup_dataset(dataset_path: str, dataset_csv_filename: str):
@@ -14,6 +16,8 @@ def setup_dataset(dataset_path: str, dataset_csv_filename: str):
 
     Returns: pandas.DataFrame object with data
     """
+    if not os.path.exists(IMG_PATH):
+        os.makedirs(IMG_PATH)
     if not os.path.exists(dataset_csv_filename):
         df = pd.read_csv(dataset_path, sep="	", low_memory=False)
         df.to_csv(dataset_csv_filename, index=None)
@@ -48,7 +52,7 @@ def fetch_images(df: pd.DataFrame, col: str):
     r_count = len(df)
     with ThreadPoolExecutor(r_count) as executor:
         # TODO should compress/resize to agreed upon size
-       futures = [executor.submit(save_img(row, img_path_from_row(row, index))) for index, row in df.iterrows()]
+       [executor.submit(save_img(row, img_path_from_row(row, index))) for index, row in df.iterrows()]
 
 
 
