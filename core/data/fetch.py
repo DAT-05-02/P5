@@ -1,7 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 import requests
 import pandas as pd
-import numpy as np
 import os
 from PIL import Image
 from core.util.util import timing
@@ -55,7 +54,7 @@ def img_path_from_row(row: pd.Series, index: int, column="identifier"):
         extension = "jpg"
     return f"{IMG_PATH}{index}.{extension}"
 
-
+# implement
 @timing
 def fetch_images(df: pd.DataFrame, col: str):
     """
