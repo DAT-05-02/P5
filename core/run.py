@@ -3,9 +3,5 @@ DATA_PATH="leopidotera-dk.csv"
 LABEL_PATH="leopidotera-dk/occurrence.txt"
 
 if __name__ == "__main__":
-    df = setup_dataset("leopidotera-dk/multimedia.txt", LABEL_PATH, DATA_PATH)
-    #
-    # Uncomment below depending on how many images you want to download
-    #
-    df = df[0:250]
-    #fetch_images(df, "identifier")
+    df = setup_dataset("leopidotera-dk/multimedia.txt", LABEL_PATH, DATA_PATH, 200)
+    fetch_images(df, "identifier")
