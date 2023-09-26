@@ -13,11 +13,16 @@ class FetchTester:
     def __init__(self,
                  save_path="leopidotera-dk/leopidotera-dk.csv",
                  import_path="leopidotera-dk/multimedia.txt",
+                 label_path="leopidotera-dk/occurence.txt",
                  img_path="image_db/",
+                 columns=None,
                  csv_name="leopidotera-dk.csv",
                  img_col="identifier"):
+        if columns is None:
+            columns = ['gbifID', 'identifier', '']
         self.df: pd.DataFrame = pd.DataFrame()
         self.save_path = save_path
+        self.label_path = label_path
         self.img_path = img_path
         self.import_path = import_path
         self.csv_name = csv_name
