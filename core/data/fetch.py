@@ -6,24 +6,39 @@ from PIL import Image
 from core.util.util import timing
 
 IMG_PATH = "image_db/"
+MERGE_COLS = ['genericName', 'species', 'family', 'stateProvince', 'gbifID', 'identifier', 'format', 'created',
+              'iucnRedListCategory']
 
 
-def setup_dataset(dataset_path: str, dataset_csv_filename: str):
-    """ Loads a file, converts to csv if none exists, or loads an exisiting csv into a pd.DateFrame object
-    Args:
-        dataset_path: path to original dataset file
-        dataset_csv_filename: filename for the csv file
+def setup_dataset(dataset_path: str, label_path: str, dataset_csv_filename: str, num_rows=None):
+    """ Loads a file, converts to csv if none exists, or loads an existing csv into a pd.DateFrame object
+    @param label_path: path to label dataset
+    @param dataset_path: path to original dataset file
+    @param dataset_csv_filename: filename for the csv file
+    @param num_rows: number of rows to include
 
     Returns: pandas.DataFrame object with data
     """
     if not os.path.exists(IMG_PATH):
         os.makedirs(IMG_PATH)
     if not os.path.exists(dataset_csv_filename):
-        df = pd.read_csv(dataset_path, sep="	", low_memory=False)
-        df.to_csv(dataset_csv_filename, index=None)
-        return df
+        df1 = pd.read_csv(dataset_path, sep="	", low_memory=False)
+        if num_rows:
+            df1.drop(df1.index[num_rows:], inplace=True)
+        df2 = pd.read_csv(label_path, sep="	", low_memory=False)
+        df2.to_csv("occurrence.csv", index=None)
+        drop_cols([df1, df2], MERGE_COLS)
+        df1 = df1.merge(df2[df2['gbifID'].isin(df1['gbifID'])], on=['gbifID'])
+        df1.to_csv(dataset_csv_filename, index=None)
+        df = df1
     else:
-        return pd.read_csv(dataset_csv_filename, low_memory=False)
+        df = pd.read_csv(dataset_csv_filename, low_memory=False)
+    return df
+
+
+def drop_cols(dfs, cols):
+    for df in list(dfs):
+        df.drop(columns=[col for col in df if col not in MERGE_COLS], inplace=True)
 
 
 def img_path_from_row(row: pd.Series, index: int, column="identifier"):
@@ -35,9 +50,11 @@ def img_path_from_row(row: pd.Series, index: int, column="identifier"):
     @rtype: str
     """
     extension = row[column].split(".")[-1]
+    if len(extension) < 1:
+        extension = "jpg"
     return f"{IMG_PATH}{index}.{extension}"
 
-
+# implement
 @timing
 def fetch_images(df: pd.DataFrame, col: str):
     """
@@ -47,6 +64,7 @@ def fetch_images(df: pd.DataFrame, col: str):
     """
     def save_img(row, path):
         if not os.path.exists(path):
+            print(path)
             Image.open(requests.get(row[col], stream=True).raw).save(path)
 
     r_count = len(df)
