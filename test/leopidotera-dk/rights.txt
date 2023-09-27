@@ -1,3 +1,30 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ff91be7978381e136301f3b81b5bc559a8d9476200b7e4909fa6349742dd20c2
-size 1960
+Dataset: International Barcode of Life project (iBOL) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Virginia Polytechnic Institute and State University Insect Collection 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Lepidoptera Eastern Fennoscandia (Luomus) (LEPFEN) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: iNaturalist Research-grade Observations 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Observation.org, Nature data from around the World 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Species recordings from the Danish National portal Arter.dk 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: Entomology Division, Yale Peabody Museum 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Mississippi Entomological Museum 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Entomology Collection at the Natural History Museum of Utah 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: eButterfly Surveys 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: NHMD Entomology Collection 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
+Dataset: BoBO - Botanic Garden and Botanical Museum Berlin Observations 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Earth Guardians Weekly Feed 
+Rights as supplied: http://creativecommons.org/licenses/by-nc/4.0/legalcode
+Dataset: Naturalis Biodiversity Center (NL) - Lepidoptera 
+Rights as supplied: http://creativecommons.org/publicdomain/zero/1.0/legalcode
+Dataset: Lepidoptera World (Luomus) (LEPW) 
+Rights as supplied: http://creativecommons.org/licenses/by/4.0/legalcode
