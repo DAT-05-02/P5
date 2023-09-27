@@ -54,7 +54,15 @@ def img_path_from_row(row: pd.Series, index: int, column="identifier"):
         extension = "jpg"
     return f"{IMG_PATH}{index}.{extension}"
 
-# implement
+
+def make_square_with_bb(im, min_size=256, fill_color=(0, 0, 0, 0)):
+    x, y = im.size
+    size = max(min_size, x, y)
+    new_im = Image.new('RGB', (size, size), fill_color)
+    new_im.paste(im, (int((size - x) / 2), int((size - y) / 2)))
+    return new_im
+
+
 @timing
 def fetch_images(df: pd.DataFrame, col: str):
     """
@@ -62,16 +70,15 @@ def fetch_images(df: pd.DataFrame, col: str):
     @param df: the DataFrame containing links
     @param col: which column the links are in
     """
+
     def save_img(row, path):
         if not os.path.exists(path):
             print(path)
-            Image.open(requests.get(row[col], stream=True).raw).save(path)
+            img = Image.open(requests.get(row[col], stream=True).raw)
+            img = make_square_with_bb(img, 416)
+            img.save(path)
 
     r_count = len(df)
     with ThreadPoolExecutor(r_count) as executor:
         # TODO should compress/resize to agreed upon size
-       [executor.submit(save_img(row, img_path_from_row(row, index))) for index, row in df.iterrows()]
-
-
-
-
+        [executor.submit(save_img(row, img_path_from_row(row, index))) for index, row in df.iterrows()]
