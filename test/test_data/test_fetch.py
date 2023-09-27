@@ -13,7 +13,7 @@ class FetchTester:
     def __init__(self,
                  save_path="leopidotera-dk/leopidotera-dk.csv",
                  import_path="leopidotera-dk/multimedia.txt",
-                 label_path="leopidotera-dk/occurence.txt",
+                 label_path="leopidotera-dk/occurrence.txt",
                  img_path="image_db/",
                  columns=None,
                  csv_name="leopidotera-dk.csv",
@@ -38,7 +38,9 @@ def test_setup(fetcher: FetchTester):
     if os.path.exists(fetcher.save_path):
         os.remove(fetcher.save_path)
     assert os.path.exists(fetcher.import_path)
-    fetcher.df = setup_dataset(dataset_path=fetcher.import_path, dataset_csv_filename=fetcher.save_path)
+    fetcher.df = setup_dataset(dataset_path=fetcher.import_path,
+                               label_path=fetcher.label_path,
+                               dataset_csv_filename=fetcher.save_path)
     assert os.path.exists(fetcher.save_path) is True
 
 
