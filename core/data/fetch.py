@@ -76,6 +76,7 @@ def fetch_images(df: pd.DataFrame, col: str):
             print(path)
             img = Image.open(requests.get(row[col], stream=True).raw)
             img = make_square_with_bb(img, 416)
+            img = img.resize((416, 416))
             img.save(path)
 
     r_count = len(df)
