@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from typing import Any
 
 import numpy as np
 import requests
@@ -6,7 +7,7 @@ import pandas as pd
 import os
 from PIL import Image
 from core.util.util import timing
-from data.feature import lbp
+from data.feature import lbp, rlbp
 
 IMG_PATH = "image_db/"
 MERGE_COLS = ['genericName', 'species', 'family', 'stateProvince', 'gbifID', 'identifier', 'format', 'created',
@@ -44,18 +45,22 @@ def drop_cols(dfs, cols):
         df.drop(columns=[col for col in df if col not in MERGE_COLS], inplace=True)
 
 
-def img_path_from_row(row: pd.Series, index: int, column="identifier"):
+def img_path_from_row(row: pd.Series, index: int, column="identifier", extra=None):
     """Generates path for an image based on row and index with optional column, in which the image link is.
     @param row: Series to extract file path from
     @param index: of the row. Series objects don't inherently know which index they are in a DataFrame.
     @param column: (optional) which column the file path is in
+    @param extra: (optional) extra keywords in name
     @return: the path to save the image in
     @rtype: str
     """
     extension = row[column].split(".")[-1]
     if len(extension) < 1:
         extension = "jpg"
-    return f"{IMG_PATH}{index}.{extension}"
+    out = f"{IMG_PATH}{index}"
+    if extra:
+        out += extra
+    return out + f".{extension}"
 
 
 def make_square_with_bb(im, min_size=256, fill_color=(0, 0, 0, 0)):
@@ -74,16 +79,36 @@ def fetch_images(df: pd.DataFrame, col: str):
     @param col: which column the links are in
     """
 
-    def save_img(row, path):
-        if not os.path.exists(path):
-            print(path)
-            img = Image.open(requests.get(row[col], stream=True).raw)
-            #img = Image.fromarray(np.uint8(np.array(lbp(img)))).convert("L")
-            img = img.convert("L")
-            img = make_square_with_bb(img, 416)
-            img = img.resize((416, 416))
-            img.save(path)
+    def save_img(row: pd.Series, index) -> Any:
+        def save_img_inner(img, radius=1, resize=False, resize_first=False) -> Any:
+            extra = "_"
+            if resize:
+                extra += "resize"
+            if resize_first:
+                extra += "first"
+            extra += str(radius)
+            path = img_path_from_row(row, index, extra=extra)
+            if not os.path.exists(path):
+                print(path)
+                if resize:
+                    if resize_first:
+                        img = make_square_with_bb(img, 416)
+                        img = img.resize((416, 416))
+                        img = Image.fromarray(lbp(img, method="ror", radius=radius))
+                    else:
+                        img = Image.fromarray(lbp(img, method="ror", radius=radius))
+                        img = make_square_with_bb(img, 416)
+                        img = img.resize((416, 416))
+                else:
+                    img = Image.fromarray(lbp(img, method="ror", radius=radius))
+                img.save(path)
+
+        img = Image.open(requests.get(row[col], stream=True).raw)
+        with ThreadPoolExecutor(10000) as executor:
+            [executor.submit(save_img_inner(img, x, False, False)) for x in range(1, 27, 4)]
+            [executor.submit(save_img_inner(img, x, True, False)) for x in range(1, 27, 4)]
+            [executor.submit(save_img_inner(img, x, True, True)) for x in range(1, 27, 4)]
 
     r_count = len(df)
     with ThreadPoolExecutor(r_count) as executor:
-        [executor.submit(save_img(row, img_path_from_row(row, index))) for index, row in df.iterrows()]
+        [executor.submit(save_img(row, index)) for index, row in df.iterrows()]
