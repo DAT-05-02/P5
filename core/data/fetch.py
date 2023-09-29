@@ -1,9 +1,12 @@
 from concurrent.futures import ThreadPoolExecutor
+
+import numpy as np
 import requests
 import pandas as pd
 import os
 from PIL import Image
 from core.util.util import timing
+from data.feature import lbp
 
 IMG_PATH = "image_db/"
 MERGE_COLS = ['genericName', 'species', 'family', 'stateProvince', 'gbifID', 'identifier', 'format', 'created',
@@ -75,11 +78,12 @@ def fetch_images(df: pd.DataFrame, col: str):
         if not os.path.exists(path):
             print(path)
             img = Image.open(requests.get(row[col], stream=True).raw)
+            #img = Image.fromarray(np.uint8(np.array(lbp(img)))).convert("L")
+            img = img.convert("L")
             img = make_square_with_bb(img, 416)
             img = img.resize((416, 416))
             img.save(path)
 
     r_count = len(df)
     with ThreadPoolExecutor(r_count) as executor:
-        # TODO should compress/resize to agreed upon size
         [executor.submit(save_img(row, img_path_from_row(row, index))) for index, row in df.iterrows()]
