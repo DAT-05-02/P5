@@ -80,35 +80,39 @@ def fetch_images(df: pd.DataFrame, col: str):
     """
 
     def save_img(row: pd.Series, index) -> Any:
-        def save_img_inner(img, radius=1, resize=False, resize_first=False) -> Any:
-            extra = "_"
+        path = img_path_from_row(row, index, extra=extra)
+        if not os.path.exists(path):
+            print(path)
+        img = Image.open(requests.get(row[col], stream=True).raw)
+        with ThreadPoolExecutor(8) as executor:
+            [executor.submit(save_img_inner, img, x, False, False) for x in range(1, 13, 2)]
+            [executor.submit(save_img_inner, img, x, True, False) for x in range(1, 13, 2)]
+            # [executor.submit(save_img_inner, img, x, True, True) for x in range(1, 13, 4)]
+    def save_img_inner(img, radius=1, resize=False, resize_first=False) -> Any:
+        extra = "_"
+        if resize:
+            extra += "resize"
+        if resize_first:
+            extra += "first"
+        extra += str(radius)
+        path =
+        if not os.path.exists(path):
+            print(path)
             if resize:
-                extra += "resize"
-            if resize_first:
-                extra += "first"
-            extra += str(radius)
-            path = img_path_from_row(row, index, extra=extra)
-            if not os.path.exists(path):
-                print(path)
-                if resize:
-                    if resize_first:
-                        img = make_square_with_bb(img, 416)
-                        img = img.resize((416, 416))
-                        img = Image.fromarray(lbp(img, method="ror", radius=radius))
-                    else:
-                        img = Image.fromarray(lbp(img, method="ror", radius=radius))
-                        img = make_square_with_bb(img, 416)
-                        img = img.resize((416, 416))
+                if resize_first:
+                    img = make_square_with_bb(img, 416)
+                    img = img.resize((416, 416))
+                    img = Image.fromarray(lbp(img, method="ror", radius=radius))
                 else:
                     img = Image.fromarray(lbp(img, method="ror", radius=radius))
-                img.save(path)
+                    img = make_square_with_bb(img, 416)
+                    img = img.resize((416, 416))
+            else:
+                img = Image.fromarray(lbp(img, method="ror", radius=radius))
+            img.save(path)
 
-        img = Image.open(requests.get(row[col], stream=True).raw)
-        with ThreadPoolExecutor(10000) as executor:
-            [executor.submit(save_img_inner(img, x, False, False)) for x in range(1, 27, 4)]
-            [executor.submit(save_img_inner(img, x, True, False)) for x in range(1, 27, 4)]
-            [executor.submit(save_img_inner(img, x, True, True)) for x in range(1, 27, 4)]
+
 
     r_count = len(df)
-    with ThreadPoolExecutor(r_count) as executor:
-        [executor.submit(save_img(row, index)) for index, row in df.iterrows()]
+    with ThreadPoolExecutor(4) as executor:
+        _ = [executor.submit(save_img, row, index) for index, row in df.iterrows()]
