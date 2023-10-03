@@ -1,3 +1,5 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:d2df150128a2d71a946b474ff9b070acf61a432fda9442b84a26c1abaf2a9406
-size 34
+requests
+pillow
+pandas
+pytest
+ruff
