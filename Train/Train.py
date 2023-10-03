@@ -3,6 +3,7 @@ import pandas as pd
 import csv
 import numpy as np
 import PIL
+import PIL.Image as Image
 import os
 
 dir = os.path.dirname(__file__)
@@ -40,7 +41,7 @@ next(itercsv)
 
 for row in itercsv:
     #Gett the images
-    imgPath = (dir.replace("Train", "")).replace("\\", "/") + "/core/image_db/" + str(imagesDone) + ".jpg"
+    imgPath = (dir.replace("Train", "")).replace("\\", "/") + "core/image_db/" + str(imagesDone) + ".jpg"
     image = PIL.Image.open(imgPath)
     image = image.convert("L")
     image = image.resize((imageWidth, imageHeight))
@@ -77,7 +78,7 @@ model = tf.keras.models.Sequential([
 model.summary()
 
 model.compile(
-    optimizer='adam',
+    tf.keras.optimizers.Adam(0.191),
     loss='sparse_categorical_crossentropy',
     metrics=['accuracy']
 )

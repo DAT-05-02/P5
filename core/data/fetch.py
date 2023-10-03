@@ -1,4 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
+from typing import Any
+
 import requests
 import pandas as pd
 import os
@@ -25,8 +27,10 @@ def setup_dataset(dataset_path: str, label_path: str, dataset_csv_filename: str,
         df1 = pd.read_csv(dataset_path, sep="	", low_memory=False)
         if num_rows:
             df1.drop(df1.index[num_rows:], inplace=True)
-        df2 = pd.read_csv(label_path, sep="	", low_memory=False)
-        df2.to_csv("occurrence.csv", index=None)
+        df2 = pd.read_csv(label_path, sep="\t", low_memory=False)
+        print(df1.columns)
+        print(df2.columns)
+        df2.to_csv("occurrence.csv", index=False)
         drop_cols([df1, df2], MERGE_COLS)
         df1 = df1.merge(df2[df2['gbifID'].isin(df1['gbifID'])], on=['gbifID'])
         df1.to_csv(dataset_csv_filename, index=None)
@@ -62,7 +66,7 @@ def fetch_images(df: pd.DataFrame, col: str):
     @param df: the DataFrame containing links
     @param col: which column the links are in
     """
-    def save_img(row, path):
+    def save_img(row, path) -> Any:
         if not os.path.exists(path):
             print(path)
             Image.open(requests.get(row[col], stream=True).raw).save(path)
@@ -70,7 +74,7 @@ def fetch_images(df: pd.DataFrame, col: str):
     r_count = len(df)
     with ThreadPoolExecutor(r_count) as executor:
         # TODO should compress/resize to agreed upon size
-       [executor.submit(save_img(row, img_path_from_row(row, index))) for index, row in df.iterrows()]
+       [executor.submit(save_img, row, img_path_from_row(row, index)) for index, row in df.iterrows()]
 
 
 
