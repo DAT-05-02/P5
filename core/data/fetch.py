@@ -82,4 +82,4 @@ def fetch_images(df: pd.DataFrame, col: str):
     r_count = len(df)
     with ThreadPoolExecutor(r_count) as executor:
         # TODO should compress/resize to agreed upon size
-        [executor.submit(save_img(row, img_path_from_row(row, index))) for index, row in df.iterrows()]
+        [executor.submit(save_img, row, img_path_from_row(row, index)) for index, row in df.iterrows()]
