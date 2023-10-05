@@ -5,6 +5,9 @@ import numpy as np
 import PIL
 import PIL.Image as Image
 import os
+import re
+
+print(tf.__version__)
 
 dir = os.path.dirname(__file__)
 filePath = dir + "core\leopidotera-dk.csv"
@@ -34,56 +37,63 @@ csvfile = csv.reader(file)
 
 #skip the first row of the csv file
 itercsv = iter(csvfile)
-
-
 next(itercsv)
 
 
-for row in itercsv:
-    #Gett the images
-    imgPath = (dir.replace("Train", "")).replace("\\", "/") + "core/image_db/" + str(imagesDone) + ".jpg"
-    image = PIL.Image.open(imgPath)
-    image = image.convert("L")
-    image = image.resize((imageWidth, imageHeight))
-    #Billederne laves til numpy arrays
-    image = np.array(image)
-    #Hver pixl får en værdi mellem 0 og 1
-    image = image/255.0
-    #Billedet reshpapes til den shape som forventes af modellen
-    image = image.reshape(imageWidth, imageHeight, 1)
-    imageArr.append(image)
-    imageLabels.append(row[7])
-    if row[7] not in butterflySpecies:
-        butterflySpecies.append(row[7])
-    imagesDone += 1
+imgPath = (dir.replace("Train", "")).replace("\\", "/") + "core/image_db"
+images = os.listdir(imgPath)
+imagesOrdered = sorted(images, key=lambda x: [int(s) if s.isdigit() else s.lower() for s in re.split(r'(\d+)', x)])
 
+
+
+for row in itercsv:
+    if imagesDone < 5000:
+        image = PIL.Image.open(imgPath + "/" + images[imagesDone])
+        print(imagesDone)
+
+        image = image.convert("L")
+        image = image.resize((imageWidth, imageHeight))
+        #Billederne laves til numpy arrays
+        image = np.array(image)
+        #Hver pixl får en værdi mellem 0 og 1
+        image = image/255.0
+        #Billedet reshpapes til den shape som forventes af modellen
+        image = image.reshape(imageWidth, imageHeight, 1)
+        imageArr.append(image)
+        imageLabels.append(row[7])
+        if row[7] not in butterflySpecies:
+            butterflySpecies.append(row[7])
+        imagesDone += 1
 
 
 model = tf.keras.models.Sequential([
-    #input layer is image width, height, 1 for grayscale
-    #tf.keras.layers.Input(shape=(imageWidth, imageHeight, 1)),
-    tf.keras.layers.Conv2D(32, (3,3), activation='relu', input_shape=(imageHeight, imageWidth, 1)),
-    tf.keras.layers.MaxPooling2D((2,2)),
-    tf.keras.layers.Conv2D(64, (3,3), activation='relu'),
+    tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(imageHeight, imageWidth, 1)),
     tf.keras.layers.MaxPooling2D((2, 2)),
     tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
-
+    tf.keras.layers.MaxPooling2D((2, 2)),
+    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
     tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(200, activation='relu'),
-    tf.keras.layers.Dropout(0.7),
-    #Output layer, the different species:
+    tf.keras.layers.Dense(128, activation='relu'),
     tf.keras.layers.Dense(len(butterflySpecies))
+
+
 ])
 
 model.summary()
 
+customOptimizer = tf.keras.optimizers.Adam(learning_rate = 0.001)
 model.compile(
-    tf.keras.optimizers.Adam(0.191),
-    loss='sparse_categorical_crossentropy',
+    customOptimizer,
+    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=['accuracy']
 )
 
+#Prints the fucking ImageNames and imageLabels
+
 imageLabels = np.array(imageLabels)
+
+
+
 
 #convert standard python image list to numpy array
 imageArr = np.array(imageArr)
@@ -114,9 +124,10 @@ rows = integer_labels.shape[0]
 labelArrTrain = integer_labels[0:trainSize]
 labelArrVal = integer_labels[trainSize:]
 
-#mangler labels
-model.fit(imageArrTrain, labelArrTrain, epochs=10)
 
-print(len(imageArrVal))
-print("validation testing")
+
+#mangler labels
+model.fit(imageArrTrain, labelArrTrain, epochs=13, shuffle=True)
+
+
 model.evaluate(imageArrVal, labelArrVal, verbose=2)
