@@ -2,6 +2,7 @@
 
 ## Prerequisites:
 - python3.7
+- git lfs
 
 
 ## Installing python3.7
@@ -18,8 +19,19 @@ sudo apt install python3.7 && sudo apt install python3.7-distutils
 ```powershell
 winget install python.python.3.7
 ```
+## Installing Git Large File Storagesystem
 
-## Install requirements
+### Linux
+```bash
+sudo apt install git-lfs
+# run inside project folder
+git lfs fetch
+```
+### Windows
+todo 🤷
+
+
+## Installing requirements
 ```bash
 pip install -r requirements.txt
 ```
