@@ -5,11 +5,6 @@ from PIL.Image import Image
 from skimage.feature import local_binary_pattern
 
 
-def convert_to_feature(path: str):
-    if not os.path.exists(path):
-        os.mkdir(path)
-
-
 def lbp(img: Image, method="ror", radius=1):
     """Create Local Binary Pattern for an image
     @param img: image to convert
