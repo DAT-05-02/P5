@@ -1,6 +1,6 @@
 import numpy as np
 from PIL.Image import Image
-from skimage.feature import local_binary_pattern
+from skimage.feature import local_binary_pattern, graycomatrix
 
 
 def lbp(img: Image, method="uniform", radius=1):
@@ -30,3 +30,13 @@ def rlbp(img: Image, method="uniform", radius=1):
     n_points = 8 * radius
     channels = [img.getchannel("R"), img.getchannel("G"), img.getchannel("B")]
     return [local_binary_pattern(ch, n_points, radius, method) for ch in channels]
+
+
+def glcm(img: Image, distance:list, angles:list):
+    if angles is None:
+        angles = range(0, 361, 45)
+    if distance is None:
+        distance = range(0, 5)
+    if img.mode != "L":
+        img = img.convert("L")
+    return graycomatrix(img, distance, angles)
