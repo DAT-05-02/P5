@@ -25,7 +25,7 @@ def rlbp(img: Image, method="uniform", radius=1):
     @param method: which method, accepts 'default', 'ror', 'uniform', 'nri_uniform' or 'var'.
     Read skimage.feature.local_binary_pattern for more information
     @param radius: how many pixels adjacent to center pixel to calculate from.
-    @return: (3n, m) array as image
+    @return: (n, m, 3) array as image
     """
     n_points = 8 * radius
     channels = [img.getchannel("R"), img.getchannel("G"), img.getchannel("B")]
