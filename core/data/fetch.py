@@ -1,3 +1,4 @@
+from asyncio import wait
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
@@ -83,6 +84,7 @@ def fetch_images(df: pd.DataFrame, col: str):
         path = img_path_from_row(row, index)
         if not os.path.exists(path):
             img = Image.open(requests.get(row[col], stream=True).raw)
+            img.save(path)
             print(path)
 
     r_count = len(df)
