@@ -3,5 +3,5 @@ DATA_PATH="leopidotera-dk.csv"
 LABEL_PATH="leopidotera-dk/occurrence.txt"
 
 if __name__ == "__main__":
-    df = setup_dataset("leopidotera-dk/multimedia.txt", LABEL_PATH, DATA_PATH, 200)
+    df = setup_dataset("leopidotera-dk/multimedia.txt", LABEL_PATH, DATA_PATH, 50)
     fetch_images(df, "identifier")
