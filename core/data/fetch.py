@@ -11,33 +11,55 @@ from core.util.util import timing
 from data.feature import lbp, rlbp
 
 IMG_PATH = "image_db/"
+LABEL_DATASET = "occurrence.csv"
 MERGE_COLS = ['genericName', 'species', 'family', 'stateProvince', 'gbifID', 'identifier', 'format', 'created',
-              'iucnRedListCategory']
+              'iucnRedListCategory', 'lifeStage', 'sex']
+BFLY_FAMILY = ['Pieridae', 'Papilionidae', 'Lycaenidae', 'Riodinidae', 'Nymphalidae', 'Hesperiidae', 'Hedylidae']
+BFLY_LIFESTAGE = ['Pupa', 'Caterpillar', 'Larva']
 
 
-def setup_dataset(dataset_path: str, label_path: str, dataset_csv_filename: str, num_rows=None):
+def setup_dataset(dataset_path: str,
+                  label_path: str,
+                  dataset_csv_filename: str,
+                  num_rows=None,
+                  sort=False,
+                  bfly=False):
     """ Loads a file, converts to csv if none exists, or loads an existing csv into a pd.DateFrame object
     @param label_path: path to label dataset
     @param dataset_path: path to original dataset file
     @param dataset_csv_filename: filename for the csv file
     @param num_rows: number of rows to include
-
+    @param sort: if dataset should be sorted by species
+    @param bfly: if dataset should only contain butterflies (no moths)
     Returns: pandas.DataFrame object with data
     """
     if not os.path.exists(IMG_PATH):
         os.makedirs(IMG_PATH)
-    if not os.path.exists(dataset_csv_filename):
-        df1 = pd.read_csv(dataset_path, sep="	", low_memory=False)
-        if num_rows:
-            df1.drop(df1.index[num_rows:], inplace=True)
-        df2 = pd.read_csv(label_path, sep="	", low_memory=False)
-        df2.to_csv("occurrence.csv", index=None)
-        drop_cols([df1, df2], MERGE_COLS)
-        df1 = df1.merge(df2[df2['gbifID'].isin(df1['gbifID'])], on=['gbifID'])
-        df1.to_csv(dataset_csv_filename, index=None)
-        df = df1
-    else:
+    if os.path.exists(dataset_csv_filename):
         df = pd.read_csv(dataset_csv_filename, low_memory=False)
+        if num_rows and len(df) == num_rows:
+            return df
+
+    df: pd.DataFrame = pd.read_csv(dataset_path, sep="	", low_memory=False)
+    if os.path.exists(LABEL_DATASET):
+        df_label: pd.DataFrame = pd.read_csv(LABEL_DATASET, low_memory=False)
+    else:
+        df_label: pd.DataFrame = pd.read_csv(label_path, sep="	", low_memory=False)
+        df_label.to_csv(LABEL_DATASET, index=None)
+    print(df[df.columns])
+    drop_cols([df, df_label], MERGE_COLS)
+    df = df.merge(df_label[df_label['gbifID'].isin(df['gbifID'])], on=['gbifID'])
+    df = df.loc[~df['lifeStage'].isin(BFLY_LIFESTAGE)]
+    if bfly:
+        df = df.loc[df['family'].isin(BFLY_FAMILY)]
+    print(df.shape)
+    if sort:
+        df.sort_values(by=['species'], inplace=True)
+    print(f"found {len(df['species'].unique())} unique species")
+    if num_rows:
+        df.drop(df.index[num_rows:], inplace=True)
+    df.reset_index(inplace=True)
+    df.to_csv(dataset_csv_filename, index=None)
     return df
 
 
@@ -88,5 +110,5 @@ def fetch_images(df: pd.DataFrame, col: str):
             print(path)
 
     r_count = len(df)
-    with ThreadPoolExecutor(r_count) as executor:
+    with ThreadPoolExecutor(50) as executor:
         _ = [executor.submit(save_img, row, index) for index, row in df.iterrows()]
