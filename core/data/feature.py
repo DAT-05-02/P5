@@ -41,9 +41,9 @@ def glcm(img: Image, distance:list, angles:list):
     return graycomatrix(img, distance, angles)
 
 
-def make_square_with_bb(im, min_size=256, fill_color=(0, 0, 0, 0)):
+def make_square_with_bb(im, min_size=256, fill_color=(0, 0, 0, 0), mode="RGB"):
     x, y = im.size
     size = max(min_size, x, y)
-    new_im = Image.new('RGB', (size, size), fill_color)
+    new_im = Image.new(mode, (size, size), fill_color)
     new_im.paste(im, (int((size - x) / 2), int((size - y) / 2)))
     return new_im

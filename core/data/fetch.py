@@ -82,6 +82,8 @@ def img_path_from_row(row: pd.Series, index: int, column="identifier", extra=Non
     return out + f".{extension}"
 
 
+
+
 @timing
 def fetch_images(df: pd.DataFrame, col: str):
     """
