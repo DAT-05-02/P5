@@ -3,6 +3,7 @@ DATA_PATH="leopidotera-dk.csv"
 LABEL_PATH="leopidotera-dk/occurrence.txt"
 
 if __name__ == "__main__":
-    chosenButterflies = ["Aglais io", "Aglais urticae"]
-    df = setup_dataset("leopidotera-dk/multimedia.txt", LABEL_PATH, DATA_PATH, None, True, chosenButterflies)
+    #put specific species in and uncomment to filter dataset
+    #chosenButterflies = ["Aglais io", "Aglais urticae"]
+    df = setup_dataset("leopidotera-dk/multimedia.txt", LABEL_PATH, DATA_PATH, None, True)
     #fetch_images(df, "identifier")
