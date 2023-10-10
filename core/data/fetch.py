@@ -8,7 +8,7 @@ import pandas as pd
 import os
 from PIL import Image
 from core.util.util import timing
-from util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE
+from util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH
 
 
 def setup_dataset(raw_dataset_path: str,
@@ -86,16 +86,20 @@ def img_path_from_row(row: pd.Series, index: int, column="identifier", extra=Non
 def fetch_images(df: pd.DataFrame, col: str):
     """
     Fetches all image links in a DataFrame column to path defined by :func:`~fetch.img_path_from_row`
+    and assigns the column value to the path saved to.
     @param df: the DataFrame containing links
     @param col: which column the links are in
     """
 
-    def save_img(row: pd.Series, index) -> Any:
+    def save_img(df: pd.DataFrame, row: pd.Series, index) -> Any:
         path = img_path_from_row(row, index)
         if not os.path.exists(path):
             img = Image.open(requests.get(row[col], stream=True).raw)
             img.save(path)
+            df.at[index, 'path'] = path
             print(path)
-
+    df['path'] = ""
     with ThreadPoolExecutor(50) as executor:
-        _ = [executor.submit(save_img, row, index) for index, row in df.iterrows()]
+        _ = [executor.submit(save_img, df, row, index) for index, row in df.iterrows()]
+        executor.shutdown(wait=True)
+    df.to_csv(DATASET_PATH)
