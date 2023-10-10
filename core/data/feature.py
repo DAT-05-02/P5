@@ -1,5 +1,5 @@
 import numpy as np
-from PIL.Image import Image
+from PIL import Image
 from skimage.feature import local_binary_pattern, graycomatrix
 
 
@@ -39,3 +39,11 @@ def glcm(img: Image, distance:list, angles:list):
     if img.mode != "L":
         img = img.convert("L")
     return graycomatrix(img, distance, angles)
+
+
+def make_square_with_bb(im, min_size=256, fill_color=(0, 0, 0, 0)):
+    x, y = im.size
+    size = max(min_size, x, y)
+    new_im = Image.new('RGB', (size, size), fill_color)
+    new_im.paste(im, (int((size - x) / 2), int((size - y) / 2)))
+    return new_im
