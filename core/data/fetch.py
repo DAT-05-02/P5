@@ -8,44 +8,40 @@ import pandas as pd
 import os
 from PIL import Image
 from core.util.util import timing
-from data.feature import lbp, rlbp
-
-IMG_PATH = "image_db/"
-LABEL_DATASET = "occurrence.csv"
-MERGE_COLS = ['genericName', 'species', 'family', 'stateProvince', 'gbifID', 'identifier', 'format', 'created',
-              'iucnRedListCategory', 'lifeStage', 'sex']
-BFLY_FAMILY = ['Pieridae', 'Papilionidae', 'Lycaenidae', 'Riodinidae', 'Nymphalidae', 'Hesperiidae', 'Hedylidae']
-BFLY_LIFESTAGE = ['Pupa', 'Caterpillar', 'Larva']
+from util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE
 
 
-def setup_dataset(dataset_path: str,
-                  label_path: str,
+def setup_dataset(raw_dataset_path: str,
+                  raw_label_path: str,
+                  label_dataset_path: str,
                   dataset_csv_filename: str,
                   num_rows=None,
                   sort=False,
                   bfly=False):
     """ Loads a file, converts to csv if none exists, or loads an existing csv into a pd.DateFrame object
-    @param label_path: path to label dataset
-    @param dataset_path: path to original dataset file
+    @param raw_label_path: path to original label dataset file
+    @param raw_dataset_path: path to original dataset file
+    @param label_dataset_path: path to label csv file
     @param dataset_csv_filename: filename for the csv file
     @param num_rows: number of rows to include
     @param sort: if dataset should be sorted by species
     @param bfly: if dataset should only contain butterflies (no moths)
     Returns: pandas.DataFrame object with data
+
     """
-    if not os.path.exists(IMG_PATH):
-        os.makedirs(IMG_PATH)
+    if not os.path.exists(IMGDIR_PATH):
+        os.makedirs(IMGDIR_PATH)
     if os.path.exists(dataset_csv_filename):
         df = pd.read_csv(dataset_csv_filename, low_memory=False)
         if num_rows and len(df) == num_rows:
             return df
 
-    df: pd.DataFrame = pd.read_csv(dataset_path, sep="	", low_memory=False)
-    if os.path.exists(LABEL_DATASET):
-        df_label: pd.DataFrame = pd.read_csv(LABEL_DATASET, low_memory=False)
+    df: pd.DataFrame = pd.read_csv(raw_dataset_path, sep="	", low_memory=False)
+    if os.path.exists(label_dataset_path):
+        df_label: pd.DataFrame = pd.read_csv(label_dataset_path, low_memory=False)
     else:
-        df_label: pd.DataFrame = pd.read_csv(label_path, sep="	", low_memory=False)
-        df_label.to_csv(LABEL_DATASET, index=None)
+        df_label: pd.DataFrame = pd.read_csv(raw_label_path, sep="	", low_memory=False)
+        df_label.to_csv(label_dataset_path, index=None)
     print(df[df.columns])
     drop_cols([df, df_label], MERGE_COLS)
     df = df.merge(df_label[df_label['gbifID'].isin(df['gbifID'])], on=['gbifID'])
@@ -80,7 +76,7 @@ def img_path_from_row(row: pd.Series, index: int, column="identifier", extra=Non
     extension = row[column].split(".")[-1]
     if len(extension) < 1:
         extension = "jpg"
-    out = f"{IMG_PATH}{index}"
+    out = f"{IMGDIR_PATH}{index}"
     if extra:
         out += extra
     return out + f".{extension}"
