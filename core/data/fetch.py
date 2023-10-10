@@ -30,7 +30,7 @@ def setup_dataset(dataset_path: str,
     @param dataset_csv_filename: filename for the csv file
     @param num_rows: number of rows to include
     @param sort: if dataset should be sorted by species
-    @param bfly: list of species that will be included in dataset, if element "all" it will contain only butterflies (no moths)
+    @param bfly: list of species that is included in dataset, have "all" in list for only butterflies (no moths)
     Returns: pandas.DataFrame object with data
     """
     if not os.path.exists(IMG_PATH):
