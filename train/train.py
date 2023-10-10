@@ -1,5 +1,4 @@
 import tensorflow as tf
-import pandas as pd
 import csv
 import numpy as np
 import PIL
@@ -7,11 +6,9 @@ import PIL.Image as Image
 import os
 import re
 
-print(tf.__version__)
-
 dir = os.path.dirname(__file__)
 filePath = dir + "core\leopidotera-dk.csv"
-filePath = (filePath.replace('\\', "/")).replace("Train", "")
+filePath = (filePath.replace('\\', "/")).replace("train", "")
 
 imageWidth = 128
 imageHeight = 128
@@ -40,7 +37,7 @@ itercsv = iter(csvfile)
 next(itercsv)
 
 
-imgPath = (dir.replace("Train", "")).replace("\\", "/") + "core/image_db"
+imgPath = (dir.replace("train", "")).replace("\\", "/") + "core/image_db"
 images = os.listdir(imgPath)
 imagesOrdered = sorted(images, key=lambda x: [int(s) if s.isdigit() else s.lower() for s in re.split(r'(\d+)', x)])
 
@@ -127,7 +124,7 @@ labelArrVal = integer_labels[trainSize:]
 
 
 #mangler labels
-model.fit(imageArrTrain, labelArrTrain, epochs=13, shuffle=True)
+model.fit(imageArrTrain, labelArrTrain, epochs=10, shuffle=True)
 
 
 model.evaluate(imageArrVal, labelArrVal, verbose=2)
