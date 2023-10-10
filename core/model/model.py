@@ -10,22 +10,21 @@ import re
 
 dir = os.path.dirname(__file__)
 filePath = dir + "core\leopidotera-dk.csv"
-filePath = (filePath.replace('\\', "/")).replace("train", "")
+filePath = (filePath.replace('\\', "/")).replace("model", "")
 
 imageWidth = 416
 imageHeight = 416
 
 
-#Variables for storing images and labels
+# Variables for storing images and labels
 imageArr = []
 imageLabels = []
 labels = []
 
-#important for the training output
+# important for the training output
 butterflySpecies = []
 
-
-#open csv file C:/Users/My dude/PycharmProjects/P5/core/leopidotera-dk.csv
+# open csv file C:/Users/My dude/PycharmProjects/P5/core/leopidotera-dk.csv
 file = open(filePath, 'r')
 
 
@@ -37,8 +36,7 @@ csvfile = pd.read_csv(file)
 #itercsv = iter(csvfile)
 #next(itercsv)
 
-
-imgPath = (dir.replace("train", "")).replace("\\", "/") + "core/image_db"
+imgPath = (dir.replace("model", "")).replace("\\", "/") + "core/image_db"
 images = os.listdir(imgPath)
 
 print(len(images))
@@ -70,7 +68,6 @@ with ThreadPoolExecutor(4) as executer:
 
 
 
-
 model = tf.keras.models.Sequential([
     tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(imageHeight, imageWidth, 1)),
     tf.keras.layers.MaxPooling2D((2, 2)),
@@ -81,42 +78,36 @@ model = tf.keras.models.Sequential([
     tf.keras.layers.Dense(128, activation='relu'),
     tf.keras.layers.Dense(len(butterflySpecies))
 
-
 ])
 
 model.summary()
 
-customOptimizer = tf.keras.optimizers.Adam(learning_rate = 0.001)
+customOptimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 model.compile(
     customOptimizer,
     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=['accuracy']
 )
 
-#Prints the fucking ImageNames and imageLabels
+# Prints the fucking ImageNames and imageLabels
 
 imageLabels = np.array(imageLabels)
 
-
-
-
-#convert standard python image list to numpy array
+# convert standard python image list to numpy array
 imageArr = np.array(imageArr)
 
-
-#We enumerate over the butterfly species and get the labels out, which we put into label_to_index
+# We enumerate over the butterfly species and get the labels out, which we put into label_to_index
 label_to_index = {label: index for index, label in enumerate(butterflySpecies)}
-#We map every label to their corresponding value in interger_labels
+# We map every label to their corresponding value in interger_labels
 integer_labels = [label_to_index[label] for label in imageLabels]
 
-
-#converts the lables to int32, so they can be used for model.fit
+# converts the lables to int32, so they can be used for model.fit
 integer_labels = np.array(integer_labels, dtype=np.int32)
 
 
-#15% data til test of validering
+# 15% data til test of validering
 rows = imageArr.shape[0]
-trainSize = int(rows*0.85)
+trainSize = int(rows * 0.85)
 imageArrTrain = imageArr[0:trainSize]
 imageArrVal = imageArr[trainSize:]
 
@@ -124,10 +115,7 @@ rows = integer_labels.shape[0]
 labelArrTrain = integer_labels[0:trainSize]
 labelArrVal = integer_labels[trainSize:]
 
-
-
-#mangler labels
+# mangler labels
 model.fit(imageArrTrain, labelArrTrain, epochs=10, shuffle=True)
-
 
 model.evaluate(imageArrVal, labelArrVal, verbose=2)
