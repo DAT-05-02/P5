@@ -1,19 +1,20 @@
 import tensorflow as tf
 import csv
+import pandas as pd
 import numpy as np
-import PIL
-import PIL.Image as Image
+from concurrent.futures import ThreadPoolExecutor
+from PIL import Image
 import os
+from core.data.feature import lbp, make_square_with_bb
 import re
 
 dir = os.path.dirname(__file__)
 filePath = dir + "core\leopidotera-dk.csv"
 filePath = (filePath.replace('\\', "/")).replace("train", "")
 
-imageWidth = 128
-imageHeight = 128
+imageWidth = 416
+imageHeight = 416
 
-imagesDone = 0
 
 #Variables for storing images and labels
 imageArr = []
@@ -29,38 +30,45 @@ file = open(filePath, 'r')
 
 
 #row[2] is the picture url row[7] is species
-csvfile = csv.reader(file)
-
+#csvfile = csv.reader(file)
+csvfile = pd.read_csv(file)
 
 #skip the first row of the csv file
-itercsv = iter(csvfile)
-next(itercsv)
+#itercsv = iter(csvfile)
+#next(itercsv)
 
 
 imgPath = (dir.replace("train", "")).replace("\\", "/") + "core/image_db"
 images = os.listdir(imgPath)
-imagesOrdered = sorted(images, key=lambda x: [int(s) if s.isdigit() else s.lower() for s in re.split(r'(\d+)', x)])
+
+print(len(images))
+
+def asyncImageProcessing(row):
+    image = Image.open(imgPath + "/" + images[index])
+    print("hello ", index, "\n")
+
+    image = Image.fromarray(lbp(image, radius=17))
+    image = make_square_with_bb(image, mode="L", fill_color=0)
+    image = np.array(image)
+    #Hver pixl får en værdi mellem 0 og 1
+    image = image/255.0
+
+    imageArr.append(image)
+    imageLabels.append(row[7])
+    if row[7] not in butterflySpecies:
+        butterflySpecies.append(row[7])
+
+    index += 1
+
+
+print(len(csvfile))
+
+with ThreadPoolExecutor(4) as executer:
+    _
 
 
 
-for row in itercsv:
-    if imagesDone < 5000:
-        image = PIL.Image.open(imgPath + "/" + images[imagesDone])
-        print(imagesDone)
 
-        image = image.convert("L")
-        image = image.resize((imageWidth, imageHeight))
-        #Billederne laves til numpy arrays
-        image = np.array(image)
-        #Hver pixl får en værdi mellem 0 og 1
-        image = image/255.0
-        #Billedet reshpapes til den shape som forventes af modellen
-        image = image.reshape(imageWidth, imageHeight, 1)
-        imageArr.append(image)
-        imageLabels.append(row[7])
-        if row[7] not in butterflySpecies:
-            butterflySpecies.append(row[7])
-        imagesDone += 1
 
 
 model = tf.keras.models.Sequential([
@@ -106,12 +114,7 @@ integer_labels = [label_to_index[label] for label in imageLabels]
 integer_labels = np.array(integer_labels, dtype=np.int32)
 
 
-#----------------------------------
-
-
 #15% data til test of validering
-#resten til
-
 rows = imageArr.shape[0]
 trainSize = int(rows*0.85)
 imageArrTrain = imageArr[0:trainSize]
