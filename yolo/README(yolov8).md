@@ -14,7 +14,9 @@ yolo task=detect mode=predict model=yolov8n.pt source="path/to/image.png"
 yolo task=detect mode=train model=path/to/model.yaml data=path/to/data.yaml epochs=10 imgsz=640
 
 #Or train new model based on pre-trained model
-yolo task=detect mode=train model=path/to/model.yaml data=path/to/data.yaml epochs=10 imgsz=640
+yolo task=detect mode=train model=path/to/model.pt data=path/to/data.yaml epochs=10 imgsz=640
+
+#when training a new model from scratch type in yolov8*.yaml where * is either n/s/m/l/x depending on the desired size of the neural network.
 
 ## 5. Do inference with the new model
 yolo task=detect mode=predict model="runs/train/weights/best.pt" source="image.png"
