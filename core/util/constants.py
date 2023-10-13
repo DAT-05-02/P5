@@ -7,3 +7,4 @@ MERGE_COLS = ['genericName', 'species', 'family', 'stateProvince', 'gbifID', 'id
               'iucnRedListCategory', 'lifeStage', 'sex']
 BFLY_FAMILY = ['Pieridae', 'Papilionidae', 'Lycaenidae', 'Riodinidae', 'Nymphalidae', 'Hesperiidae', 'Hedylidae']
 BFLY_LIFESTAGE = ['Pupa', 'Caterpillar', 'Larva']
+FEATURE_DIR_PATH = "image"

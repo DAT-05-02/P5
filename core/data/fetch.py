@@ -100,7 +100,7 @@ def fetch_images(df: pd.DataFrame, col: str):
             img.save(path)
             df.at[index, 'path'] = path
             print(path)
-    df['path'] = ""
+    # df['path'] = ""
     with ThreadPoolExecutor(50) as executor:
         _ = [executor.submit(save_img, df, row, index) for index, row in df.iterrows()]
         executor.shutdown(wait=True)
