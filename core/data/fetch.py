@@ -41,7 +41,7 @@ def setup_dataset(raw_dataset_path: str,
         df_label: pd.DataFrame = pd.read_csv(label_dataset_path, low_memory=False)
     else:
         df_label: pd.DataFrame = pd.read_csv(raw_label_path, sep="	", low_memory=False)
-        df_label.to_csv(label_dataset_path, index=None)
+        df_label.to_csv(label_dataset_path, index=False)
     print(df[df.columns])
     drop_cols([df, df_label], MERGE_COLS)
     df = df.merge(df_label[df_label['gbifID'].isin(df['gbifID'])], on=['gbifID'])
@@ -55,7 +55,8 @@ def setup_dataset(raw_dataset_path: str,
     if num_rows:
         df.drop(df.index[num_rows:], inplace=True)
     df.reset_index(inplace=True)
-    df.to_csv(dataset_csv_filename, index=None)
+    df = df.assign(path="")
+    df.to_csv(dataset_csv_filename, index=False)
     return df
 
 
