@@ -2,14 +2,14 @@ import os.path
 import numpy as np
 import pandas as pd
 from PIL import Image
-from skimage.feature import local_binary_pattern, graycomatrix
+from skimage.feature import local_binary_pattern, graycomatrix, multiscale_basic_features, SIFT
 from core.util.constants import FEATURE_DIR_PATH, IMGDIR_PATH
 
 
 class FeatureExtractor:
     def __init__(self,
-                img_dir_path=IMGDIR_PATH,
-                feature_dir_path=FEATURE_DIR_PATH):
+                 img_dir_path=IMGDIR_PATH,
+                 feature_dir_path=FEATURE_DIR_PATH):
         self.save_path = feature_dir_path
         self.img_path = img_dir_path
 
@@ -26,10 +26,17 @@ class FeatureExtractor:
                 if feature == "lbp":
                     lbp_arr = ft(img, kwargs.get('method', 'ror'), kwargs.get('radius', 1))
                     img = Image.fromarray(lbp_arr)
-                    if should_bb:
-                        self.make_square_with_bb(img)
-                    img.save(p_new)
                     df.at[index, feature] = p_new
+                elif feature == "homsc":
+                    homsc_arr = np.array(ft(img))
+                    # todo should save in json, csv or something else
+                    df.at[index, feature] = p_new
+                elif feature == "sift":
+                    sift_arr = ft(img)
+                    # todo should save in json, csv or something else
+                if should_bb:
+                    img = self.make_square_with_bb(img)
+                img.save(p_new, index=False)
 
         return dir_new
 
@@ -50,7 +57,6 @@ class FeatureExtractor:
             img = img.convert("L")
 
         return np.array(local_binary_pattern(img, n_points, radius, method), dtype=np.uint8)
-
 
     @staticmethod
     def rlbp(img: Image, method="ror", radius=1):
@@ -74,6 +80,24 @@ class FeatureExtractor:
         if img.mode != "L":
             img = img.convert("L")
         return graycomatrix(img, distance, angles)
+
+    @staticmethod
+    def homsc(img: Image.Image):
+        img = img.convert("L")
+        res = np.array(multiscale_basic_features(np.array(img), num_workers=2, sigma_min=1, sigma_max=15))
+        print(res.shape)
+        return res
+
+    @staticmethod
+    def sift(img: Image.Image):
+        sift_detector = SIFT()
+        img = img.convert("L")
+        sift_detector.detect_and_extract(img)
+        print(sift_detector.keypoints)
+        print(sift_detector.descriptors)
+        for keypoint in sift_detector.keypoints:
+            pass
+        pass
 
     @staticmethod
     def make_square_with_bb(im, min_size=256, fill_color=(0, 0, 0, 0), mode="RGB"):

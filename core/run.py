@@ -11,4 +11,4 @@ if __name__ == "__main__":
                        bfly=True)
     fetch_images(df, "identifier")
     ft_extractor = FeatureExtractor()
-    ft_extractor.pre_process(df, "lbp", radius=13)
+    ft_extractor.pre_process(df, "sift", radius=13)
