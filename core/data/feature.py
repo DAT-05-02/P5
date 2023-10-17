@@ -22,21 +22,22 @@ class FeatureExtractor:
             print(row)
             f_name = row['path'].split("/")[-1]
             p_new = dir_new + f_name
-            with Image.open(row['path']) as img:
-                if feature == "lbp":
-                    lbp_arr = ft(img, kwargs.get('method', 'ror'), kwargs.get('radius', 1))
-                    img = Image.fromarray(lbp_arr)
-                    df.at[index, feature] = p_new
-                elif feature == "homsc":
-                    homsc_arr = np.array(ft(img))
-                    # todo should save in json, csv or something else
-                    df.at[index, feature] = p_new
-                elif feature == "sift":
-                    sift_arr = ft(img)
-                    # todo should save in json, csv or something else
-                if should_bb:
-                    img = self.make_square_with_bb(img)
-                img.save(p_new)
+            if not os.path.exists(p_new):
+                with Image.open(row['path']) as img:
+                    if feature == "lbp":
+                        lbp_arr = ft(img, kwargs.get('method', 'ror'), kwargs.get('radius', 1))
+                        img = Image.fromarray(lbp_arr)
+                        df.at[index, feature] = p_new
+                    elif feature == "homsc":
+                        homsc_arr = np.array(ft(img))
+                        # todo should save in json, csv or something else
+                        df.at[index, feature] = p_new
+                    elif feature == "sift":
+                        sift_arr = ft(img)
+                        # todo should save in json, csv or something else
+                    if should_bb:
+                        img = self.make_square_with_bb(img)
+                    img.save(p_new)
         df.to_csv(DATASET_PATH, index=False)
         return df
 

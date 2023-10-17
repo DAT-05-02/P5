@@ -54,8 +54,8 @@ def setup_dataset(raw_dataset_path: str,
     print(f"found {len(df['species'].unique())} unique species")
     if num_rows:
         df.drop(df.index[num_rows:], inplace=True)
-    df.reset_index(inplace=True)
-    df = df.assign(path="")
+    df.reset_index(inplace=True, drop=True)
+    df = df.assign(path="", lbp="", sift="", homsc="")
     df.to_csv(dataset_csv_filename, index=False)
     return df
 
