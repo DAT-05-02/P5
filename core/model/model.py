@@ -1,121 +1,58 @@
 import tensorflow as tf
-import csv
 import pandas as pd
 import numpy as np
-from concurrent.futures import ThreadPoolExecutor
-from PIL import Image
-import os
-from core.data.feature import lbp, make_square_with_bb
-import re
-
-dir = os.path.dirname(__file__)
-filePath = dir + "core\leopidotera-dk.csv"
-filePath = (filePath.replace('\\', "/")).replace("model", "")
-
-imageWidth = 416
-imageHeight = 416
 
 
-# Variables for storing images and labels
-imageArr = []
-imageLabels = []
-labels = []
+class Model:
+    def __init__(self, df: pd.DataFrame):
+        self.model = None
+        self.df = df
 
-# important for the training output
-butterflySpecies = []
+    def create_model(self, outputs, size=(416, 416), depth=1):
+        model = tf.keras.models.Sequential([
+            tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(size[0], size[1], depth)),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(128, activation='relu'),
+            tf.keras.layers.Dense(outputs)
+        ])
+        self.model = model
+        # for summary use {objectname}.model.summary
 
-# open csv file C:/Users/My dude/PycharmProjects/P5/core/leopidotera-dk.csv
-file = open(filePath, 'r')
+    def model_compile_fit_evaluate(self, images, image_labels, lr=0.001):
+        custom_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+        self.model.compile(
+            custom_optimizer,
+            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+            metrics=['accuracy'],
+            run_eagerly=True
+        )
 
+        imageLabels = np.array(image_labels)
 
-#row[2] is the picture url row[7] is species
-#csvfile = csv.reader(file)
-csvfile = pd.read_csv(file)
+        imageArr = np.array(images)
 
-#skip the first row of the csv file
-#itercsv = iter(csvfile)
-#next(itercsv)
+        # We enumerate over the butterfly species and get the labels out, which we put into label_to_index
+        label_to_index = {label: index for index, label in enumerate(set(imageLabels))}
+        # We map every label to their corresponding value in integer_labels
+        integer_labels = [label_to_index[label] for label in imageLabels]
 
-imgPath = (dir.replace("model", "")).replace("\\", "/") + "core/image_db"
-images = os.listdir(imgPath)
+        # converts the labels to int32, so they can be used for model.fit
+        integer_labels = np.array(integer_labels, dtype=np.int32)
 
-print(len(images))
+        # 15% of data used for testing
+        rows = imageArr.shape[0]
+        train_size = int(rows * 0.85)
+        image_arr_train = imageArr[0: train_size]
+        image_arr_val = imageArr[train_size:]
 
-def asyncImageProcessing(row):
-    image = Image.open(imgPath + "/" + images[index])
-    print("hello ", index, "\n")
+        labelArrTrain = integer_labels[0: train_size]
+        labelArrVal = integer_labels[train_size:]
 
-    image = Image.fromarray(lbp(image, radius=17))
-    image = make_square_with_bb(image, mode="L", fill_color=0)
-    image = np.array(image)
-    #Hver pixl får en værdi mellem 0 og 1
-    image = image/255.0
+        # mangler labels
+        self.model.fit(image_arr_train, labelArrTrain, epochs=10, shuffle=True)
 
-    imageArr.append(image)
-    imageLabels.append(row[7])
-    if row[7] not in butterflySpecies:
-        butterflySpecies.append(row[7])
-
-    index += 1
-
-
-print(len(csvfile))
-
-with ThreadPoolExecutor(4) as executer:
-    _
-
-
-
-
-
-model = tf.keras.models.Sequential([
-    tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(imageHeight, imageWidth, 1)),
-    tf.keras.layers.MaxPooling2D((2, 2)),
-    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
-    tf.keras.layers.MaxPooling2D((2, 2)),
-    tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
-    tf.keras.layers.Flatten(),
-    tf.keras.layers.Dense(128, activation='relu'),
-    tf.keras.layers.Dense(len(butterflySpecies))
-
-])
-
-model.summary()
-
-customOptimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
-model.compile(
-    customOptimizer,
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-    metrics=['accuracy']
-)
-
-# Prints the fucking ImageNames and imageLabels
-
-imageLabels = np.array(imageLabels)
-
-# convert standard python image list to numpy array
-imageArr = np.array(imageArr)
-
-# We enumerate over the butterfly species and get the labels out, which we put into label_to_index
-label_to_index = {label: index for index, label in enumerate(butterflySpecies)}
-# We map every label to their corresponding value in interger_labels
-integer_labels = [label_to_index[label] for label in imageLabels]
-
-# converts the lables to int32, so they can be used for model.fit
-integer_labels = np.array(integer_labels, dtype=np.int32)
-
-
-# 15% data til test of validering
-rows = imageArr.shape[0]
-trainSize = int(rows * 0.85)
-imageArrTrain = imageArr[0:trainSize]
-imageArrVal = imageArr[trainSize:]
-
-rows = integer_labels.shape[0]
-labelArrTrain = integer_labels[0:trainSize]
-labelArrVal = integer_labels[trainSize:]
-
-# mangler labels
-model.fit(imageArrTrain, labelArrTrain, epochs=10, shuffle=True)
-
-model.evaluate(imageArrVal, labelArrVal, verbose=2)
+        self.model.evaluate(image_arr_val, labelArrVal, verbose=2)
