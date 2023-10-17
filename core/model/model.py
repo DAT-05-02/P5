@@ -8,7 +8,7 @@ class Model:
         self.model = None
         self.df = df
 
-    def create_model(self, outputs, size=(416, 416), depth=1):
+    def create_model(self, size=(416, 416), depth=1):
         model = tf.keras.models.Sequential([
             tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(size[0], size[1], depth)),
             tf.keras.layers.MaxPooling2D((2, 2)),
@@ -17,12 +17,22 @@ class Model:
             tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(128, activation='relu'),
-            tf.keras.layers.Dense(outputs)
+            tf.keras.layers.Dense(len(self.df["species"].unique()))
         ])
         self.model = model
         # for summary use {objectname}.model.summary
 
-    def model_compile_fit_evaluate(self, images, image_labels, lr=0.001):
+    def img_with_labels(self):
+        # df = self.df.assign(image=lambda x: Image.open(str(x["path"])))
+        self.df['image'] = ""
+        arr = []
+        for index, row in self.df.iterrows():
+            arr.append(np.asarray(Image.open(row['lbp'])))
+
+        return np.array(arr), self.df['species']
+
+    def model_compile_fit_evaluate(self, lr=0.001):
+        img, lbl = self.img_with_labels()
         custom_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
         self.model.compile(
             custom_optimizer,
@@ -31,9 +41,8 @@ class Model:
             run_eagerly=True
         )
 
-        imageLabels = np.array(image_labels)
-
-        imageArr = np.array(images)
+        imageArr = img
+        imageLabels = list(lbl)
 
         # We enumerate over the butterfly species and get the labels out, which we put into label_to_index
         label_to_index = {label: index for index, label in enumerate(set(imageLabels))}
