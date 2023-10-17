@@ -83,8 +83,6 @@ def img_path_from_row(row: pd.Series, index: int, column="identifier", extra=Non
     return out + f".{extension}"
 
 
-
-
 @timing
 def fetch_images(df: pd.DataFrame, col: str):
     """
@@ -99,10 +97,10 @@ def fetch_images(df: pd.DataFrame, col: str):
         if not os.path.exists(path):
             img = Image.open(requests.get(row[col], stream=True).raw)
             img.save(path)
-            df.at[index, 'path'] = path
             print(path)
+        df.at[index, 'path'] = path
     # df['path'] = ""
     with ThreadPoolExecutor(50) as executor:
         _ = [executor.submit(save_img, df, row, index) for index, row in df.iterrows()]
         executor.shutdown(wait=True)
-    df.to_csv(DATASET_PATH)
+    df.to_csv(DATASET_PATH, index=False)

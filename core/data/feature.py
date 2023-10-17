@@ -13,13 +13,12 @@ class FeatureExtractor:
         self.save_path = feature_dir_path
         self.img_path = img_dir_path
 
-    def pre_process(self, df: pd.DataFrame, feature: str, should_bb=True, **kwargs):
+    def pre_process(self, df: pd.DataFrame, feature: str, should_bb=True, should_resize=False, **kwargs):
         dir_new = self.dirpath_from_ft(feature)
         if not os.path.exists(dir_new):
             os.makedirs(dir_new)
         ft = getattr(self, feature)
         for index, row in df.iterrows():
-            print(row)
             f_name = row['path'].split("/")[-1]
             p_new = dir_new + f_name
             if not os.path.exists(p_new):
@@ -28,6 +27,7 @@ class FeatureExtractor:
                         lbp_arr = ft(img, kwargs.get('method', 'ror'), kwargs.get('radius', 1))
                         img = Image.fromarray(lbp_arr)
                         df.at[index, feature] = p_new
+                        print(row)
                     elif feature == "homsc":
                         homsc_arr = np.array(ft(img))
                         # todo should save in json, csv or something else
@@ -37,7 +37,12 @@ class FeatureExtractor:
                         # todo should save in json, csv or something else
                     if should_bb:
                         img = self.make_square_with_bb(img)
+                    if should_resize:
+                        img = img.resize((416, 416))
                     img.save(p_new)
+            else:
+                df.at[index, feature] = p_new
+        df.drop(df[df.path == ""].index, inplace=True)
         df.to_csv(DATASET_PATH, index=False)
         return df
 
