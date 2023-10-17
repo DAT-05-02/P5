@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 from skimage.feature import local_binary_pattern, graycomatrix, multiscale_basic_features, SIFT
-from core.util.constants import FEATURE_DIR_PATH, IMGDIR_PATH
+from core.util.constants import FEATURE_DIR_PATH, IMGDIR_PATH, DATASET_PATH
 
 
 class FeatureExtractor:
@@ -36,9 +36,9 @@ class FeatureExtractor:
                     # todo should save in json, csv or something else
                 if should_bb:
                     img = self.make_square_with_bb(img)
-                img.save(p_new, index=False)
-
-        return dir_new
+                img.save(p_new)
+        df.to_csv(DATASET_PATH, index=False)
+        return df
 
     def dirpath_from_ft(self, feature):
         return f"{self.save_path}_{feature}/"
