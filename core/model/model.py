@@ -31,7 +31,8 @@ class Model:
         self.df['image'] = ""
         arr = []
         for index, row in self.df.iterrows():
-            arr.append(np.asarray(Image.open(row['lbp'])))
+            if row['lbp'] and row['lbp'] != "":
+                arr.append(np.array(Image.open(row['lbp']).convert("L")).tolist())
 
         return np.array(arr), self.df['species']
 
