@@ -56,7 +56,8 @@ Run pytest
 pytest
 ```
 
+## Training a YOLOv8 model
+Read README(trainyolov8model).MD
 
-
-## Training a Yolov8 model
-Read README(yolov8).txt
+## Using a YOLOv8 model
+Read README(useyolov8model).md
