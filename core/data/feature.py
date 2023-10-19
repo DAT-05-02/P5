@@ -112,3 +112,37 @@ class FeatureExtractor:
         new_im = Image.new(mode, (size, size), fill_color)
         new_im.paste(im, (int((size - x) / 2), int((size - y) / 2)))
         return new_im
+
+    @staticmethod
+    def make_image_degrees(img: Image.Image, name: str, img_path: str, degrees: list = ["all"]):
+        """Creates transformed images from input image, can rotate and flip
+        @param img: image to transform
+        @param name: name of image file
+        @param img_path: path to species folder
+        @param degrees: list of strings, include "rotate" to rotate, "flip" to flip, "all" is default for both
+        """
+        new_images = [img]
+        if "all" in degrees or "rotate" in degrees:
+            for i in range(3):
+                new_images.append(img.rotate((i + 1) * 90, expand=True))
+        if "all" in degrees or "flip" in degrees:
+            temp_list = []
+            for im in new_images:
+                temp_list.append(im.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT))
+            new_images.extend(temp_list)
+        if not os.path.exists("img_manipulation_test/"):
+            os.makedirs("img_manipulation_test/")
+        #only rotations (no flips)
+        if len(new_images) == 4:
+            for im in new_images:
+                im.show()
+                im.save(f"{img_path}/{name}_{i * 90}.jpg")
+                i += 1
+        #rotations and flips, or just flips
+        if len(new_images) == 2 or len(new_images) == 8:
+            for i in range(int(len(new_images) / 2)):
+                new_images[i].show()
+                new_images[i].save(f"{img_path}/{name}_{i * 90}.jpg")
+            for i in range(int(len(new_images) / 2), int(len(new_images))):
+                new_images[i].show()
+                new_images[i].save(f"{img_path}/{name}_{(i - 4) * 90}f.jpg")
