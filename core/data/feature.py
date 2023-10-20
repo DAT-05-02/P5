@@ -130,17 +130,18 @@ class FeatureExtractor:
             for im in new_images:
                 temp_list.append(im.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT))
             new_images.extend(temp_list)
-        #only rotations (no flips)
+        # Only rotations (no flips)
         if len(new_images) == 4:
-            for im in new_images:
-                im.show()
-                im.save(f"{img_path}/{name}_{i * 90}.jpg")
+            for i in range(4):
+                # im.show()
+                new_images[i].save(f"{img_path}/{name}_{i * 90}.jpg")
                 i += 1
-        #rotations and flips, or just flips
+
+        # Rotations and flips, or just flips
         if len(new_images) == 2 or len(new_images) == 8:
             for i in range(int(len(new_images) / 2)):
-                new_images[i].show()
+                # new_images[i].show()
                 new_images[i].save(f"{img_path}/{name}_{i * 90}.jpg")
             for i in range(int(len(new_images) / 2), int(len(new_images))):
-                new_images[i].show()
-                new_images[i].save(f"{img_path}/{name}_{(i - 4) * 90}f.jpg")
+                # new_images[i].show()
+                new_images[i].save(f"{img_path}/{name}_{(i - int(len(new_images) / 2)) * 90}f.jpg")
