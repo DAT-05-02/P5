@@ -8,7 +8,7 @@ import pandas as pd
 import os
 from PIL import Image
 from core.util.util import timing
-from util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH
+from core.util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH
 
 
 def setup_dataset(raw_dataset_path: str,
@@ -74,10 +74,13 @@ def img_path_from_row(row: pd.Series, index: int, column="identifier", extra=Non
     @return: the path to save the image in
     @rtype: str
     """
+    path = f"{IMGDIR_PATH}{row[9].replace(' ', '_')}"
+    if not os.path.exists(path):
+        os.makedirs(path)
     extension = row[column].split(".")[-1]
     if len(extension) < 1:
         extension = "jpg"
-    out = f"{IMGDIR_PATH}{index}"
+    out = f"{IMGDIR_PATH}{row[9].replace(' ', '_')}/{index}"
     if extra:
         out += extra
     return out + f".{extension}"
