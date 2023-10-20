@@ -15,3 +15,9 @@ See examplecoordinates.jpg for an example.
 
 https://docs.ultralytics.com/usage/cfg/#predict
 The link is an overview of arguments accepted by the predict command, as well as the default arguments.
+
+
+## Using YOLO autocrop
+yolo detect predict model="model" source="path/to/source" save_txt=True boxes=False
+
+The argument save_txt has to be set to "True" and the argument boxes set to "False"
