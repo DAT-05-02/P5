@@ -4,7 +4,7 @@ import tensorflow as tf
 import pandas as pd
 import numpy as np
 from PIL import Image
-
+import matplotlib.pyplot as plt
 
 class Model:
     def __init__(self,
@@ -23,6 +23,7 @@ class Model:
             tf.keras.layers.Dense(128, activation='relu'),
             tf.keras.layers.Dense(len(self.df["species"].unique()))
         ])
+
         return model
         # for summary use {objectname}.model.summary
 
@@ -46,6 +47,11 @@ class Model:
             run_eagerly=True
         )
 
+        # Print the model
+        # print("creating image of model: ")
+        # tf.keras.utils.plot_model(self.model, 'C:/Users/My dude/Pictures/Saved Pictures/model.png', show_shapes=True, show_layer_names=True)
+        # print("created ")
+
         # We enumerate over the butterfly species and get the labels out, which we put into label_to_index
         label_to_index = {label: index for index, label in enumerate(set(lbl))}
         # We map every label to their corresponding value in integer_labels
@@ -64,7 +70,24 @@ class Model:
         label_arr_val = integer_labels[train_size:]
 
         # mangler labels
-        self.model.fit(image_arr_train, label_arr_train, epochs=epochs, shuffle=True)
+        history = self.model.fit(image_arr_train, label_arr_train, validation_split=0.33, epochs=epochs, shuffle=True)
         self.model.save("latest.keras")
         res = self.model.evaluate(image_arr_val, label_arr_val, verbose=2)
         pprint(res)
+
+        # sumarize history for accuracy
+        plt.plot(history.history['accuracy'])
+        plt.plot(history.history['val_accuracy'])
+        plt.title('model accuracy')
+        plt.ylabel('accuracy')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'test'], loc='upper left')
+        plt.show()
+        # summarize history for loss
+        plt.plot(history.history['loss'])
+        plt.plot(history.history['val_loss'])
+        plt.title('model loss')
+        plt.ylabel('loss')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'test'], loc='upper left')
+        plt.show()
