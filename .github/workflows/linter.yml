@@ -17,10 +17,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install ruff
+
       - name: Lint with ruff
         run: |
-          ruff check core/ --fix 
-          ruff check test/ --fix
+          ruff check . --fix 
+          ruff check . --fix
       - name: Format ruff
         run: |
           # stop the build if there are Python syntax errors or undefined names
