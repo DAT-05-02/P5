@@ -15,7 +15,7 @@ def setup_dataset(raw_dataset_path: str,
                   dataset_csv_filename: str,
                   num_rows=None,
                   sort=False,
-                  bfly=False):
+                  bfly: list = None):
     """ Loads a file, converts to csv if none exists, or loads an existing csv into a pd.DateFrame object
     @param raw_label_path: path to original label dataset file
     @param raw_dataset_path: path to original dataset file
@@ -23,7 +23,7 @@ def setup_dataset(raw_dataset_path: str,
     @param dataset_csv_filename: filename for the csv file
     @param num_rows: number of rows to include
     @param sort: if dataset should be sorted by species
-    @param bfly: if dataset should only contain butterflies (no moths)
+    @param bfly: list of species that is included in dataset, have "all" in list for only butterflies (no moths)
     Returns: pandas.DataFrame object with data
 
     """
@@ -45,7 +45,10 @@ def setup_dataset(raw_dataset_path: str,
     df = df.merge(df_label[df_label['gbifID'].isin(df['gbifID'])], on=['gbifID'])
     df = df.loc[~df['lifeStage'].isin(BFLY_LIFESTAGE)]
     if bfly:
-        df = df.loc[df['family'].isin(BFLY_FAMILY)]
+        if "all" in bfly:
+            df = df.loc[df['family'].isin(BFLY_FAMILY)]
+        else:
+            df = df.loc[df['species'].isin(bfly)]
     print(df.shape)
     if sort:
         df.sort_values(by=['species'], inplace=True)
