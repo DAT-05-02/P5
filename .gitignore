@@ -7,8 +7,7 @@
 /dataSources/
 /dataSources.local.xml
 
-*/image_db
-*/leopidotera-dk.csv
-*/occurrence.csv
+**/image_*
+**/leopidotera-dk.csv
+**/occurrence.csv
 .idea
-*/image_lbp
