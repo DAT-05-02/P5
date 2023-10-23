@@ -1,10 +1,9 @@
-from pprint import pprint
-
 import tensorflow as tf
 import pandas as pd
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
+
 
 class Model:
     def __init__(self,
@@ -73,7 +72,7 @@ class Model:
         history = self.model.fit(image_arr_train, label_arr_train, validation_split=0.33, epochs=epochs, shuffle=True)
         self.model.save("latest.keras")
         res = self.model.evaluate(image_arr_val, label_arr_val, verbose=2)
-        pprint(res)
+        print("Accuracy: %.2f%%" % (res[1] * 100))
 
         # sumarize history for accuracy
         plt.plot(history.history['accuracy'])
