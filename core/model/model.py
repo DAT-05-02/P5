@@ -1,3 +1,4 @@
+import datetime
 from pprint import pprint
 
 import tensorflow as tf
@@ -16,9 +17,6 @@ class Model:
         model = tf.keras.models.Sequential([
             tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(size[0], size[1], depth)),
             tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
-            tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(128, activation='relu'),
             tf.keras.layers.Dense(len(self.df["species"].unique()))
@@ -69,8 +67,19 @@ class Model:
         label_arr_train = integer_labels[0: train_size]
         label_arr_val = integer_labels[train_size:]
 
+        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
         # mangler labels
-        history = self.model.fit(image_arr_train, label_arr_train, validation_split=0.33, epochs=epochs, shuffle=True)
+        history = self.model.fit(
+            image_arr_train,
+            label_arr_train,
+            validation_split=0.33,
+            epochs=epochs,
+            shuffle=True,
+            batch_size=2,
+            callbacks=[tensorboard_callback])
+
         self.model.save("latest.keras")
         res = self.model.evaluate(image_arr_val, label_arr_val, verbose=2)
         pprint(res)
