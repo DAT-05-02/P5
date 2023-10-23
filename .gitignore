@@ -12,3 +12,5 @@
 */occurrence.csv
 .idea
 */image_lbp
+__pycache__
+venv
