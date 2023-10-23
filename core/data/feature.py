@@ -5,6 +5,8 @@ from PIL import Image
 from skimage.feature import local_binary_pattern, graycomatrix, multiscale_basic_features, SIFT
 from core.util.constants import FEATURE_DIR_PATH, IMGDIR_PATH, DATASET_PATH
 
+FTS = ['sift', 'lbp', 'glcm']
+
 
 class FeatureExtractor:
     def __init__(self,
@@ -12,15 +14,12 @@ class FeatureExtractor:
                  feature_dir_path=FEATURE_DIR_PATH):
         self.save_path = feature_dir_path
         self.img_path = img_dir_path
+        self._mk_ft_dirs()
 
-    def pre_process(self, df: pd.DataFrame, feature: str, should_bb=True, should_resize=False, **kwargs):
-        dir_new = self.dirpath_from_ft(feature)
-        if not os.path.exists(dir_new):
-            os.makedirs(dir_new)
-        ft = getattr(self, feature)
+    def pre_process(self, df: pd.DataFrame, feature="", should_bb=True, should_resize=False, **kwargs):
+        ft = getattr(self, feature, None)
         for index, row in df.iterrows():
-            f_name = row['path'].split("/")[-1]
-            p_new = dir_new + f_name
+            p_new = self.path_from_row_ft(row, feature)
             if not os.path.exists(p_new):
                 with Image.open(row['path']) as img:
                     if feature == "lbp":
@@ -28,13 +27,13 @@ class FeatureExtractor:
                         img = Image.fromarray(lbp_arr)
                         df.at[index, feature] = p_new
                         print(row)
-                    elif feature == "homsc":
-                        homsc_arr = np.array(ft(img))
-                        # todo should save in json, csv or something else
-                        df.at[index, feature] = p_new
                     elif feature == "sift":
-                        sift_arr = ft(img)
-                        # todo should save in json, csv or something else
+                        pass
+                        # sift_arr = ft(img)
+                        # todo should save in json, np.save() or something else or something else
+                    elif feature == "glcm":
+                        pass
+                        # todo should save in json, np.save() or something else or something else
                     if should_bb:
                         img = self.make_square_with_bb(img)
                     if should_resize:
@@ -46,8 +45,29 @@ class FeatureExtractor:
         df.to_csv(DATASET_PATH, index=False)
         return df
 
+    def apply_feature(self, feature):
+        pass
+
+    def path_from_row_ft(self, row: pd.Series, feature: str):
+        print(row['path'])
+        f_name = str(row['path']).split(os.sep)[-1]
+        l_name = str(row['path']).split(os.sep)[-2]
+        res = self.dirpath_from_ft(feature) + l_name + os.sep + f_name
+        print(res)
+        return res
+
     def dirpath_from_ft(self, feature):
-        return f"{self.save_path}_{feature}/"
+        if feature is None or feature == "":
+            out_ft = "db"
+        else:
+            out_ft = feature
+        return f"{self.save_path}_{out_ft}/"
+
+    def _mk_ft_dirs(self):
+        for feature in FTS:
+            dir_new = self.dirpath_from_ft(feature)
+            if not os.path.exists(dir_new):
+                os.makedirs(dir_new)
 
     @staticmethod
     def lbp(img: Image, method="ror", radius=1):
@@ -130,13 +150,13 @@ class FeatureExtractor:
             for im in new_images:
                 temp_list.append(im.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT))
             new_images.extend(temp_list)
-        #only rotations (no flips)
+        # only rotations (no flips)
         if len(new_images) == 4:
             for im in new_images:
                 im.show()
                 im.save(f"{img_path}/{name}_{i * 90}.jpg")
                 i += 1
-        #rotations and flips, or just flips
+        # rotations and flips, or just flips
         if len(new_images) == 2 or len(new_images) == 8:
             for i in range(int(len(new_images) / 2)):
                 new_images[i].show()
