@@ -6,3 +6,4 @@ ruff
 scikit-image~=0.19.3
 tensorflow
 matplotlib
+pre-commit
