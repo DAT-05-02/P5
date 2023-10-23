@@ -6,7 +6,6 @@ from core.util.constants import RAW_DATA_PATH, RAW_LABEL_PATH, DATASET_PATH, LAB
 from core.data.feature import FeatureExtractor
 from core.model.model import Model
 
-os.chdir("core")
 
 if __name__ == "__main__":
     sys.path.append(f"{os.getcwd()}{os.sep}core")
