@@ -1,51 +1,45 @@
-from asyncio import wait
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
-import numpy as np
 import requests
 import pandas as pd
 import os
 from PIL import Image
 from core.util.util import timing
-from data.feature import lbp, rlbp
-
-IMG_PATH = "image_db/"
-LABEL_DATASET = "occurrence.csv"
-MERGE_COLS = ['genericName', 'species', 'family', 'stateProvince', 'gbifID', 'identifier', 'format', 'created',
-              'iucnRedListCategory', 'lifeStage', 'sex']
-BFLY_FAMILY = ['Pieridae', 'Papilionidae', 'Lycaenidae', 'Riodinidae', 'Nymphalidae', 'Hesperiidae', 'Hedylidae']
-BFLY_LIFESTAGE = ['Pupa', 'Caterpillar', 'Larva']
+from core.util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH
 
 
-def setup_dataset(dataset_path: str,
-                  label_path: str,
+def setup_dataset(raw_dataset_path: str,
+                  raw_label_path: str,
+                  label_dataset_path: str,
                   dataset_csv_filename: str,
                   num_rows=None,
                   sort=False,
                   bfly: list = None):
     """ Loads a file, converts to csv if none exists, or loads an existing csv into a pd.DateFrame object
-    @param label_path: path to label dataset
-    @param dataset_path: path to original dataset file
+    @param raw_label_path: path to original label dataset file
+    @param raw_dataset_path: path to original dataset file
+    @param label_dataset_path: path to label csv file
     @param dataset_csv_filename: filename for the csv file
     @param num_rows: number of rows to include
     @param sort: if dataset should be sorted by species
     @param bfly: list of species that is included in dataset, have "all" in list for only butterflies (no moths)
     Returns: pandas.DataFrame object with data
+
     """
-    if not os.path.exists(IMG_PATH):
-        os.makedirs(IMG_PATH)
+    if not os.path.exists(IMGDIR_PATH):
+        os.makedirs(IMGDIR_PATH)
     if os.path.exists(dataset_csv_filename):
         df = pd.read_csv(dataset_csv_filename, low_memory=False)
         if num_rows and len(df) == num_rows:
             return df
 
-    df: pd.DataFrame = pd.read_csv(dataset_path, sep="	", low_memory=False)
-    if os.path.exists(LABEL_DATASET):
-        df_label: pd.DataFrame = pd.read_csv(LABEL_DATASET, low_memory=False)
+    df: pd.DataFrame = pd.read_csv(raw_dataset_path, sep="	", low_memory=False)
+    if os.path.exists(label_dataset_path):
+        df_label: pd.DataFrame = pd.read_csv(label_dataset_path, low_memory=False)
     else:
-        df_label: pd.DataFrame = pd.read_csv(label_path, sep="	", low_memory=False)
-        df_label.to_csv(LABEL_DATASET, index=None)
+        df_label: pd.DataFrame = pd.read_csv(raw_label_path, sep="	", low_memory=False)
+        df_label.to_csv(label_dataset_path, index=False)
     print(df[df.columns])
     drop_cols([df, df_label], MERGE_COLS)
     df = df.merge(df_label[df_label['gbifID'].isin(df['gbifID'])], on=['gbifID'])
@@ -61,8 +55,9 @@ def setup_dataset(dataset_path: str,
     print(f"found {len(df['species'].unique())} unique species")
     if num_rows:
         df.drop(df.index[num_rows:], inplace=True)
-    df.reset_index(inplace=True)
-    df.to_csv(dataset_csv_filename, index=None)
+    df.reset_index(inplace=True, drop=True)
+    df = df.assign(path="", lbp="", sift="", homsc="")
+    df.to_csv(dataset_csv_filename, index=False)
     return df
 
 
@@ -80,37 +75,36 @@ def img_path_from_row(row: pd.Series, index: int, column="identifier", extra=Non
     @return: the path to save the image in
     @rtype: str
     """
+    path = f"{IMGDIR_PATH}{row[9].replace(' ', '_')}"
+    if not os.path.exists(path):
+        os.makedirs(path)
     extension = row[column].split(".")[-1]
     if len(extension) < 1:
         extension = "jpg"
-    out = f"{IMG_PATH}{index}"
+    out = f"{IMGDIR_PATH}{row[9].replace(' ', '_')}/{index}"
     if extra:
         out += extra
     return out + f".{extension}"
-
-
-def make_square_with_bb(im, min_size=256, fill_color=(0, 0, 0, 0)):
-    x, y = im.size
-    size = max(min_size, x, y)
-    new_im = Image.new('RGB', (size, size), fill_color)
-    new_im.paste(im, (int((size - x) / 2), int((size - y) / 2)))
-    return new_im
 
 
 @timing
 def fetch_images(df: pd.DataFrame, col: str):
     """
     Fetches all image links in a DataFrame column to path defined by :func:`~fetch.img_path_from_row`
+    and assigns the column value to the path saved to.
     @param df: the DataFrame containing links
     @param col: which column the links are in
     """
 
-    def save_img(row: pd.Series, index) -> Any:
+    def save_img(df: pd.DataFrame, row: pd.Series, index) -> Any:
         path = img_path_from_row(row, index)
         if not os.path.exists(path):
             img = Image.open(requests.get(row[col], stream=True).raw)
             img.save(path)
             print(path)
-
+        df.at[index, 'path'] = path
+    # df['path'] = ""
     with ThreadPoolExecutor(50) as executor:
-        _ = [executor.submit(save_img, row, index) for index, row in df.iterrows()]
+        _ = [executor.submit(save_img, df, row, index) for index, row in df.iterrows()]
+        executor.shutdown(wait=True)
+    df.to_csv(DATASET_PATH, index=False)
