@@ -19,8 +19,8 @@ jobs:
           pip install ruff
       - name: Lint with ruff
         run: |
-          ruff check --fix core/
-          ruff check --fix test/
+          ruff check core/ --fix 
+          ruff check test/ --fix
       - name: Format ruff
         run: |
           # stop the build if there are Python syntax errors or undefined names
