@@ -21,3 +21,4 @@ if __name__ == "__main__":
     df = ft_extractor.pre_process(df, "lbp", radius=7, should_bb=True, should_resize=True)
     model = Model(df)
     model.model_compile_fit_evaluate(epochs=300)
+
