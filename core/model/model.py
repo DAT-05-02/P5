@@ -6,6 +6,7 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 
+
 class Model:
     def __init__(self,
                  df: pd.DataFrame):
@@ -47,10 +48,8 @@ class Model:
             run_eagerly=True
         )
 
-        # Print the model
-        # print("creating image of model: ")
-        # tf.keras.utils.plot_model(self.model, 'C:/Users/My dude/Pictures/Saved Pictures/model.png', show_shapes=True, show_layer_names=True)
-        # print("created ")
+        # Print the model print("creating image of model: ") tf.keras.utils.plot_model(self.model, 'C:/Users/My
+        # dude/Pictures/Saved Pictures/model.png', show_shapes=True, show_layer_names=True) print("created ")
 
         # We enumerate over the butterfly species and get the labels out, which we put into label_to_index
         label_to_index = {label: index for index, label in enumerate(set(lbl))}

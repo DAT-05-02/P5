@@ -28,13 +28,12 @@ class FeatureExtractor:
                         img = Image.fromarray(lbp_arr)
                         df.at[index, feature] = p_new
                         print(row)
-                    elif feature == "homsc":
-                        homsc_arr = np.array(ft(img))
-                        # todo should save in json, csv or something else
-                        df.at[index, feature] = p_new
                     elif feature == "sift":
-                        sift_arr = ft(img)
-                        # todo should save in json, csv or something else
+                        pass
+                        # todo should save in json, np.save() or something else
+                    elif feature == "glcm":
+                        # todo should save in json, np.save() or something else
+                        pass
                     if should_bb:
                         img = self.make_square_with_bb(img)
                     if should_resize:
