@@ -3,10 +3,10 @@ import os.path
 import numpy as np
 import pandas as pd
 from PIL import Image
-from skimage.feature import local_binary_pattern, graycomatrix, multiscale_basic_features, SIFT
+from skimage.feature import local_binary_pattern, graycomatrix, SIFT
 from core.util.constants import FEATURE_DIR_PATH, IMGDIR_PATH, DATASET_PATH
 from util.logging.logable import Logable
-from util.util import log_ent_exit, setup_log
+from util.util import setup_log
 
 FTS = ['sift', 'lbp', 'glcm']
 
