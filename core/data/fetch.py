@@ -1,9 +1,12 @@
-from concurrent.futures import ThreadPoolExecutor
+import concurrent
+from concurrent.futures import ThreadPoolExecutor, ALL_COMPLETED
+from asyncio import wait
+from pprint import pprint
 from typing import Any
 
+import numpy as np
 import requests
 import pandas as pd
-import numpy as np
 import os
 from PIL import Image
 from core.util.util import timing
@@ -45,6 +48,7 @@ def setup_dataset(raw_dataset_path: str,
     drop_cols([df, df_label], MERGE_COLS)
     df = df.merge(df_label[df_label['gbifID'].isin(df['gbifID'])], on=['gbifID'])
     df = df.loc[~df['lifeStage'].isin(BFLY_LIFESTAGE)]
+    df = df.dropna(subset=['species'])
     if bfly:
         if "all" in bfly:
             df = df.loc[df['family'].isin(BFLY_FAMILY)]
@@ -57,7 +61,6 @@ def setup_dataset(raw_dataset_path: str,
     if num_rows:
         df.drop(df.index[num_rows:], inplace=True)
     df.reset_index(inplace=True, drop=True)
-    df = df.assign(path=np.nan, lbp=np.nan, sift=np.nan, homsc=np.nan)
     df.to_csv(dataset_csv_filename, index=False)
     return df
 
@@ -76,9 +79,13 @@ def img_path_from_row(row: pd.Series, index: int, column="identifier", extra=Non
     @return: the path to save the image in
     @rtype: str
     """
-    path = f"{IMGDIR_PATH}{row[9].replace(' ', '_')}"
+    try:
+        path = f"{IMGDIR_PATH}{row['species'].replace(' ', '_')}"
+    except AttributeError as e:
+        print(f"{row} error: \n {e}")
+        raise e
     if not os.path.exists(path):
-        os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
     extension = row[column].split(".")[-1]
     if len(extension) < 1:
         extension = "jpg"
@@ -96,15 +103,37 @@ def fetch_images(df: pd.DataFrame, col: str):
     @param df: the DataFrame containing links
     @param col: which column the links are in
     """
+    paths = np.full(len(df.index), fill_value=np.nan).tolist()
 
-    def save_img(df_inner: pd.DataFrame, row: pd.Series, index) -> Any:
+    def save_img(row: pd.Series, index) -> Any:
         path = img_path_from_row(row, index)
+        out = np.nan
         if not os.path.exists(path):
-            img = Image.open(requests.get(row[col], stream=True).raw)
-            img.save(path)
-            print(path)
-        df_inner.at[index, 'path'] = path
+            try:
+                img = Image.open(requests.get(row[col], stream=True, timeout=40).raw)
+                img.save(path)
+                out = path
+                print(path)
+            except requests.exceptions.Timeout:
+                print(f"Timeout occurred for index {index}")
+            except requests.exceptions.RequestException as e:
+                print(f"Error occurred: {e}")
+            except ValueError as e:
+                print(f"Image name not applicable: {e}")
+            except OSError as e:
+                print(f"Could not save file: {e}")
+            except Exception as e:
+                print(f"Unknown error: {e}")
+        else:
+            out = path
+        return out
+
     with ThreadPoolExecutor(100) as executor:
-        _ = [executor.submit(save_img, df, row, index) for index, row in df.iterrows()]
-        executor.shutdown(wait=True)
-    df.to_csv(DATASET_PATH, index=False)
+        futures = [executor.submit(save_img, row, index) for index, row in df.iterrows()]
+        concurrent.futures.wait(futures, timeout=None, return_when=ALL_COMPLETED)
+        for i, ft in enumerate(futures):
+            paths[i] = ft.result()
+
+        df['path'] = paths
+        #df = df[df[['path']].notnull().any(axis=1)]
+        df.to_csv(DATASET_PATH, index=False)
