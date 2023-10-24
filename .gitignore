@@ -15,3 +15,5 @@
 */image_lbp
 __pycache__
 venv
+
+.vscode/*

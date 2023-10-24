@@ -9,3 +9,4 @@ tensorflow
 matplotlib
 roboflow==1.1.6
 ultralytics==8.0.134
+matplotlib
