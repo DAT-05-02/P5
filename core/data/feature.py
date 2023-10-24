@@ -1,17 +1,23 @@
+import logging
 import os.path
 import numpy as np
 import pandas as pd
 from PIL import Image
 from skimage.feature import local_binary_pattern, graycomatrix, multiscale_basic_features, SIFT
 from core.util.constants import FEATURE_DIR_PATH, IMGDIR_PATH, DATASET_PATH
+from util.logging.logable import Logable
+from util.util import log_ent_exit, setup_log
 
 FTS = ['sift', 'lbp', 'glcm']
 
 
-class FeatureExtractor:
+class FeatureExtractor(Logable):
     def __init__(self,
                  img_dir_path=IMGDIR_PATH,
-                 feature_dir_path=FEATURE_DIR_PATH):
+                 feature_dir_path=FEATURE_DIR_PATH,
+                 log_level=logging.DEBUG):
+        super().__init__()
+        setup_log(log_level=log_level)
         self.save_path = feature_dir_path
         self.img_path = img_dir_path
         self._mk_ft_dirs()
@@ -106,13 +112,6 @@ class FeatureExtractor:
         if img.mode != "L":
             img = img.convert("L")
         return graycomatrix(img, distance, angles)
-
-    @staticmethod
-    def homsc(img: Image.Image):
-        img = img.convert("L")
-        res = np.array(multiscale_basic_features(np.array(img), num_workers=2, sigma_min=1, sigma_max=15))
-        print(res.shape)
-        return res
 
     @staticmethod
     def sift(img: Image.Image):
