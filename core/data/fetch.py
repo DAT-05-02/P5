@@ -3,6 +3,7 @@ from typing import Any
 
 import requests
 import pandas as pd
+import numpy as np
 import os
 from PIL import Image
 from core.util.util import timing
@@ -56,7 +57,7 @@ def setup_dataset(raw_dataset_path: str,
     if num_rows:
         df.drop(df.index[num_rows:], inplace=True)
     df.reset_index(inplace=True, drop=True)
-    df = df.assign(path="", lbp="", sift="", homsc="")
+    df = df.assign(path=np.nan, lbp=np.nan, sift=np.nan, homsc=np.nan)
     df.to_csv(dataset_csv_filename, index=False)
     return df
 
@@ -96,15 +97,14 @@ def fetch_images(df: pd.DataFrame, col: str):
     @param col: which column the links are in
     """
 
-    def save_img(df: pd.DataFrame, row: pd.Series, index) -> Any:
+    def save_img(df_inner: pd.DataFrame, row: pd.Series, index) -> Any:
         path = img_path_from_row(row, index)
         if not os.path.exists(path):
             img = Image.open(requests.get(row[col], stream=True).raw)
             img.save(path)
             print(path)
-        df.at[index, 'path'] = path
-    # df['path'] = ""
-    with ThreadPoolExecutor(50) as executor:
+        df_inner.at[index, 'path'] = path
+    with ThreadPoolExecutor(100) as executor:
         _ = [executor.submit(save_img, df, row, index) for index, row in df.iterrows()]
         executor.shutdown(wait=True)
     df.to_csv(DATASET_PATH, index=False)
