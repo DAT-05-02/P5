@@ -37,10 +37,10 @@ class FeatureExtractor(Logable):
                         paths[int(index)] = p_new
                     elif feature == "sift":
                         pass
-                        # todo should save in json, np.save() or something else or something else
+                        # todo should save in json, np.save() or something else
                     elif feature == "glcm":
                         pass
-                        # todo should save in json, np.save() or something else or something else
+                        # todo should save in json, np.save() or something else
                     if should_bb:
                         img = self.make_square_with_bb(img)
                     if should_resize:
