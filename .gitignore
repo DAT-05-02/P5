@@ -17,3 +17,5 @@ __pycache__
 venv
 
 .vscode/*
+core/logs/*
+core/modelcheckpoint/*

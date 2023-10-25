@@ -46,7 +46,7 @@ class Model:
             custom_optimizer,
             loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
             metrics=['accuracy'],
-            run_eagerly=True
+            #run_eagerly=True
         )
         
         # Checking if model allready exist.
