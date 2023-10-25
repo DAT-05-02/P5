@@ -28,7 +28,7 @@ def log_ent_exit(method):
     def _impl(self, *args, **kwargs):
         self.log.debug('Entering: %s', method.__name__)
         tmp = method(self, *args, **kwargs)
-        if tmp:
+        if tmp is not None:
             self.log.debug('%s', tmp)
         self.log.debug('Exiting: %s', method.__name__)
         return tmp
