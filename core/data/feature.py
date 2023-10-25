@@ -6,7 +6,7 @@ from PIL import Image
 from skimage.feature import local_binary_pattern, graycomatrix, SIFT
 from core.util.constants import FEATURE_DIR_PATH, IMGDIR_PATH, DATASET_PATH
 from util.logging.logable import Logable
-from util.util import setup_log
+from util.util import setup_log, log_ent_exit
 
 FTS = ['sift', 'lbp', 'glcm']
 
@@ -15,7 +15,7 @@ class FeatureExtractor(Logable):
     def __init__(self,
                  img_dir_path=IMGDIR_PATH,
                  feature_dir_path=FEATURE_DIR_PATH,
-                 log_level=logging.DEBUG):
+                 log_level=logging.INFO):
         super().__init__()
         setup_log(log_level=log_level)
         self.save_path = feature_dir_path
@@ -31,22 +31,24 @@ class FeatureExtractor(Logable):
             l_new = self.l_dirpath_from_row(row, feature)
             if not os.path.exists(p_new):
                 with Image.open(row['path']) as img:
-                    if feature == "lbp":
-                        lbp_arr = ft(img, kwargs.get('method', 'ror'), kwargs.get('radius', 1))
-                        img = Image.fromarray(lbp_arr)
-                        paths[int(index)] = p_new
-                    elif feature == "sift":
-                        pass
-                        # todo should save in json, np.save() or something else
-                    elif feature == "glcm":
-                        pass
-                        # todo should save in json, np.save() or something else
                     if should_bb:
                         img = self.make_square_with_bb(img)
                     if should_resize:
                         img = img.resize((416, 416))
+                    if feature == "lbp":
+                        out: np.ndarray = ft(img, kwargs.get('method', 'ror'), kwargs.get('radius', 1))
+                        paths[int(index)] = p_new
+                    elif feature == "sift":
+                        out: np.ndarray = ft(img)
+                        paths[int(index)] = p_new
+                    elif feature == "glcm":
+                        out: np.ndarray = ft(img, kwargs.get('distances', None), kwargs.get('angles', None))
+                        paths[int(index)] = p_new
+                    elif feature == "" or feature is None:
+                        out: np.ndarray = np.array(img)
                     os.makedirs(l_new, exist_ok=True)
-                    img.save(p_new)
+                    np.save(p_new, out)
+
             else:
                 paths[int(index)] = p_new
         df[feature] = paths
@@ -61,12 +63,13 @@ class FeatureExtractor(Logable):
         l_name = str(row['path']).split(os.sep)[-2]
         return self.dirpath_from_ft(feature) + l_name + os.sep
 
+    @log_ent_exit
     def path_from_row_ft(self, row: pd.Series, feature: str):
-        f_name = str(row['path']).split(os.sep)[-1]
+        f_name = str(row['path']).split(os.sep)[-1].split('.')[0] + ".npy"
         return self.l_dirpath_from_row(row, feature) + f_name
 
     def dirpath_from_ft(self, feature):
-        if feature is None or feature == "":
+        if feature == "" or feature is None:
             out_ft = "db"
         else:
             out_ft = feature
@@ -116,16 +119,12 @@ class FeatureExtractor(Logable):
             img = img.convert("L")
         return graycomatrix(img, distance, angles)
 
-    @staticmethod
-    def sift(img: Image.Image):
+    @log_ent_exit
+    def sift(self, img: Image.Image):
         sift_detector = SIFT()
         img = img.convert("L")
         sift_detector.detect_and_extract(img)
-        print(sift_detector.keypoints)
-        print(sift_detector.descriptors)
-        for keypoint in sift_detector.keypoints:
-            pass
-        pass
+        return np.array(list(zip(sift_detector.keypoints, sift_detector.descriptors)))
 
     @staticmethod
     def make_square_with_bb(im, min_size=256, fill_color=(0, 0, 0, 0), mode="RGB"):
