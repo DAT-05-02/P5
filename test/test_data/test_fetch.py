@@ -1,6 +1,8 @@
 import logging
 import os
 import random
+import shutil
+
 import pandas as pd
 import pytest
 from PIL import Image
@@ -49,7 +51,11 @@ def test_setup(fetcher: FetchTester):
 
 @pytest.mark.parametrize("index", [5, 10, 100, 15004, 110521])
 def test_img_path_from_row(index, fetcher: FetchTester):
-    supported_ext = [fetcher.img_path + str(index) + w for w in Image.registered_extensions().keys()]
+    supported_ext = [fetcher.img_path
+                     + str(fetcher.df.iloc[index]['species']).replace(" ", "_")
+                     + os.sep
+                     + str(index)
+                     + w for w in Image.registered_extensions().keys()]
     assert img_path_from_row(index=index, row=fetcher.df.iloc[index], column="identifier") in supported_ext
 
 
@@ -62,8 +68,7 @@ def random_index(df):
 
 @pytest.mark.parametrize("n_times", range(5))
 def test_fetch_images(fetcher: FetchTester, n_times):
-    for f in os.listdir(fetcher.img_path):
-        os.remove(os.path.join(fetcher.img_path, f))
+    shutil.rmtree(fetcher.img_path)
     amount, start = random_index(fetcher.df)
     df = fetcher.df.copy()[start:start + amount]
     fetch_images(df, fetcher.img_col)
