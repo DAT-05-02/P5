@@ -14,7 +14,7 @@ class Model:
         self.df = df
         self.model = self._create_model()
 
-    def _create_model(self, size=(256, 256), depth=3):
+    def _create_model(self, size=(416, 416), depth=3):
         model = tf.keras.models.Sequential([
             tf.keras.layers.Flatten(input_shape=(size[0], size[1], depth)),
             tf.keras.layers.Dense(5, activation='relu'),
@@ -36,7 +36,12 @@ class Model:
 
     def model_compile_fit_evaluate(self, lr=0.001, epochs=10):
         #img_arr, lbl = self.img_with_labels()
-        dataset = tf.keras.utils.image_dataset_from_directory("image_db", labels="inferred")
+        dataset = tf.keras.utils.image_dataset_from_directory("image_db",
+                                                              labels="inferred",
+                                                              #label_mode="categorical",
+                                                              image_size=(416, 416),
+                                                              shuffle=False)
+        print("\n\nHELLO", len(list(dataset)), "HELLO\n\n")
         custom_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
         self.model.compile(
             custom_optimizer,
@@ -48,8 +53,8 @@ class Model:
         # dude/Pictures/Saved Pictures/model.png', show_shapes=True, show_layer_names=True) print("created ")
 
         # 15% of data used for testing
-        train_ds, test_ds = tf.keras.utils.split_dataset(dataset, left_size=0.85, shuffle=True)
-
+        train_ds, right_ds = tf.keras.utils.split_dataset(dataset, left_size=0.85, shuffle=True)
+        valid_ds, test_ds = tf.keras.utils.split_dataset(right_ds, left_size=0.65, shuffle=True)
 
         log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
@@ -57,6 +62,7 @@ class Model:
         # mangler labels
         history = self.model.fit(
             train_ds,
+            validation_data=valid_ds,
             epochs=epochs)
 
         self.model.save("latest.keras")
