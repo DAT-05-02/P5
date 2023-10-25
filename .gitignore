@@ -19,3 +19,4 @@ venv
 .vscode/*
 core/logs/*
 core/modelcheckpoint/*
+.conda/*
