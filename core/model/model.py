@@ -13,72 +13,81 @@ class Model:
                  df: pd.DataFrame):
         self.df = df
         self.model = self._create_model()
+        self.dataset = self._setup_dataset()
+        self.train_dataset = None
+        self.val_dataset = None
+        self.test_dataset = None
 
     def _create_model(self, size=(416, 416), depth=3):
         model = tf.keras.models.Sequential([
             tf.keras.layers.Flatten(input_shape=(size[0], size[1], depth)),
             tf.keras.layers.Dense(5, activation='relu'),
-            tf.keras.layers.Dense(len(self.df["species"].unique()))
+            #tf.keras.layers.Dense(len(self.df["species"].unique()))
+            tf.keras.layers.Dense(49, activation="softmax")
         ])
 
         return model
-        # for summary use {objectname}.model.summary
 
-    def img_with_labels(self):
-        # df = self.df.assign(image=lambda x: Image.open(str(x["path"])))
-        self.df['image'] = ""
-        arr = []
-        for index, row in self.df.iterrows():
-            if row['lbp'] and row['lbp'] != "":
-                arr.append(np.array(Image.open(row['lbp']).convert("L")).tolist())
+    def _setup_dataset(self):
+        dataset = tf.keras.utils.image_dataset_from_directory(
+            directory="image_db", 
+            labels="inferred", 
+            label_mode="categorical", 
+            image_size=(416, 416), 
+            )
+        return dataset
 
-        return np.array(arr), self.df['species']
+    def print_dataset_info(self):
+        num_batches = self.dataset.cardinality()
+        print(f"Number of batches in the dataset: {num_batches}")
 
-    def model_compile_fit_evaluate(self, lr=0.001, epochs=10):
-        dataset = tf.keras.utils.image_dataset_from_directory(directory="image_db", labels="inferred", label_mode="categorical", image_size=(416, 416), shuffle=False)
+        total_images = 0
+        total_labels = 0
 
+        for images, labels in self.dataset:
+            total_images += images.shape[0]
+            total_labels += labels.shape[0]
+
+        print(f"Total images in the dataset: {total_images}")
+        print(f"Total labels in the dataset: {total_labels}")
+
+    def split_dataset(self, validation_split=0.15, test_split=0.15, shuffle=True):
+        dataset = tf.keras.utils.image_dataset_from_directory(
+            directory="image_db",
+            labels="inferred",
+            label_mode="categorical",
+            image_size=(416, 416),
+            validation_split=validation_split,
+            subset="training",
+            seed=1337 if shuffle else None,
+            shuffle=shuffle
+        )
+
+        val_size = int(validation_split * len(dataset))
+        test_size = int(test_split * len(dataset))
+        train_size = len(dataset) - val_size - test_size
+
+        self.train_dataset = dataset.take(train_size)
+        remaining_dataset = dataset.skip(train_size)
+        self.val_dataset = remaining_dataset.take(val_size)
+        self.test_dataset = remaining_dataset.skip(val_size)
+
+    def compile(self, lr=0.001):
         custom_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
         self.model.compile(
             custom_optimizer,
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(),
+            loss=tf.keras.losses.CategoricalCrossentropy(),
             metrics=['accuracy']
         )
 
-        # Print the model print("creating image of model: ") tf.keras.utils.plot_model(self.model, 'C:/Users/My
-        # dude/Pictures/Saved Pictures/model.png', show_shapes=True, show_layer_names=True) print("created ")
-
-        # 15% of data used for testing
-        train_ds, right_ds = tf.keras.utils.split_dataset(dataset, left_size=0.85, shuffle=True)
-        valid_ds, test_ds = tf.keras.utils.split_dataset(right_ds, left_size=0.65, shuffle=True)
-
-        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-
-        # mangler labels
+    def fit(self, epochs=10):
         history = self.model.fit(
-            train_ds,
-            validation_data=valid_ds,
-            epochs=epochs)
+            self.train_dataset,
+            validation_data=self.val_dataset,
+            epochs=epochs
+        )
+        return history
 
-        self.model.save("latest.keras")
-        res = self.model.evaluate(test_ds, verbose=2)
+    def evaluate(self):
+        res = self.model.evaluate(self.test_dataset, verbose=2)
         pprint(res)
-
-        # sumarize history for accuracy
-        """
-        plt.plot(history.history['accuracy'])
-        plt.plot(history.history['val_accuracy'])
-        plt.title('model accuracy')
-        plt.ylabel('accuracy')
-        plt.xlabel('epoch')
-        plt.legend(['train', 'test'], loc='upper left')
-        plt.show()
-        # summarize history for loss
-        plt.plot(history.history['loss'])
-        plt.plot(history.history['val_loss'])
-        plt.title('model loss')
-        plt.ylabel('loss')
-        plt.xlabel('epoch')
-        plt.legend(['train', 'test'], loc='upper left')
-        plt.show()
-        """
