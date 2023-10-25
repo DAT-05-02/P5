@@ -155,14 +155,11 @@ class FeatureExtractor(Logable):
         # only rotations (no flips)
         if len(new_images) == 4:
             for im in new_images:
-                im.show()
                 im.save(f"{img_path}/{name}_{i * 90}.jpg")
                 i += 1
         # rotations and flips, or just flips
         if len(new_images) == 2 or len(new_images) == 8:
             for i in range(int(len(new_images) / 2)):
-                new_images[i].show()
                 new_images[i].save(f"{img_path}/{name}_{i * 90}.jpg")
             for i in range(int(len(new_images) / 2), int(len(new_images))):
-                new_images[i].show()
                 new_images[i].save(f"{img_path}/{name}_{(i - 4) * 90}f.jpg")
