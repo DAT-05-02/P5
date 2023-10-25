@@ -15,10 +15,11 @@ if __name__ == "__main__":
                        label_dataset_path=LABEL_DATASET_PATH,
                        dataset_csv_filename=DATASET_PATH,
                        num_rows=50,
-                       bfly=True)
+                       bfly=["all"])
     fetch_images(df, "identifier")
-    ft_extractor = FeatureExtractor()
-    df = ft_extractor.pre_process(df, "lbp", radius=7, should_bb=True, should_resize=True)
-    model = Model(df)
-    model.model_compile_fit_evaluate(epochs=300)
+    FeatureExtractor.create_augmented_images()
+    #ft_extractor = FeatureExtractor()
+    #df = ft_extractor.pre_process(df, "lbp", radius=7, should_bb=True, should_resize=True)
+    #model = Model(df)
+    #model.model_compile_fit_evaluate(epochs=300)
 
