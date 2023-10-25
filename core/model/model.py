@@ -35,13 +35,8 @@ class Model:
         return np.array(arr), self.df['species']
 
     def model_compile_fit_evaluate(self, lr=0.001, epochs=10):
-        #img_arr, lbl = self.img_with_labels()
-        dataset = tf.keras.utils.image_dataset_from_directory("image_db",
-                                                              labels="inferred",
-                                                              #label_mode="categorical",
-                                                              image_size=(416, 416),
-                                                              shuffle=False)
-        print("\n\nHELLO", len(list(dataset)), "HELLO\n\n")
+        dataset = tf.keras.utils.image_dataset_from_directory(directory="image_db", labels="inferred", label_mode="categorical", image_size=(416, 416), shuffle=False)
+
         custom_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
         self.model.compile(
             custom_optimizer,
