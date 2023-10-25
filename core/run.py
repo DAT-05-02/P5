@@ -14,7 +14,7 @@ if __name__ == "__main__":
                        raw_label_path=RAW_LABEL_PATH,
                        label_dataset_path=LABEL_DATASET_PATH,
                        dataset_csv_filename=DATASET_PATH,
-                       num_rows=1000,
+                       num_rows=2000,
                        bfly=["all"])
     fetch_images(df, "identifier")
     #ft_extractor = FeatureExtractor()
@@ -23,6 +23,7 @@ if __name__ == "__main__":
     model.print_dataset_info()
     model.compile()
     model.split_dataset()
-    model.fit(3)
-    model.evaluate()
-
+    model.fit(2)
+    #model.evaluate()
+    #model.evaluate_and_print_predictions()
+    model.evaluate_and_show_predictions()

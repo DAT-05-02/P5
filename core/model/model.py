@@ -22,8 +22,8 @@ class Model:
         model = tf.keras.models.Sequential([
             tf.keras.layers.Flatten(input_shape=(size[0], size[1], depth)),
             tf.keras.layers.Dense(5, activation='relu'),
-            #tf.keras.layers.Dense(len(self.df["species"].unique()))
-            tf.keras.layers.Dense(49, activation="softmax")
+            #tf.keras.layers.Dense(len(self.df["species"].unique()), activation="softmax")
+            tf.keras.layers.Dense(55, activation="softmax")
         ])
 
         return model
@@ -91,3 +91,59 @@ class Model:
     def evaluate(self):
         res = self.model.evaluate(self.test_dataset, verbose=2)
         pprint(res)
+
+    def evaluate_and_print_predictions(self):
+        evaluation_results = self.model.evaluate(self.test_dataset, verbose=2)
+        print("Test Accuracy: {:.2f}%".format(evaluation_results[1] * 100))
+
+        species_labels = self.df["species"].tolist()
+
+        true_labels = []
+        predicted_labels = []
+
+        for images, labels in self.test_dataset:
+            predictions = self.model.predict(images)
+            true_labels.extend([species_labels[label.numpy().argmax()] for label in labels])
+            predicted_labels.extend([species_labels[pred.argmax()] for pred in predictions])
+
+        print("Evaluation Summary:")
+        for true_label, predicted_label in zip(true_labels, predicted_labels):
+            print(f"True Label: {true_label}\tPredicted Label: {predicted_label}")
+
+    def evaluate_and_show_predictions(self, num_samples=5):
+        evaluation_results = self.model.evaluate(self.test_dataset, verbose=2)
+        print("Test Accuracy: {:.2f}%".format(evaluation_results[1] * 100))
+
+        species_labels = self.df["species"].tolist()
+
+        for images, labels in self.test_dataset.take(num_samples):
+            predictions = self.model.predict(images)
+
+            plt.figure(figsize=(15, 6))
+
+            for i in range(num_samples):
+                true_label = species_labels[labels[i].numpy().argmax()]
+                predicted_label = species_labels[predictions[i].argmax()]
+                plt.subplot(1, num_samples, i + 1)
+                plt.imshow(images[i].numpy().astype("uint8"))
+                plt.title(f"True: {true_label}\nPredicted: {predicted_label}")
+                plt.axis("off")
+
+            plt.show() 
+
+    def predict_and_show(self, image_path):
+        img = tf.keras.preprocessing.image.load_img(
+            image_path, target_size=(416, 416)
+        )
+        img_array = tf.keras.preprocessing.image.img_to_array(img)
+        img_array = tf.expand_dims(img_array, 0)
+
+        prediction = self.model.predict(img_array)
+        species_labels = self.df["species"].tolist()
+        predicted_label = species_labels[np.argmax(prediction)]
+
+        plt.figure(figsize=(6, 6))
+        plt.imshow(img)
+        plt.title(f"Predicted: {predicted_label}")
+        plt.axis("off")
+        plt.show()
