@@ -1,5 +1,6 @@
 import datetime
 from pprint import pprint
+import os
 
 import tensorflow as tf
 import pandas as pd
@@ -22,8 +23,8 @@ class Model:
         model = tf.keras.models.Sequential([
             tf.keras.layers.Flatten(input_shape=(size[0], size[1], depth)),
             tf.keras.layers.Dense(5, activation='relu'),
-            #tf.keras.layers.Dense(len(self.df["species"].unique()), activation="softmax")
-            tf.keras.layers.Dense(55, activation="softmax")
+            tf.keras.layers.Dense(len(os.listdir("image_db")), activation="softmax")
+            #tf.keras.layers.Dense(57, activation="softmax")
         ])
 
         return model
@@ -50,6 +51,12 @@ class Model:
 
         print(f"Total images in the dataset: {total_images}")
         print(f"Total labels in the dataset: {total_labels}")
+
+    def save(self, model_path="latest.keras"):
+        self.model.save(model_path)
+
+    def load(self, model_path="latest.keras"):
+        self.model = tf.keras.models.load_model(model_path)
 
     def split_dataset(self, validation_split=0.15, test_split=0.15, shuffle=True):
         dataset = tf.keras.utils.image_dataset_from_directory(
@@ -93,9 +100,6 @@ class Model:
         pprint(res)
 
     def evaluate_and_print_predictions(self):
-        evaluation_results = self.model.evaluate(self.test_dataset, verbose=2)
-        print("Test Accuracy: {:.2f}%".format(evaluation_results[1] * 100))
-
         species_labels = self.df["species"].tolist()
 
         true_labels = []
@@ -111,39 +115,49 @@ class Model:
             print(f"True Label: {true_label}\tPredicted Label: {predicted_label}")
 
     def evaluate_and_show_predictions(self, num_samples=5):
-        evaluation_results = self.model.evaluate(self.test_dataset, verbose=2)
-        print("Test Accuracy: {:.2f}%".format(evaluation_results[1] * 100))
+        species_labels = os.listdir("image_db")
+    
+        for images, _ in self.test_dataset:
+            for i in range(images.shape[0]):
+                img = images[i]
+                img_array = tf.expand_dims(img, 0)
+                prediction = self.model.predict(img_array)
+                
+                sorted_indices = np.argsort(prediction[0])[::-1]
+                sorted_labels = [species_labels[i] for i in sorted_indices]
+                sorted_confidences = [prediction[0][i] * 100 for i in sorted_indices]
 
-        species_labels = self.df["species"].tolist()
+                plt.figure(figsize=(8, 6))
+                plt.imshow(img.numpy().astype("uint8"))
 
-        for images, labels in self.test_dataset.take(num_samples):
-            predictions = self.model.predict(images)
+                label_str = "Predictions:\n"
+                for label, confidence in zip(sorted_labels[:5], sorted_confidences[:5]):
+                    label_str += f"{label}: {confidence:.2f}%\n"
 
-            plt.figure(figsize=(15, 6))
-
-            for i in range(num_samples):
-                true_label = species_labels[labels[i].numpy().argmax()]
-                predicted_label = species_labels[predictions[i].argmax()]
-                plt.subplot(1, num_samples, i + 1)
-                plt.imshow(images[i].numpy().astype("uint8"))
-                plt.title(f"True: {true_label}\nPredicted: {predicted_label}")
+                plt.title(label_str)
                 plt.axis("off")
-
-            plt.show() 
+                plt.show()
 
     def predict_and_show(self, image_path):
-        img = tf.keras.preprocessing.image.load_img(
-            image_path, target_size=(416, 416)
-        )
-        img_array = tf.keras.preprocessing.image.img_to_array(img)
-        img_array = tf.expand_dims(img_array, 0)
+            img = tf.keras.preprocessing.image.load_img(
+                image_path, target_size=(416, 416)
+            )
+            img_array = tf.keras.preprocessing.image.img_to_array(img)
+            img_array = tf.expand_dims(img_array, 0)
+            prediction = self.model.predict(img_array)
+            species_labels = os.listdir("image_db")
+            sorted_indices = np.argsort(prediction[0])[::-1]
+            sorted_labels = [species_labels[i] for i in sorted_indices]
+            sorted_confidences = [prediction[0][i] * 100 for i in sorted_indices]
 
-        prediction = self.model.predict(img_array)
-        species_labels = self.df["species"].tolist()
-        predicted_label = species_labels[np.argmax(prediction)]
+            plt.figure(figsize=(8, 6))
+            plt.imshow(img)
+            
+            label_str = "Predictions:\n"
+            for label, confidence in zip(sorted_labels[:5], sorted_confidences[:5]):
+                label_str += f"{label}: {confidence:.2f}%\n"
+            
+            plt.title(label_str)
+            plt.axis("off")
+            plt.show()
 
-        plt.figure(figsize=(6, 6))
-        plt.imshow(img)
-        plt.title(f"Predicted: {predicted_label}")
-        plt.axis("off")
-        plt.show()
