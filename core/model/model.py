@@ -73,7 +73,16 @@ class Model:
 
         label_arr_train = integer_labels[0: train_size]
         label_arr_val = integer_labels[train_size:]
-
+        
+        # logging training data
+        #data_log = "logs/train_data/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        #file_writer = tf.summary.create_file_writer(data_log)
+        #
+        #with file_writer.as_default():
+        #    tensorboard_trainimages = np.reshape(image_arr_train, (-1, 256, 256, 1))
+        #    tf.summary.image("Training data", tensorboard_trainimages, step=0)
+        
+        # creating callbacks
         log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
