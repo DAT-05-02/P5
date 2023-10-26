@@ -4,19 +4,25 @@ from pprint import pprint
 import tensorflow as tf
 import pandas as pd
 import numpy as np
-from PIL import Image
 import matplotlib.pyplot as plt
 
+from util.logging.logable import Logable
 
-class Model:
+
+class Model(Logable):
     def __init__(self,
-                 df: pd.DataFrame):
+                 df: pd.DataFrame,
+                 feature="",
+                 shape=(416, 416, 1)):
+        super().__init__()
         self.df = df
+        self.feature = feature
+        self.shape = shape
         self.model = self._create_model()
 
-    def _create_model(self, size=(416, 416), depth=1):
+    def _create_model(self):
         model = tf.keras.models.Sequential([
-            tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(size[0], size[1], depth)),
+            tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=self.shape),
             tf.keras.layers.MaxPooling2D((2, 2)),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(128, activation='relu'),
@@ -27,12 +33,11 @@ class Model:
         # for summary use {objectname}.model.summary
 
     def img_with_labels(self):
-        # df = self.df.assign(image=lambda x: Image.open(str(x["path"])))
         self.df['image'] = ""
         arr = []
         for index, row in self.df.iterrows():
-            if row['lbp'] and row['lbp'] != "":
-                arr.append(np.array(Image.open(row['lbp']).convert("L")).tolist())
+            if row[self.feature] and row[self.feature] != "":
+                arr.append(np.load(np.load(row[self.feature])))
 
         return np.array(arr), self.df['species']
 
