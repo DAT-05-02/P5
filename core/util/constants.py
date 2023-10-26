@@ -8,6 +8,6 @@ MERGE_COLS = ['genericName', 'species', 'family', 'stateProvince', 'gbifID', 'id
 BFLY_FAMILY = ['Pieridae', 'Papilionidae', 'Lycaenidae', 'Riodinidae', 'Nymphalidae', 'Hesperiidae', 'Hedylidae']
 BFLY_LIFESTAGE = ['Pupa', 'Caterpillar', 'Larva']
 FEATURE_DIR_PATH = "image"
-WINDOWS_COMPLIANT_OS_SEP = "/"
+PATH_SEP = "/"
 MODEL_CHECKPOINT_PATH: str = "modelcheckpoint/"
 FULL_MODEL_CHECKPOINT_PATH: str = MODEL_CHECKPOINT_PATH + "model.ckpt"
