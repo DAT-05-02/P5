@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 from skimage.feature import local_binary_pattern, graycomatrix, SIFT
-from core.util.constants import FEATURE_DIR_PATH, IMGDIR_PATH, DATASET_PATH, WINDOWS_COMPLIANT_OS_SEP
+from core.util.constants import FEATURE_DIR_PATH, IMGDIR_PATH, DATASET_PATH, PATH_SEP
 from core.util.logging.logable import Logable
 from core.util.util import setup_log
 
@@ -57,11 +57,11 @@ class FeatureExtractor(Logable):
 
     def l_dirpath_from_row(self, row: pd.Series, feature: str):
         self.log.debug(f'path: {row["path"]}')
-        l_name = str(row['path']).split(WINDOWS_COMPLIANT_OS_SEP)[-2]
-        return self.dirpath_from_ft(feature) + l_name + WINDOWS_COMPLIANT_OS_SEP
+        l_name = str(row['path']).split(PATH_SEP)[-2]
+        return self.dirpath_from_ft(feature) + l_name + PATH_SEP
 
     def path_from_row_ft(self, row: pd.Series, feature: str):
-        f_name = str(row['path']).split(WINDOWS_COMPLIANT_OS_SEP)[-1]
+        f_name = str(row['path']).split(PATH_SEP)[-1]
         return self.l_dirpath_from_row(row, feature) + f_name
 
     def dirpath_from_ft(self, feature):
