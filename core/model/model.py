@@ -73,7 +73,16 @@ class Model:
 
         label_arr_train = integer_labels[0: train_size]
         label_arr_val = integer_labels[train_size:]
-
+        
+        # logging training data - only if it is not allready there
+        if not os.path.exists("logs/train_data"):
+            tensorboard_training_images = np.reshape(image_arr_train/255, (-1, 416, 416, 1))
+            
+            data_log = "logs/train_data/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            with tf.summary.create_file_writer(data_log).as_default():
+                tf.summary.image("Training data", tensorboard_training_images, max_outputs = 12, step=0)
+                
+        # creating callbacks
         log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
