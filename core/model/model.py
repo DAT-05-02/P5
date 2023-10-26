@@ -8,8 +8,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import os
 
-modelPath: str = "modelcheckpoint/"
-fullModelPath: str = modelPath + "model.ckpt"
+from core.util.constants import MODEL_CHECKPOINT_PATH, FULL_MODEL_CHECKPOINT_PATH
 
 class Model:
     def __init__(self,
@@ -50,9 +49,9 @@ class Model:
         )
         
         # Checking if model allready exist.
-        if os.path.exists(modelPath):
+        if os.path.exists(MODEL_CHECKPOINT_PATH):
             # Loading the existing weights.
-            self.model.load_weights(fullModelPath)
+            self.model.load_weights(FULL_MODEL_CHECKPOINT_PATH)
 
         # Print the model print("creating image of model: ") tf.keras.utils.plot_model(self.model, 'C:/Users/My
         # dude/Pictures/Saved Pictures/model.png', show_shapes=True, show_layer_names=True) print("created ")
@@ -87,7 +86,7 @@ class Model:
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
         cp_callback = tf.keras.callbacks.ModelCheckpoint(
-            filepath = fullModelPath, 
+            filepath = FULL_MODEL_CHECKPOINT_PATH, 
             save_weights_only = True, 
             verbose = 1)
 

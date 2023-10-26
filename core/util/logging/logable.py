@@ -1,5 +1,5 @@
 from abc import ABC
-from util.util import aggregate_logger
+from core.util.util import aggregate_logger
 
 
 class Logable(ABC):
