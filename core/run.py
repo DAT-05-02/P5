@@ -17,9 +17,9 @@ if __name__ == "__main__":
                        num_rows=50,
                        bfly=["all"])
     fetch_images(df, "identifier")
-    FeatureExtractor.create_augmented_images(IMGDIR_PATH, "all")
-    #ft_extractor = FeatureExtractor()
-    #df = ft_extractor.pre_process(df, "lbp", radius=7, should_bb=True, should_resize=True)
-    #model = Model(df)
-    #model.model_compile_fit_evaluate(epochs=300)
+    FeatureExtractor.create_augmented_images(IMGDIR_PATH)
+    ft_extractor = FeatureExtractor()
+    df = ft_extractor.pre_process(df, "lbp", radius=7, should_bb=True, should_resize=True)
+    model = Model(df)
+    model.model_compile_fit_evaluate(epochs=300)
 
