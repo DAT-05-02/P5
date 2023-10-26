@@ -8,10 +8,6 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import os
 
-# TEMP IMPORTS
-from PIL import Image
-from matplotlib import cm
-
 modelPath: str = "modelcheckpoint/"
 fullModelPath: str = modelPath + "model.ckpt"
 
