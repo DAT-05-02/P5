@@ -2,7 +2,7 @@ import os
 import sys
 
 from core.data.fetch import fetch_images, setup_dataset
-from core.util.constants import RAW_DATA_PATH, RAW_LABEL_PATH, DATASET_PATH, LABEL_DATASET_PATH
+from core.util.constants import RAW_DATA_PATH, RAW_LABEL_PATH, DATASET_PATH, LABEL_DATASET_PATH, IMGDIR_PATH
 from core.data.feature import FeatureExtractor
 from core.model.model import Model
 
@@ -17,7 +17,7 @@ if __name__ == "__main__":
                        num_rows=50,
                        bfly=["all"])
     fetch_images(df, "identifier")
-    FeatureExtractor.create_augmented_images()
+    FeatureExtractor.create_augmented_images(IMGDIR_PATH, "all")
     #ft_extractor = FeatureExtractor()
     #df = ft_extractor.pre_process(df, "lbp", radius=7, should_bb=True, should_resize=True)
     #model = Model(df)
