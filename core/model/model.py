@@ -8,6 +8,10 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import os
 
+# TEMP IMPORTS
+from PIL import Image
+from matplotlib import cm
+
 modelPath: str = "modelcheckpoint/"
 fullModelPath: str = modelPath + "model.ckpt"
 
@@ -75,12 +79,17 @@ class Model:
         label_arr_val = integer_labels[train_size:]
         
         # logging training data
-        #data_log = "logs/train_data/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        #file_writer = tf.summary.create_file_writer(data_log)
-        #
-        #with file_writer.as_default():
-        #    tensorboard_trainimages = np.reshape(image_arr_train, (-1, 256, 256, 1))
-        #    tf.summary.image("Training data", tensorboard_trainimages, step=0)
+        tensorboard_training_image = np.reshape(image_arr_train/255, (-1, 416, 416, 1))
+        
+        data_log = "logs/train_data/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        file_writer = tf.summary.create_file_writer(data_log)
+        
+        with file_writer.as_default():
+            tf.summary.image("Training data", tensorboard_training_image, step=0)
+            
+        print("SAVED TRAINBING IMAGE!!!")
+            
+        return
         
         # creating callbacks
         log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
