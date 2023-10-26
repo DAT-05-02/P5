@@ -15,3 +15,8 @@
 */image_lbp
 __pycache__
 venv
+
+.vscode/*
+core/logs/*
+core/modelcheckpoint/*
+.conda/*
