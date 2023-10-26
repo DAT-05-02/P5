@@ -6,7 +6,10 @@ import pandas as pd
 import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
+import os
 
+modelPath: str = "modelcheckpoint/"
+fullModelPath: str = modelPath + "model.ckpt"
 
 class Model:
     def __init__(self,
@@ -43,8 +46,13 @@ class Model:
             custom_optimizer,
             loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
             metrics=['accuracy'],
-            run_eagerly=True
+            #run_eagerly=True
         )
+        
+        # Checking if model allready exist.
+        if os.path.exists(modelPath):
+            # Loading the existing weights.
+            self.model.load_weights(fullModelPath)
 
         # Print the model print("creating image of model: ") tf.keras.utils.plot_model(self.model, 'C:/Users/My
         # dude/Pictures/Saved Pictures/model.png', show_shapes=True, show_layer_names=True) print("created ")
@@ -69,6 +77,11 @@ class Model:
         log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
 
+        cp_callback = tf.keras.callbacks.ModelCheckpoint(
+            filepath = fullModelPath, 
+            save_weights_only = True, 
+            verbose = 1)
+
         # mangler labels
         history = self.model.fit(
             image_arr_train,
@@ -77,9 +90,8 @@ class Model:
             epochs=epochs,
             shuffle=True,
             batch_size=2,
-            callbacks=[tensorboard_callback])
+            callbacks=[tensorboard_callback, cp_callback])
 
-        self.model.save("latest.keras")
         res = self.model.evaluate(image_arr_val, label_arr_val, verbose=2)
         pprint(res)
 

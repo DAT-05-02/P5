@@ -17,7 +17,7 @@ def setup_dataset(raw_dataset_path: str,
                   dataset_csv_filename: str,
                   num_rows=None,
                   sort=False,
-                  bfly: list = None):
+                  bfly: list = []):
     """ Loads a file, converts to csv if none exists, or loads an existing csv into a pd.DateFrame object
     @param raw_label_path: path to original label dataset file
     @param raw_dataset_path: path to original dataset file
