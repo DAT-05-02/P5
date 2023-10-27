@@ -39,7 +39,7 @@ def test_create_augmented_images_creates_rotated_and_flipped_files(temp_dir):
     path = temp_dir
 
     # Act
-    FeatureExtractor.create_augmented_images(temp_dir, "all")
+    FeatureExtractor.create_augmented_df(temp_dir, "all")
 
     # Assert
     for deg in ["0", "90", "180", "270", "0f", "90f", "180f", "270f"]:

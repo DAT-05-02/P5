@@ -1,12 +1,12 @@
 import logging
 import os.path
-from typing import re
+import re
 
 import numpy as np
 import pandas as pd
 from PIL import Image
 from skimage.feature import local_binary_pattern, graycomatrix, SIFT
-from core.util.constants import FEATURE_DIR_PATH, IMGDIR_PATH, DATASET_PATH, PATH_SEP
+from core.util.constants import FEATURE_DIR_PATH, IMGDIR_PATH, DATASET_PATH, PATH_SEP, DIRNAME_DELIM
 from core.util.logging.logable import Logable
 from core.util.util import setup_log, log_ent_exit
 
@@ -24,22 +24,21 @@ class FeatureExtractor(Logable):
         self.img_path = img_dir_path
         self._mk_ft_dirs()
 
-    def pre_process(self, df: pd.DataFrame, feature="", should_bb=True, should_resize=False, **kwargs):
+    def pre_process(self,
+                    df: pd.DataFrame,
+                    feature="",
+                    should_bb=True,
+                    should_resize=False,
+
+                    **kwargs):
+        df = self.create_augmented_df(df)
         ft = getattr(self, feature, None)
         paths = np.full(len(df.index), fill_value=np.nan).tolist()
-        new_rows = []
         for index, row in df.iterrows():
-            self.log.debug(row)
             p_new = self.path_from_row_ft(row, feature)
             l_new = self.l_dirpath_from_row(row, feature)
             if not os.path.exists(p_new):
                 with Image.open(row['path']) as img:
-                    if should_bb:
-                        img = self.make_square_with_bb(img)
-                    if should_resize:
-                        img = img.resize((416, 416))
-                    new_rows.append(self.create_augmented_images(row))
-
                     if feature == "lbp":
                         lbp_arr = ft(img, kwargs.get('method', 'ror'), kwargs.get('radius', 1))
                         img = Image.fromarray(lbp_arr)
@@ -63,7 +62,6 @@ class FeatureExtractor(Logable):
         pass
 
     def l_dirpath_from_row(self, row: pd.Series, feature: str):
-        self.log.debug(f'path: {row["path"]}')
         l_name = str(row['path']).split(PATH_SEP)[-2]
         return self.dirpath_from_ft(feature) + l_name + PATH_SEP
 
@@ -76,7 +74,7 @@ class FeatureExtractor(Logable):
             out_ft = "db"
         else:
             out_ft = feature
-        return f"{self.save_path}_{out_ft}/"
+        return f"{self.save_path}{DIRNAME_DELIM}{out_ft}/"
 
     def _mk_ft_dirs(self):
         for feature in FTS:
@@ -141,8 +139,24 @@ class FeatureExtractor(Logable):
         new_im.paste(im, (int((size - x) / 2), int((size - y) / 2)))
         return new_im
 
-    @log_ent_exit
-    def create_augmented_images(self, row: pd.Series, degrees: str = "all") -> list:
+    def create_augmented_df(self, df: pd.DataFrame, degrees: str = "all") -> pd.DataFrame:
+        """Creates transformed images from input image, can rotate and flip
+        @param df: pandas dataframe
+        @param degrees: list of strings, include "rotate" to rotate, "flip" to flip, "all" is default for both
+        @return: list of paths to augmented images
+        """
+        new_rows = []
+        for index, row in df.iterrows():
+            new_paths = self.augment_image(row, degrees)
+            for n in new_paths:
+                new_r = row.copy(deep=True)
+                new_r['path'] = n
+                new_rows.append(new_r)
+
+        df = df.append(new_rows, ignore_index=True)
+        return df
+
+    def augment_image(self, row: pd.Series, degrees: str = "all"):
         """Creates transformed images from input image, can rotate and flip
         @param row: pandas series
         @param degrees: list of strings, include "rotate" to rotate, "flip" to flip, "all" is default for both
@@ -163,6 +177,7 @@ class FeatureExtractor(Logable):
             self.flip_and_save_image(row['path'])
         return new_paths
 
+    @log_ent_exit
     def rotate_and_save_image(self, img_path: str, degree: int) -> str:
         """ Rotates an image 4 and saves the rotated images to a path
         @param img_path: path for where to store the newly created image
@@ -174,16 +189,17 @@ class FeatureExtractor(Logable):
             new_path = self.rotate_path(img_path, degree)
             image.rotate(degree, expand=True).save(new_path)
             return new_path
-        except IOError:
+        except IOError as e:
             print("Error when trying to rotate and save images")
+            raise e
 
     @log_ent_exit
     def rotate_path(self, img_path, degree):
         parts = re.split('[/_.]', img_path)
         self.log.debug(parts)
-        # num = f"{img_path.split('/')[-1].split('_')[0]}"
-        return f"{img_path.split('.')[0]}_{degree}.{img_path.split('.')[1]}"
+        return f"{'/'.join(parts[:2])}/{parts[3]}_{degree}.{parts[4]}"
 
+    @log_ent_exit
     def flip_and_save_image(self, img_path: str) -> str:
         """ Flips an image and saves to a path
         @param img_path: path of image to flip
