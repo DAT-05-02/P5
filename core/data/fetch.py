@@ -90,7 +90,7 @@ def img_path_from_row(row: pd.Series, index: int, column="identifier", extra=Non
     out = f"{IMGDIR_PATH}{row[9].replace(' ', '_')}/{index}"
     if extra:
         out += extra
-    return out + f".{extension}"
+    return out + f"_0.{extension}"
 
 
 @timing
