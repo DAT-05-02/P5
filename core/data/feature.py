@@ -21,6 +21,7 @@ class FeatureExtractor(Logable):
         self.img_path = img_dir_path
         self._mk_ft_dirs()
 
+
     def pre_process(self, df: pd.DataFrame, feature="", should_bb=True, should_resize=False, **kwargs):
         ft = getattr(self, feature, None)
         paths = np.full(len(df.index), fill_value=np.nan).tolist()
@@ -178,3 +179,20 @@ class FeatureExtractor(Logable):
             image.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT).save(f"{img_path}/{name.split('.')[0]}f.jpg")
         except IOError:
             print("Error when trying to flip and save images")
+
+    def feature_output_checker(self, feature: str, df, target=(416, 416, 3)):
+        paths = df[feature]
+
+        if feature == "lbp":
+            for path in paths:
+                img = Image.open(path)
+                arr = np.array(img)
+                print(arr.shape)
+                if(arr.shape != target):
+                    print("eep")
+        #todo add rest of features
+
+
+        #sørg for at alle bilederne er ens shape og retuner den shape
+
+        #npy
