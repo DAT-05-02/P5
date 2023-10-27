@@ -1,4 +1,3 @@
-import datetime
 from pprint import pprint
 import os
 
@@ -20,11 +19,23 @@ class Model:
         self.test_dataset = None
 
     def _create_model(self, size=(416, 416), depth=3):
+        """
         model = tf.keras.models.Sequential([
             tf.keras.layers.Flatten(input_shape=(size[0], size[1], depth)),
             tf.keras.layers.Dense(5, activation='relu'),
             tf.keras.layers.Dense(len(os.listdir("image_db")), activation="softmax")
-            #tf.keras.layers.Dense(57, activation="softmax")
+        ])
+        """
+
+        model = tf.keras.models.Sequential([
+            tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(size[0], size[1], depth)),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(64, activation='relu'),
+            tf.keras.layers.Dense(len(os.listdir("image_db")), activation="softmax")
         ])
 
         return model
@@ -116,27 +127,30 @@ class Model:
 
     def evaluate_and_show_predictions(self, num_samples=5):
         species_labels = os.listdir("image_db")
-    
-        for images, _ in self.test_dataset:
-            for i in range(images.shape[0]):
-                img = images[i]
-                img_array = tf.expand_dims(img, 0)
-                prediction = self.model.predict(img_array)
+
+        for images, labels in self.test_dataset:
+            batch_size = images.shape[0]
+            predictions = self.model.predict(images)
+            
+            for i in range(batch_size):
+                img = images[i].numpy().astype("uint8")
+                actual_label = species_labels[labels[i].numpy().argmax()]
+
+                sorted_indices = np.argsort(predictions[i])[::-1]
+                top3_labels = [species_labels[idx] for idx in sorted_indices[:3]]
+                top3_confidences = [predictions[i][idx] * 100 for idx in sorted_indices[:3]]
+
+                plt.figure(figsize=(6, 8))
+                plt.imshow(img)
                 
-                sorted_indices = np.argsort(prediction[0])[::-1]
-                sorted_labels = [species_labels[i] for i in sorted_indices]
-                sorted_confidences = [prediction[0][i] * 100 for i in sorted_indices]
-
-                plt.figure(figsize=(8, 6))
-                plt.imshow(img.numpy().astype("uint8"))
-
-                label_str = "Predictions:\n"
-                for label, confidence in zip(sorted_labels[:5], sorted_confidences[:5]):
+                label_str = f"Actual Label: {actual_label}\nPredictions:\n"
+                for label, confidence in zip(top3_labels, top3_confidences):
                     label_str += f"{label}: {confidence:.2f}%\n"
-
+                
                 plt.title(label_str)
                 plt.axis("off")
                 plt.show()
+
 
     def predict_and_show(self, image_path):
             img = tf.keras.preprocessing.image.load_img(
@@ -150,7 +164,7 @@ class Model:
             sorted_labels = [species_labels[i] for i in sorted_indices]
             sorted_confidences = [prediction[0][i] * 100 for i in sorted_indices]
 
-            plt.figure(figsize=(8, 6))
+            plt.figure(figsize=(6, 8))
             plt.imshow(img)
             
             label_str = "Predictions:\n"
@@ -160,4 +174,19 @@ class Model:
             plt.title(label_str)
             plt.axis("off")
             plt.show()
+
+    def predict(self, image_path):
+        img = tf.keras.preprocessing.image.load_img(
+            image_path, target_size=(416, 416)
+        )
+        img_array = tf.keras.preprocessing.image.img_to_array(img)
+        img_array = tf.expand_dims(img_array, 0)
+        prediction = self.model.predict(img_array)
+        species_labels = os.listdir("image_db")
+        sorted_indices = np.argsort(prediction[0])[::-1]
+        sorted_labels = [species_labels[i] for i in sorted_indices]
+        sorted_confidences = [prediction[0][i] * 100 for i in sorted_indices]
+
+        return sorted_labels, sorted_confidences
+
 
