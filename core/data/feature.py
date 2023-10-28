@@ -4,9 +4,9 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 from skimage.feature import local_binary_pattern, graycomatrix, SIFT
-from core.util.constants import FEATURE_DIR_PATH, IMGDIR_PATH, DATASET_PATH
-from util.logging.logable import Logable
-from util.util import setup_log, log_ent_exit
+from core.util.constants import FEATURE_DIR_PATH, IMGDIR_PATH, DATASET_PATH, PATH_SEP
+from core.util.logging.logable import Logable
+from core.util.util import setup_log, log_ent_exit
 
 FTS = ['sift', 'lbp', 'glcm']
 
@@ -60,12 +60,12 @@ class FeatureExtractor(Logable):
 
     def l_dirpath_from_row(self, row: pd.Series, feature: str):
         self.log.debug(f'path: {row["path"]}')
-        l_name = str(row['path']).split(os.sep)[-2]
-        return self.dirpath_from_ft(feature) + l_name + os.sep
+        l_name = str(row['path']).split(PATH_SEP)[-2]
+        return self.dirpath_from_ft(feature) + l_name + PATH_SEP
 
     @log_ent_exit
     def path_from_row_ft(self, row: pd.Series, feature: str):
-        f_name = str(row['path']).split(os.sep)[-1].split('.')[0] + ".npy"
+        f_name = str(row['path']).split(PATH_SEP)[-1].split('.')[0] + ".npy"
         return self.l_dirpath_from_row(row, feature) + f_name
 
     def dirpath_from_ft(self, feature):
@@ -135,31 +135,46 @@ class FeatureExtractor(Logable):
         return new_im
 
     @staticmethod
-    def make_image_degrees(img: Image.Image, name: str, img_path: str, degrees: list = ["all"]):
+    def create_augmented_images(dir_path: str, degrees: str = "all"):
         """Creates transformed images from input image, can rotate and flip
-        @param img: image to transform
-        @param name: name of image file without file type
-        @param img_path: path to species folder
+        @param dir_path: path to species folder
         @param degrees: list of strings, include "rotate" to rotate, "flip" to flip, "all" is default for both
         """
-        new_images = [img]
-        if "all" in degrees or "rotate" in degrees:
-            for i in range(3):
-                new_images.append(img.rotate((i + 1) * 90, expand=True))
-        if "all" in degrees or "flip" in degrees:
-            temp_list = []
-            for im in new_images:
-                temp_list.append(im.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT))
-            new_images.extend(temp_list)
-        # Only rotations (no flips)
-        if len(new_images) == 4:
-            for i in range(4):
-                new_images[i].save(f"{img_path}/{name}_{i * 90}.jpg")
-                i += 1
+        for sub_dir in os.walk(dir_path):
+            for image_name in sub_dir[2]:
+                if "all" == degrees:
+                    for i in range(4):
+                        FeatureExtractor.rotate_and_save_image(sub_dir[0], image_name, i * 90)
+                        FeatureExtractor.flip_and_save_image(sub_dir[0],
+                                                             f"{image_name.split('.')[0]}_{i * 90}.jpg")
+                elif "rotate" == degrees:
+                    for i in range(4):
+                        FeatureExtractor.rotate_and_save_image(sub_dir[0], image_name, i * 90)
+                elif "flip" == degrees:
+                    FeatureExtractor.flip_and_save_image(sub_dir[0], image_name)
 
-        # Rotations and flips, or just flips
-        if len(new_images) == 2 or len(new_images) == 8:
-            for i in range(int(len(new_images) / 2)):
-                new_images[i].save(f"{img_path}/{name}_{i * 90}.jpg")
-            for i in range(int(len(new_images) / 2), int(len(new_images))):
-                new_images[i].save(f"{img_path}/{name}_{(i - int(len(new_images) / 2)) * 90}f.jpg")
+
+    @staticmethod
+    def rotate_and_save_image(img_path: str, name: str, degree: int):
+        """ Rotates an image 4 and saves the rotated images to a path
+        @param img_path: path for where to store the newly created image
+        @param name: name for the passed image
+        @param degree: amount of degrees to rotate image
+        """
+        try:
+            image = Image.open(f"{img_path}/{name}")
+            image.rotate(degree, expand=True).save(f"{img_path}/{name.split('.')[0]}_{degree}.jpg")
+        except IOError:
+            print("Error when trying to rotate and save images")
+
+    @staticmethod
+    def flip_and_save_image(img_path: str, name: str):
+        """ Flips an image and saves to a path
+        @param img_path: path for where to store the newly created image
+        @param name: name for the passed image
+        """
+        try:
+            image = Image.open(f"{img_path}/{name}")
+            image.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT).save(f"{img_path}/{name.split('.')[0]}f.jpg")
+        except IOError:
+            print("Error when trying to flip and save images")

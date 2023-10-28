@@ -53,7 +53,7 @@ def test_setup(fetcher: FetchTester):
 def test_img_path_from_row(index, fetcher: FetchTester):
     supported_ext = [fetcher.img_path
                      + str(fetcher.df.iloc[index]['species']).replace(" ", "_")
-                     + os.sep
+                     + "/"
                      + str(index)
                      + w for w in Image.registered_extensions().keys()]
     assert img_path_from_row(index=index, row=fetcher.df.iloc[index], column="identifier") in supported_ext
