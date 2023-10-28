@@ -90,8 +90,7 @@ class FeatureExtractor(Logable):
         n_points = 8 * radius
         if img.mode != "L":
             img = img.convert("L")
-
-        return np.array(local_binary_pattern(img, n_points, radius, method), dtype=np.uint8)
+        return local_binary_pattern(np.asarray(img, dtype=np.uint8), n_points, radius, method)
 
     @staticmethod
     def rlbp(img: Image, method="ror", radius=1):
