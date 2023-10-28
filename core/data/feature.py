@@ -10,6 +10,7 @@ from core.util.util import setup_log
 
 FTS = ['sift', 'lbp', 'glcm']
 
+
 class FeatureExtractor(Logable):
     def __init__(self,
                  img_dir_path=IMGDIR_PATH,
@@ -140,6 +141,7 @@ class FeatureExtractor(Logable):
         @param dir_path: path to species folder
         @param degrees: list of strings, include "rotate" to rotate, "flip" to flip, "all" is default for both
         """
+
         for sub_dir in os.walk(dir_path):
             for image_name in sub_dir[2]:
                 if "all" == degrees:
@@ -152,7 +154,6 @@ class FeatureExtractor(Logable):
                         FeatureExtractor.rotate_and_save_image(sub_dir[0], image_name, i * 90)
                 elif "flip" == degrees:
                     FeatureExtractor.flip_and_save_image(sub_dir[0], image_name)
-
 
     @staticmethod
     def rotate_and_save_image(img_path: str, name: str, degree: int):
