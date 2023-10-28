@@ -197,7 +197,7 @@ class FeatureExtractor(Logable):
     def rotate_path(self, img_path, degree):
         parts = re.split('[/_.]', img_path)
         self.log.debug(parts)
-        return f"{'/'.join(parts[:2])}/{parts[3]}_{degree}.{parts[4]}"
+        return f"{'/'.join(parts[:2])}/{parts[2]}_{degree}.{parts[4]}"
 
     @log_ent_exit
     def flip_and_save_image(self, img_path: str) -> str:
