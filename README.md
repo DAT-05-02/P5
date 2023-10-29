@@ -30,6 +30,20 @@ git lfs fetch
 ### Windows
 todo 🤷
 
+## Training the model on GPU
+### Windows
+For quick setup of GPU training for windows machines.
+
+#### Requirements
+- Tensorflow-cpu version 2.10.0 (not tensorflow or tensorflow-gpu)
+- Tensorflow-directml-plugin
+
+```python
+pip install tensorflow-cpu==2.10.0
+pip install tensorflow-directml-plugin
+```
+
+Works with python 3.7 and upto python 3.10.
 
 ## Installing requirements
 ```bash
