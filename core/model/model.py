@@ -1,121 +1,189 @@
-import datetime
 from pprint import pprint
+import os
 
 import tensorflow as tf
 import pandas as pd
 import numpy as np
-from PIL import Image
 import matplotlib.pyplot as plt
-import os
 
-from core.util.constants import MODEL_CHECKPOINT_PATH, FULL_MODEL_CHECKPOINT_PATH
 
 class Model:
     def __init__(self,
                  df: pd.DataFrame):
         self.df = df
         self.model = self._create_model()
+        self.dataset = self._setup_dataset()
+        self.train_dataset = None
+        self.val_dataset = None
+        self.test_dataset = None
 
-    def _create_model(self, size=(416, 416), depth=1):
+    def _create_model(self, size=(416, 416), depth=3):
+        """
+        model = tf.keras.models.Sequential([
+            tf.keras.layers.Flatten(input_shape=(size[0], size[1], depth)),
+            tf.keras.layers.Dense(5, activation='relu'),
+            tf.keras.layers.Dense(len(os.listdir("image_db")), activation="softmax")
+        ])
+        """
+
         model = tf.keras.models.Sequential([
             tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(size[0], size[1], depth)),
             tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(128, activation='relu'),
-            tf.keras.layers.Dense(len(self.df["species"].unique()))
+            tf.keras.layers.Dense(64, activation='relu'),
+            tf.keras.layers.Dense(len(os.listdir("image_db")), activation="softmax")
         ])
 
         return model
-        # for summary use {objectname}.model.summary
 
-    def img_with_labels(self):
-        # df = self.df.assign(image=lambda x: Image.open(str(x["path"])))
-        self.df['image'] = ""
-        arr = []
-        for index, row in self.df.iterrows():
-            if row['lbp'] and row['lbp'] != "":
-                arr.append(np.array(Image.open(row['lbp']).convert("L")).tolist())
+    def _setup_dataset(self):
+        dataset = tf.keras.utils.image_dataset_from_directory(
+            directory="image_db", 
+            labels="inferred", 
+            label_mode="categorical", 
+            image_size=(416, 416), 
+            )
+        return dataset
 
-        return np.array(arr), self.df['species']
+    def print_dataset_info(self):
+        num_batches = self.dataset.cardinality()
+        print(f"Number of batches in the dataset: {num_batches}")
 
-    def model_compile_fit_evaluate(self, lr=0.001, epochs=10):
-        img_arr, lbl = self.img_with_labels()
+        total_images = 0
+        total_labels = 0
+
+        for images, labels in self.dataset:
+            total_images += images.shape[0]
+            total_labels += labels.shape[0]
+
+        print(f"Total images in the dataset: {total_images}")
+        print(f"Total labels in the dataset: {total_labels}")
+
+    def save(self, model_path="latest.keras"):
+        self.model.save(model_path)
+
+    def load(self, model_path="latest.keras"):
+        self.model = tf.keras.models.load_model(model_path)
+
+    def split_dataset(self, validation_split=0.15, test_split=0.15, shuffle=True):
+        dataset = tf.keras.utils.image_dataset_from_directory(
+            directory="image_db",
+            labels="inferred",
+            label_mode="categorical",
+            image_size=(416, 416),
+            validation_split=validation_split,
+            subset="training",
+            seed=1337 if shuffle else None,
+            shuffle=shuffle
+        )
+
+        val_size = int(validation_split * len(dataset))
+        test_size = int(test_split * len(dataset))
+        train_size = len(dataset) - val_size - test_size
+
+        self.train_dataset = dataset.take(train_size)
+        remaining_dataset = dataset.skip(train_size)
+        self.val_dataset = remaining_dataset.take(val_size)
+        self.test_dataset = remaining_dataset.skip(val_size)
+
+    def compile(self, lr=0.001):
         custom_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
         self.model.compile(
             custom_optimizer,
-            loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-            metrics=['accuracy'],
-            #run_eagerly=True
+            loss=tf.keras.losses.CategoricalCrossentropy(),
+            metrics=['accuracy']
         )
-        
-        # Checking if model allready exist.
-        if os.path.exists(MODEL_CHECKPOINT_PATH):
-            # Loading the existing weights.
-            self.model.load_weights(FULL_MODEL_CHECKPOINT_PATH)
 
-        # Print the model print("creating image of model: ") tf.keras.utils.plot_model(self.model, 'C:/Users/My
-        # dude/Pictures/Saved Pictures/model.png', show_shapes=True, show_layer_names=True) print("created ")
-
-        # We enumerate over the butterfly species and get the labels out, which we put into label_to_index
-        label_to_index = {label: index for index, label in enumerate(set(lbl))}
-        # We map every label to their corresponding value in integer_labels
-        integer_labels = [label_to_index[label] for label in lbl]
-
-        # converts the labels to int32, so they can be used for model.fit
-        integer_labels = np.array(integer_labels, dtype=np.int32)
-
-        # 15% of data used for testing
-        rows = img_arr.shape[0]
-        train_size = int(rows * 0.85)
-        image_arr_train = img_arr[0: train_size]
-        image_arr_val = img_arr[train_size:]
-
-        label_arr_train = integer_labels[0: train_size]
-        label_arr_val = integer_labels[train_size:]
-        
-        # logging training data - only if it is not allready there
-        if not os.path.exists("logs/train_data"):
-            tensorboard_training_images = np.reshape(image_arr_train/255, (-1, 416, 416, 1))
-            
-            data_log = "logs/train_data/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-            with tf.summary.create_file_writer(data_log).as_default():
-                tf.summary.image("Training data", tensorboard_training_images, max_outputs = 12, step=0)
-                
-        # creating callbacks
-        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
-
-        cp_callback = tf.keras.callbacks.ModelCheckpoint(
-            filepath = FULL_MODEL_CHECKPOINT_PATH, 
-            save_weights_only = True, 
-            verbose = 1)
-
-        # mangler labels
+    def fit(self, epochs=10):
         history = self.model.fit(
-            image_arr_train,
-            label_arr_train,
-            validation_split=0.33,
-            epochs=epochs,
-            shuffle=True,
-            batch_size=2,
-            callbacks=[tensorboard_callback, cp_callback])
+            self.train_dataset,
+            validation_data=self.val_dataset,
+            epochs=epochs
+        )
+        return history
 
-        res = self.model.evaluate(image_arr_val, label_arr_val, verbose=2)
+    def evaluate(self):
+        res = self.model.evaluate(self.test_dataset, verbose=2)
         pprint(res)
 
-        # sumarize history for accuracy
-        plt.plot(history.history['accuracy'])
-        plt.plot(history.history['val_accuracy'])
-        plt.title('model accuracy')
-        plt.ylabel('accuracy')
-        plt.xlabel('epoch')
-        plt.legend(['train', 'test'], loc='upper left')
-        plt.show()
-        # summarize history for loss
-        plt.plot(history.history['loss'])
-        plt.plot(history.history['val_loss'])
-        plt.title('model loss')
-        plt.ylabel('loss')
-        plt.xlabel('epoch')
-        plt.legend(['train', 'test'], loc='upper left')
-        plt.show()
+    def evaluate_and_print_predictions(self):
+        species_labels = self.df["species"].tolist()
+
+        true_labels = []
+        predicted_labels = []
+
+        for images, labels in self.test_dataset:
+            predictions = self.model.predict(images)
+            true_labels.extend([species_labels[label.numpy().argmax()] for label in labels])
+            predicted_labels.extend([species_labels[pred.argmax()] for pred in predictions])
+
+        print("Evaluation Summary:")
+        for true_label, predicted_label in zip(true_labels, predicted_labels):
+            print(f"True Label: {true_label}\tPredicted Label: {predicted_label}")
+
+    def evaluate_and_show_predictions(self, num_samples=5):
+        species_labels = os.listdir("image_db")
+
+        for images, labels in self.test_dataset:
+            batch_size = images.shape[0]
+            predictions = self.model.predict(images)
+            
+            for i in range(batch_size):
+                img = images[i].numpy().astype("uint8")
+                actual_label = species_labels[labels[i].numpy().argmax()]
+
+                sorted_indices = np.argsort(predictions[i])[::-1]
+                top3_labels = [species_labels[idx] for idx in sorted_indices[:3]]
+                top3_confidences = [predictions[i][idx] * 100 for idx in sorted_indices[:3]]
+
+                plt.figure(figsize=(6, 8))
+                plt.imshow(img)
+                
+                label_str = f"Actual Label: {actual_label}\nPredictions:\n"
+                for label, confidence in zip(top3_labels, top3_confidences):
+                    label_str += f"{label}: {confidence:.2f}%\n"
+                
+                plt.title(label_str)
+                plt.axis("off")
+                plt.show()
+
+
+    def predict_and_show(self, image_path):
+            img = tf.keras.preprocessing.image.load_img(
+                image_path, target_size=(416, 416)
+            )
+            img_array = tf.keras.preprocessing.image.img_to_array(img)
+            img_array = tf.expand_dims(img_array, 0)
+            prediction = self.model.predict(img_array)
+            species_labels = os.listdir("image_db")
+            sorted_indices = np.argsort(prediction[0])[::-1]
+            sorted_labels = [species_labels[i] for i in sorted_indices]
+            sorted_confidences = [prediction[0][i] * 100 for i in sorted_indices]
+
+            plt.figure(figsize=(6, 8))
+            plt.imshow(img)
+            
+            label_str = "Predictions:\n"
+            for label, confidence in zip(sorted_labels[:5], sorted_confidences[:5]):
+                label_str += f"{label}: {confidence:.2f}%\n"
+            
+            plt.title(label_str)
+            plt.axis("off")
+            plt.show()
+
+    def predict(self, image_path):
+        img = tf.keras.preprocessing.image.load_img(
+            image_path, target_size=(416, 416)
+        )
+        img_array = tf.keras.preprocessing.image.img_to_array(img)
+        img_array = tf.expand_dims(img_array, 0)
+        prediction = self.model.predict(img_array)
+        species_labels = os.listdir("image_db")
+        sorted_indices = np.argsort(prediction[0])[::-1]
+        sorted_labels = [species_labels[i] for i in sorted_indices]
+        sorted_confidences = [prediction[0][i] * 100 for i in sorted_indices]
+
+        return sorted_labels, sorted_confidences
