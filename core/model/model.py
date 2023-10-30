@@ -1,3 +1,4 @@
+import datetime
 from pprint import pprint
 import os
 
@@ -6,10 +7,14 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+from util.constants import FULL_MODEL_CHECKPOINT_PATH
+from util.logging.logable import Logable
 
-class Model:
+
+class Model(Logable):
     def __init__(self,
                  df: pd.DataFrame):
+        super().__init__()
         self.df = df
         self.model = self._create_model()
         self.dataset = self._setup_dataset()
@@ -101,7 +106,8 @@ class Model:
         history = self.model.fit(
             self.train_dataset,
             validation_data=self.val_dataset,
-            epochs=epochs
+            epochs=epochs,
+            callbacks=self.callbacks()
         )
         return history
 
@@ -150,7 +156,6 @@ class Model:
                 plt.axis("off")
                 plt.show()
 
-
     def predict_and_show(self, image_path):
             img = tf.keras.preprocessing.image.load_img(
                 image_path, target_size=(416, 416)
@@ -187,3 +192,26 @@ class Model:
         sorted_confidences = [prediction[0][i] * 100 for i in sorted_indices]
 
         return sorted_labels, sorted_confidences
+
+    def setup_logs(self):
+        # logging training data - only if it is not allready there
+        if not os.path.exists("logs/train_data"):
+            tensorboard_training_images = np.reshape(self.train_dataset / 255, (-1, 416, 416, 1))
+
+            data_log = "logs/train_data/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            with tf.summary.create_file_writer(data_log).as_default():
+                tf.summary.image("Training data", tensorboard_training_images, max_outputs=12, step=0)
+
+    def callbacks(self):
+        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+        cp_callback = tf.keras.callbacks.ModelCheckpoint(
+            filepath=FULL_MODEL_CHECKPOINT_PATH,
+            save_weights_only=True,
+            save_freq=1000,
+            verbose=1)
+
+        # loss_f = tf.keras.metrics.categorical_crossentropy()
+
+        return [tensorboard_callback, cp_callback]
