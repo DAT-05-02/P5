@@ -184,7 +184,7 @@ class FeatureExtractor(Logable):
                 img = Image.open(path)
                 output_shape = self.lbp(img).shape
                 if output_shape not in unique_output_shapes:
-                    print(output_shape)
+                    print("unique shape: ", output_shape)
                     unique_output_shapes.append(output_shape)
         elif feature == "rlbp":
             shape = self.rlbp(Image.open(paths[0])).shape
@@ -192,7 +192,7 @@ class FeatureExtractor(Logable):
                 img = Image.open(path)
                 output_shape = self.rlbp(img).shape
                 if output_shape not in unique_output_shapes:
-                    print(output_shape)
+                    print("unique shape: ", output_shape)
                     unique_output_shapes.append(output_shape)
         elif feature == "glcm":
             shape = self.glcm(Image.open(paths[0])).shape
@@ -200,7 +200,7 @@ class FeatureExtractor(Logable):
                 img = Image.open(path)
                 output_shape = self.glcm(img).shape
                 if output_shape not in unique_output_shapes:
-                    print(output_shape)
+                    print("unique shape: " + output_shape)
                     unique_output_shapes.append(output_shape)
         elif feature == "sift":
             shape = self.sift(Image.open(paths[0])).shape
@@ -208,7 +208,7 @@ class FeatureExtractor(Logable):
                 img = Image.open(path)
                 output_shape = self.sift(img).shape
                 if output_shape not in unique_output_shapes:
-                    print(output_shape)
+                    print("unique shape: ", output_shape)
                     unique_output_shapes.append(output_shape)
         if len(unique_output_shapes) > 1:
             raise ValueError("Not all features are the same shape")
