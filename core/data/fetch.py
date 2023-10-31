@@ -8,7 +8,8 @@ import pandas as pd
 import os
 from PIL import Image
 from core.util.util import timing
-from core.util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH
+from core.util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH, DIRNAME_DELIM
+from data.feature import FeatureExtractor
 
 
 def setup_dataset(raw_dataset_path: str,
@@ -78,7 +79,7 @@ def img_path_from_row(row: pd.Series, index: int, column="identifier", extra=Non
     @rtype: str
     """
     try:
-        path = f"{IMGDIR_PATH}{row['species'].replace(' ', '_')}"
+        path = f"{IMGDIR_PATH}{row['species'].replace(' ', DIRNAME_DELIM)}"
     except AttributeError as e:
         print(f"{row} error: \n {e}")
         raise e
@@ -87,10 +88,10 @@ def img_path_from_row(row: pd.Series, index: int, column="identifier", extra=Non
     extension = row[column].split(".")[-1]
     if len(extension) < 1:
         extension = "jpg"
-    out = f"{IMGDIR_PATH}{row[9].replace(' ', '_')}/{index}"
+    out = f"{IMGDIR_PATH}{row[9].replace(' ', DIRNAME_DELIM)}/{index}"
     if extra:
         out += extra
-    return out + f".{extension}"
+    return out + f"_0.{extension}"
 
 
 @timing
@@ -109,6 +110,8 @@ def fetch_images(df: pd.DataFrame, col: str):
         if not os.path.exists(path):
             try:
                 img = Image.open(requests.get(row[col], stream=True, timeout=40).raw)
+                img = FeatureExtractor.make_square_with_bb(img)
+                img = img.resize((416, 416))
                 img.save(path)
                 out = path
                 print(path)
