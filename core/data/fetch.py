@@ -133,5 +133,5 @@ def fetch_images(df: pd.DataFrame, col: str):
             paths[i] = ft.result()
 
         df['path'] = paths
-        #df = df[df[['path']].notnull().any(axis=1)]
+        df.dropna(subset=['path'], inplace=True)
         df.to_csv(DATASET_PATH, index=False)
