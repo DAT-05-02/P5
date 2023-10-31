@@ -178,34 +178,15 @@ class FeatureExtractor(Logable):
         paths = df[feature]
         unique_output_shapes = []
 
-        if feature == "lbp":
-            for path in paths:
-                img = Image.open(path)
-                output_shape = self.lbp(img).shape
-                if output_shape not in unique_output_shapes:
-                    print("unique shape: ", output_shape)
-                    unique_output_shapes.append(output_shape)
-        elif feature == "rlbp":
-            for path in paths:
-                img = Image.open(path)
-                output_shape = self.rlbp(img).shape
-                if output_shape not in unique_output_shapes:
-                    print("unique shape: ", output_shape)
-                    unique_output_shapes.append(output_shape)
-        elif feature == "glcm":
-            for path in paths:
-                img = Image.open(path)
-                output_shape = self.glcm(img).shape
-                if output_shape not in unique_output_shapes:
-                    print("unique shape: " + output_shape)
-                    unique_output_shapes.append(output_shape)
-        elif feature == "sift":
-            for path in paths:
-                img = Image.open(path)
-                output_shape = self.sift(img).shape
-                if output_shape not in unique_output_shapes:
-                    print("unique shape: ", output_shape)
-                    unique_output_shapes.append(output_shape)
+        feature_function = getattr(self, feature)
+
+        for path in paths:
+            img = Image.open(path)
+            output_shape = feature_function(img).shape
+            if output_shape not in unique_output_shapes:
+                print("unique shape: ", output_shape)
+                unique_output_shapes.append(output_shape)
+
         if len(unique_output_shapes) > 1:
             raise ValueError("Not all features are the same shape")
         return unique_output_shapes
