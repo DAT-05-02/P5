@@ -17,7 +17,7 @@ class FeatureExtractor(Logable):
     def __init__(self,
                  img_dir_path=IMGDIR_PATH,
                  feature_dir_path=FEATURE_DIR_PATH,
-                 log_level=logging.DEBUG):
+                 log_level=logging.INFO):
         super().__init__()
         setup_log(log_level=log_level)
         self.save_path = feature_dir_path
@@ -185,10 +185,10 @@ class FeatureExtractor(Logable):
         @return: path to rotated image
         """
         try:
-            image = Image.open(img_path)
-            new_path = self.rotate_path(img_path, degree)
-            image.rotate(degree, expand=True).save(new_path)
-            return new_path
+            with Image.open(img_path) as image:
+                new_path = self.rotate_path(img_path, degree)
+                image.rotate(degree, expand=True).save(new_path)
+                return new_path
         except IOError as e:
             print("Error when trying to rotate and save images")
             raise e
