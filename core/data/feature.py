@@ -27,9 +27,6 @@ class FeatureExtractor(Logable):
     def pre_process(self,
                     df: pd.DataFrame,
                     feature="",
-                    should_bb=True,
-                    should_resize=False,
-
                     **kwargs):
         df = self.create_augmented_df(df)
         ft = getattr(self, feature, None)
