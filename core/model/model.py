@@ -7,8 +7,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from util.constants import FULL_MODEL_CHECKPOINT_PATH
-from util.logging.logable import Logable
+from core.util.constants import FULL_MODEL_CHECKPOINT_PATH
+from core.util.logging.logable import Logable
 
 
 class Model(Logable):
