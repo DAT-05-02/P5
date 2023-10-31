@@ -182,11 +182,23 @@ class FeatureExtractor(Logable):
 
     def feature_output_same_checker(self, feature: str, df):
         paths = df[feature]
-        shape = np.array(Image.open(paths[0])).shape
-        for path in paths:
-            img = Image.open(path)
-            arr = np.array(img)
-            print(arr.shape, shape)
-            if(arr.shape != shape):
-                raise ValueError("The shapes are not the same")
+
+        # sift lbp glcm rlbp
+        if feature == "lbp":
+            shape = self.lbp(Image.open(paths[0])).shape
+            for path in paths:
+                img = Image.open(path)
+                output_shape = self.lbp(img).shape
+                print(output_shape, shape)
+                if(output_shape != shape):
+                    raise ValueError("The shapes are not the same")
+
+        if feature == "sift":
+            shape = self.sift(Image.open(paths[0])).shape
+            for path in paths:
+                img = Image.open(path)
+                output_shape = self.sift(img).shape
+                print(output_shape, shape)
+                if(output_shape != shape):
+                    raise ValueError("The shapes are not the same")
         return shape, True

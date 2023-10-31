@@ -37,7 +37,6 @@ class Model:
                 arr.append(np.array(Image.open(row['lbp']).convert("L")).tolist())
 
         return np.array(arr), self.df['species']
-
     def model_compile_fit_evaluate(self, lr=0.001, epochs=10):
         img_arr, lbl = self.img_with_labels()
         custom_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
