@@ -10,6 +10,7 @@ from core.util.util import setup_log
 
 FTS = ['sift', 'lbp', 'glcm']
 
+
 class FeatureExtractor(Logable):
     def __init__(self,
                  img_dir_path=IMGDIR_PATH,
@@ -115,16 +116,11 @@ class FeatureExtractor(Logable):
             img = img.convert("L")
         return graycomatrix(img, distance, angles)
 
-    @staticmethod
-    def sift(img: Image.Image):
+    def sift(self, img: Image.Image):
         sift_detector = SIFT()
         img = img.convert("L")
         sift_detector.detect_and_extract(img)
-        print(sift_detector.keypoints)
-        print(sift_detector.descriptors)
-        for keypoint in sift_detector.keypoints:
-            pass
-        pass
+        return np.array(list(zip(sift_detector.keypoints, sift_detector.descriptors)))
 
     @staticmethod
     def make_square_with_bb(im, min_size=256, fill_color=(0, 0, 0, 0), mode="RGB"):
@@ -153,7 +149,6 @@ class FeatureExtractor(Logable):
                 elif "flip" == degrees:
                     FeatureExtractor.flip_and_save_image(sub_dir[0], image_name)
 
-
     @staticmethod
     def rotate_and_save_image(img_path: str, name: str, degree: int):
         """ Rotates an image 4 and saves the rotated images to a path
@@ -178,3 +173,20 @@ class FeatureExtractor(Logable):
             image.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT).save(f"{img_path}/{name.split('.')[0]}f.jpg")
         except IOError:
             print("Error when trying to flip and save images")
+
+    def feature_output_same_checker(self, feature: str, df):
+        paths = df[feature]
+        unique_output_shapes = []
+
+        feature_function = getattr(self, feature)
+
+        for path in paths:
+            img = Image.open(path)
+            output_shape = feature_function(img).shape
+            if output_shape not in unique_output_shapes:
+                print("unique shape: ", output_shape)
+                unique_output_shapes.append(output_shape)
+
+        if len(unique_output_shapes) > 1:
+            raise ValueError("Not all features are the same shape")
+        return unique_output_shapes
