@@ -186,6 +186,7 @@ class FeatureExtractor(Logable):
         for path in paths:
             img = Image.open(path)
             arr = np.array(img)
+            print(arr.shape, shape)
             if(arr.shape != shape):
-                return shape, False
+                raise ValueError("The shapes are not the same")
         return shape, True
