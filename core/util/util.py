@@ -48,3 +48,13 @@ def setup_log(log_level):
     logger_file.setLevel(logging.DEBUG)
     logger_file.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     logging.getLogger().addHandler(logger_file)
+    logging.getLogger().addFilter(LogFilter())
+
+
+class LogFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        if (
+                record.module.startswith('matplotlib')
+        ):
+            return False
+        return True

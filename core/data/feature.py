@@ -119,7 +119,6 @@ class FeatureExtractor(Logable):
             img = img.convert("L")
         return graycomatrix(img, distance, angles)
 
-    @log_ent_exit
     def sift(self, img: Image.Image):
         sift_detector = SIFT()
         img = img.convert("L")
@@ -153,7 +152,6 @@ class FeatureExtractor(Logable):
                 elif "flip" == degrees:
                     FeatureExtractor.flip_and_save_image(sub_dir[0], image_name)
 
-
     @staticmethod
     def rotate_and_save_image(img_path: str, name: str, degree: int):
         """ Rotates an image 4 and saves the rotated images to a path
@@ -178,3 +176,20 @@ class FeatureExtractor(Logable):
             image.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT).save(f"{img_path}/{name.split('.')[0]}f.jpg")
         except IOError:
             print("Error when trying to flip and save images")
+
+    def feature_output_same_checker(self, feature: str, df):
+        paths = df[feature]
+        unique_output_shapes = []
+
+        feature_function = getattr(self, feature)
+
+        for path in paths:
+            img = Image.open(path)
+            output_shape = feature_function(img).shape
+            if output_shape not in unique_output_shapes:
+                print("unique shape: ", output_shape)
+                unique_output_shapes.append(output_shape)
+
+        if len(unique_output_shapes) > 1:
+            raise ValueError("Not all features are the same shape")
+        return unique_output_shapes
