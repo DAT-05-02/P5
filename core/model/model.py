@@ -7,22 +7,27 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+from data.feature import FeatureExtractor
 from util.logging.logable import Logable
 from core.util.constants import FULL_MODEL_CHECKPOINT_PATH
 
 
 class Model(Logable):
     def __init__(self,
-                 df: pd.DataFrame):
+                 df: pd.DataFrame,
+                 feature="path"):
         super().__init__()
         self.df = df
+        self.feature = feature
+        self.ft_extractor = FeatureExtractor()
+        self.shape = self.ft_extractor.shape_from_feature(self.feature, self.df)
         self.model = self._create_model()
         self.dataset = self._setup_dataset()
         self.train_dataset = None
         self.val_dataset = None
         self.test_dataset = None
 
-    def _create_model(self, size=(416, 416), depth=3):
+    def _create_model(self):
         """
         model = tf.keras.models.Sequential([
             tf.keras.layers.Flatten(input_shape=(size[0], size[1], depth)),
@@ -32,7 +37,7 @@ class Model(Logable):
         """
 
         model = tf.keras.models.Sequential([
-            tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(size[0], size[1], depth)),
+            tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=self.shape),
             tf.keras.layers.MaxPooling2D((2, 2)),
             tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
             tf.keras.layers.MaxPooling2D((2, 2)),
@@ -51,6 +56,7 @@ class Model(Logable):
             label_mode="categorical",
             image_size=(416, 416),
         )
+        self.log.debug(dataset[:10])
         return dataset
 
     def print_dataset_info(self):

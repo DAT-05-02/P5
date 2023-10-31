@@ -19,13 +19,13 @@ if __name__ == "__main__":
                        num_rows=50,
                        bfly=["all"])
     fetch_images(df, "identifier")
-    ft_extractor = FeatureExtractor(log_level=logging.INFO)
-    df = ft_extractor.pre_process(df, "lbp", radius=7, should_bb=True, should_resize=True)
+    ft_extractor = FeatureExtractor(log_level=logging.DEBUG)
+    df = ft_extractor.pre_process(df, "lbp", radius=2)
     model = Model(df)
     # model.load()
     model.print_dataset_info()
     model.compile()
     model.split_dataset()
-    model.fit(5)  # Epochs
+    # model.fit(5)  # Epochs
     model.save()
     model.evaluate_and_show_predictions()

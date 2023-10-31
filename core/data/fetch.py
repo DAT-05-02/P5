@@ -34,7 +34,7 @@ def setup_dataset(raw_dataset_path: str,
         os.makedirs(IMGDIR_PATH)
     if os.path.exists(dataset_csv_filename):
         df = pd.read_csv(dataset_csv_filename, low_memory=False)
-        if num_rows and len(df) == num_rows:
+        if num_rows and len(df) >= num_rows:
             return df
 
     df: pd.DataFrame = pd.read_csv(raw_dataset_path, sep="	", low_memory=False)
@@ -91,7 +91,7 @@ def img_path_from_row(row: pd.Series, index: int, column="identifier", extra=Non
     out = f"{IMGDIR_PATH}{row[9].replace(' ', DIRNAME_DELIM)}/{index}"
     if extra:
         out += extra
-    return out + f"_0.{extension}"
+    return out + "_0.npy"
 
 
 @timing
@@ -112,7 +112,8 @@ def fetch_images(df: pd.DataFrame, col: str):
                 img = Image.open(requests.get(row[col], stream=True, timeout=40).raw)
                 img = FeatureExtractor.make_square_with_bb(img)
                 img = img.resize((416, 416))
-                img.save(path)
+                img = np.asarray(img)
+                np.save(path, img, allow_pickle=True)
                 out = path
                 print(path)
             except requests.exceptions.Timeout:
