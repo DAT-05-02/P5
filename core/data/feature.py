@@ -178,7 +178,6 @@ class FeatureExtractor(Logable):
         paths = df[feature]
         unique_output_shapes = []
 
-        # sift lbp glcm rlbp
         if feature == "lbp":
             shape = self.lbp(Image.open(paths[0])).shape
             for path in paths:
@@ -212,5 +211,5 @@ class FeatureExtractor(Logable):
                     print(output_shape)
                     unique_output_shapes.append(output_shape)
         if len(unique_output_shapes) > 1:
-            raise ValueError("There are way too many unique shapes")
+            raise ValueError("Not all features are the same shape")
         return unique_output_shapes
