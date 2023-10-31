@@ -179,7 +179,6 @@ class FeatureExtractor(Logable):
         unique_output_shapes = []
 
         if feature == "lbp":
-            shape = self.lbp(Image.open(paths[0])).shape
             for path in paths:
                 img = Image.open(path)
                 output_shape = self.lbp(img).shape
@@ -187,7 +186,6 @@ class FeatureExtractor(Logable):
                     print("unique shape: ", output_shape)
                     unique_output_shapes.append(output_shape)
         elif feature == "rlbp":
-            shape = self.rlbp(Image.open(paths[0])).shape
             for path in paths:
                 img = Image.open(path)
                 output_shape = self.rlbp(img).shape
@@ -195,7 +193,6 @@ class FeatureExtractor(Logable):
                     print("unique shape: ", output_shape)
                     unique_output_shapes.append(output_shape)
         elif feature == "glcm":
-            shape = self.glcm(Image.open(paths[0])).shape
             for path in paths:
                 img = Image.open(path)
                 output_shape = self.glcm(img).shape
@@ -203,7 +200,6 @@ class FeatureExtractor(Logable):
                     print("unique shape: " + output_shape)
                     unique_output_shapes.append(output_shape)
         elif feature == "sift":
-            shape = self.sift(Image.open(paths[0])).shape
             for path in paths:
                 img = Image.open(path)
                 output_shape = self.sift(img).shape
