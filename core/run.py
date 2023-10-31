@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 
@@ -18,7 +19,7 @@ if __name__ == "__main__":
                        num_rows=50,
                        bfly=["all"])
     fetch_images(df, "identifier")
-    ft_extractor = FeatureExtractor()
+    ft_extractor = FeatureExtractor(log_level=logging.INFO)
     df = ft_extractor.pre_process(df, "lbp", radius=7, should_bb=True, should_resize=True)
     model = Model(df)
     model.model_compile_fit_evaluate(epochs=50)
