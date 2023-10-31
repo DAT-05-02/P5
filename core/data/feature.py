@@ -10,6 +10,7 @@ from core.util.util import setup_log
 
 FTS = ['sift', 'lbp', 'glcm']
 
+
 class FeatureExtractor(Logable):
     def __init__(self,
                  img_dir_path=IMGDIR_PATH,
@@ -20,7 +21,6 @@ class FeatureExtractor(Logable):
         self.save_path = feature_dir_path
         self.img_path = img_dir_path
         self._mk_ft_dirs()
-
 
     def pre_process(self, df: pd.DataFrame, feature="", should_bb=True, should_resize=False, **kwargs):
         ft = getattr(self, feature, None)
@@ -116,16 +116,11 @@ class FeatureExtractor(Logable):
             img = img.convert("L")
         return graycomatrix(img, distance, angles)
 
-    @staticmethod
-    def sift(img: Image.Image):
+    def sift(self, img: Image.Image):
         sift_detector = SIFT()
         img = img.convert("L")
         sift_detector.detect_and_extract(img)
-        print(sift_detector.keypoints)
-        print(sift_detector.descriptors)
-        for keypoint in sift_detector.keypoints:
-            pass
-        pass
+        return np.array(list(zip(sift_detector.keypoints, sift_detector.descriptors)))
 
     @staticmethod
     def make_square_with_bb(im, min_size=256, fill_color=(0, 0, 0, 0), mode="RGB"):
@@ -154,7 +149,6 @@ class FeatureExtractor(Logable):
                 elif "flip" == degrees:
                     FeatureExtractor.flip_and_save_image(sub_dir[0], image_name)
 
-
     @staticmethod
     def rotate_and_save_image(img_path: str, name: str, degree: int):
         """ Rotates an image 4 and saves the rotated images to a path
@@ -182,6 +176,7 @@ class FeatureExtractor(Logable):
 
     def feature_output_same_checker(self, feature: str, df):
         paths = df[feature]
+        unique_output_shapes = []
 
         # sift lbp glcm rlbp
         if feature == "lbp":
@@ -189,16 +184,33 @@ class FeatureExtractor(Logable):
             for path in paths:
                 img = Image.open(path)
                 output_shape = self.lbp(img).shape
-                print(output_shape, shape)
-                if(output_shape != shape):
-                    raise ValueError("The shapes are not the same")
-
-        if feature == "sift":
+                if output_shape not in unique_output_shapes:
+                    print(output_shape)
+                    unique_output_shapes.append(output_shape)
+        elif feature == "rlbp":
+            shape = self.rlbp(Image.open(paths[0])).shape
+            for path in paths:
+                img = Image.open(path)
+                output_shape = self.rlbp(img).shape
+                if output_shape not in unique_output_shapes:
+                    print(output_shape)
+                    unique_output_shapes.append(output_shape)
+        elif feature == "glcm":
+            shape = self.glcm(Image.open(paths[0])).shape
+            for path in paths:
+                img = Image.open(path)
+                output_shape = self.glcm(img).shape
+                if output_shape not in unique_output_shapes:
+                    print(output_shape)
+                    unique_output_shapes.append(output_shape)
+        elif feature == "sift":
             shape = self.sift(Image.open(paths[0])).shape
             for path in paths:
                 img = Image.open(path)
                 output_shape = self.sift(img).shape
-                print(output_shape, shape)
-                if(output_shape != shape):
-                    raise ValueError("The shapes are not the same")
-        return shape, True
+                if output_shape not in unique_output_shapes:
+                    print(output_shape)
+                    unique_output_shapes.append(output_shape)
+        if len(unique_output_shapes) > 1:
+            raise ValueError("There are way too many unique shapes")
+        return unique_output_shapes
