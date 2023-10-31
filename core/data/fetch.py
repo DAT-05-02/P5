@@ -9,6 +9,11 @@ import os
 from PIL import Image
 from core.util.util import timing
 from core.util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH
+from core.yolo.yolo_crop import yolo_crop
+
+from ultralytics import YOLO
+
+model = YOLO('yolo/medium250e.pt')
 
 
 def setup_dataset(raw_dataset_path: str,
@@ -109,9 +114,11 @@ def fetch_images(df: pd.DataFrame, col: str):
         if not os.path.exists(path):
             try:
                 img = Image.open(requests.get(row[col], stream=True, timeout=40).raw)
-                img.save(path)
+                img1 = yolo_crop(img, model)
+                img1.save(path)
                 out = path
                 print(path)
+
             except requests.exceptions.Timeout:
                 print(f"Timeout occurred for index {index}")
             except requests.exceptions.RequestException as e:
