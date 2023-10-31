@@ -137,10 +137,10 @@ class FeatureExtractor(Logable):
         return new_im
 
     def create_augmented_df(self, df: pd.DataFrame, degrees: str = "all") -> pd.DataFrame:
-        """Creates transformed images from input image, can rotate and flip
+        """Creates transformed image as rows in df inserts them
         @param df: pandas dataframe
         @param degrees: list of strings, include "rotate" to rotate, "flip" to flip, "all" is default for both
-        @return: list of paths to augmented images
+        @return: augmented df
         """
         new_rows = []
         for index, row in df.iterrows():
