@@ -180,18 +180,17 @@ class FeatureExtractor(Logable):
         except IOError:
             print("Error when trying to flip and save images")
 
-    def feature_output_checker(self, feature: str, df, target=(416, 416, 3)):
+    def feature_output_same_checker(self, feature: str, df):
         paths = df[feature]
+        shape = np.array(Image.open(paths[0])).shape
+        for path in paths:
+            img = Image.open(path)
+            arr = np.array(img)
+            if(arr.shape != shape):
+                return shape, False
+        return shape, True
 
-        if feature == "lbp":
-            for path in paths:
-                img = Image.open(path)
-                arr = np.array(img)
-                print(arr.shape)
-                if(arr.shape != target):
-                    print("eep")
         #todo add rest of features
-
 
         #sørg for at alle bilederne er ens shape og retuner den shape
 
