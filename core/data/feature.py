@@ -189,9 +189,3 @@ class FeatureExtractor(Logable):
             if(arr.shape != shape):
                 return shape, False
         return shape, True
-
-        #todo add rest of features
-
-        #sørg for at alle bilederne er ens shape og retuner den shape
-
-        #npy
