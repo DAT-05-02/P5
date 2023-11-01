@@ -9,7 +9,7 @@ import os
 from PIL import Image
 from core.util.util import timing
 from core.util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH, DIRNAME_DELIM
-from data.feature import FeatureExtractor
+from core.data.feature import FeatureExtractor
 
 
 def setup_dataset(raw_dataset_path: str,

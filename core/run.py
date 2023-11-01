@@ -3,7 +3,7 @@ from core.data.fetch import fetch_images, setup_dataset
 from core.util.constants import RAW_DATA_PATH, RAW_LABEL_PATH, DATASET_PATH, LABEL_DATASET_PATH
 from core.data.feature import FeatureExtractor
 from core.model.model import Model
-from util.pysetup import PySetup
+from core.util.pysetup import PySetup
 
 if __name__ == "__main__":
     ops = PySetup()
@@ -15,7 +15,7 @@ if __name__ == "__main__":
                        bfly=["all"])
     fetch_images(df, "identifier")
     ft_extractor = FeatureExtractor(log_level=logging.INFO)
-    df = ft_extractor.pre_process(df, "lbp", radius=7, should_bb=True, should_resize=True)
+    df = ft_extractor.pre_process(df, "lbp", radius=2, should_bb=True, should_resize=True)
     model = Model(df)
     # model.load()
     model.print_dataset_info()
