@@ -8,6 +8,7 @@ import pytest
 from PIL import Image
 
 from core.data.fetch import img_path_from_row, setup_dataset, fetch_images
+from core.util.constants import DIRNAME_DELIM, PATH_SEP
 
 
 class FetchTester:
@@ -16,7 +17,7 @@ class FetchTester:
                  save_path="leopidotera-dk/leopidotera-dk.csv",
                  import_path="leopidotera-dk/multimedia.txt",
                  label_path="leopidotera-dk/occurrence.txt",
-                 img_path="image_db/",
+                 img_path="image-db/",
                  columns=None,
                  label_csv_name="occurrence.csv",
                  csv_name="leopidotera-dk.csv",
@@ -52,9 +53,10 @@ def test_setup(fetcher: FetchTester):
 @pytest.mark.parametrize("index", [5, 10, 100, 15004, 110521])
 def test_img_path_from_row(index, fetcher: FetchTester):
     supported_ext = [fetcher.img_path
-                     + str(fetcher.df.iloc[index]['species']).replace(" ", "_")
-                     + "/"
+                     + str(fetcher.df.iloc[index]['species']).replace(" ", DIRNAME_DELIM)
+                     + PATH_SEP
                      + str(index)
+                     + "_0"
                      + w for w in Image.registered_extensions().keys()]
     assert img_path_from_row(index=index, row=fetcher.df.iloc[index], column="identifier") in supported_ext
 
