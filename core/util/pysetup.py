@@ -8,7 +8,7 @@ class PySetup(Logable):
     def __init__(self,
                  major_version=3,
                  minor_version=8,
-                 micro_version=18,
+                 micro_version=10,
                  cwd="core"):
         super().__init__()
         self.cwd = cwd
