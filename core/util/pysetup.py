@@ -1,7 +1,7 @@
 import os
 import sys
 
-from util.logging.logable import Logable
+from core.util.logging.logable import Logable
 
 
 class PySetup(Logable):
