@@ -37,8 +37,9 @@ class FeatureExtractor(Logable):
             if not os.path.exists(p_new):
                 with Image.open(row['path']) as img:
                     if feature == "lbp":
-                        lbp_arr = ft(img, kwargs.get('method', 'ror'), kwargs.get('radius', 1))
-                        img = Image.fromarray(lbp_arr)
+                        lbp_arr: np.ndarray = ft(img, kwargs.get('method', 'ror'), kwargs.get('radius', 1))
+                        img = Image.fromarray(lbp_arr.astype(np.uint8))
+                        img.convert("L")
                         paths[int(index)] = p_new
                     elif feature == "sift":
                         pass
@@ -78,8 +79,8 @@ class FeatureExtractor(Logable):
             if not os.path.exists(dir_new):
                 os.makedirs(dir_new)
 
-    @staticmethod
-    def lbp(img: Image, method="ror", radius=1):
+    @log_ent_exit
+    def lbp(self, img: Image, method="ror", radius=1):
         """Create Local Binary Pattern for an image
         @param img: image to convert
         @param method: which method, accepts 'default', 'ror', 'uniform', 'nri_uniform' or 'var'.
@@ -90,8 +91,7 @@ class FeatureExtractor(Logable):
         n_points = 8 * radius
         if img.mode != "L":
             img = img.convert("L")
-
-        return np.array(local_binary_pattern(img, n_points, radius, method), dtype=np.uint8)
+        return local_binary_pattern(np.asarray(img, dtype=np.uint8), n_points, radius, method)
 
     @staticmethod
     def rlbp(img: Image, method="ror", radius=1):
@@ -144,7 +144,7 @@ class FeatureExtractor(Logable):
                 new_r['path'] = n
                 new_rows.append(new_r)
 
-        df = df.append(new_rows, ignore_index=True)
+        df = pd.concat([df, pd.DataFrame(new_rows, columns=df.columns)], ignore_index=True, axis=0)
         return df
 
     def augment_image(self, row: pd.Series, degrees: str = "all"):
