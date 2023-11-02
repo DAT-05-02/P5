@@ -23,8 +23,8 @@ class Model(Logable):
         self.feature = feature
         self.ft_extractor = FeatureExtractor()
         self.shape = self.ft_extractor.shape_from_feature(self.feature, self.df)
-        self.model = self._create_model()
         self.dataset = self._setup_dataset()
+        self.model = self._create_model()
         self.train_dataset = None
         self.val_dataset = None
         self.test_dataset = None
@@ -39,7 +39,8 @@ class Model(Logable):
         """
 
         model = tf.keras.models.Sequential([
-            tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=self.shape),
+            tf.keras.layers.Conv2D(32, (3, 3), activation='relu', data_format="channels_last",
+                                   input_shape=(self.shape[0], self.shape[1], self.shape[2])),
             tf.keras.layers.MaxPooling2D((2, 2)),
             tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
             tf.keras.layers.MaxPooling2D((2, 2)),
@@ -52,10 +53,12 @@ class Model(Logable):
         return model
 
     def _setup_dataset(self):
-        data = self.df[self.feature]
-        label = self.df['species']
-        #tmp = [(np.load(row["path"]), row["species"]) for index, row in self.df.iterrows()]
+        data = np.array(list(map(lambda x: np.load(x, allow_pickle=True), self.df[self.feature])))
+        self.log.info(data.shape)
+        label = np.array(self.df['species'])
+        # tmp = [(np.load(row["path"]), row["species"]) for index, row in self.df.iterrows()]
         dataset = tf.data.Dataset.from_tensor_slices((data, label))
+        # dataset = dataset.batch(32)
         return dataset
 
     def print_dataset_info(self):
