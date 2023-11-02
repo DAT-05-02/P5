@@ -17,6 +17,7 @@ def setup_dataset(raw_dataset_path: str,
                   label_dataset_path: str,
                   dataset_csv_filename: str,
                   num_rows=None,
+                  min_amount_of_pictures=4,
                   sort=False,
                   bfly: list = []):
     """ Loads a file, converts to csv if none exists, or loads an existing csv into a pd.DateFrame object
@@ -63,10 +64,42 @@ def setup_dataset(raw_dataset_path: str,
     df.to_csv(dataset_csv_filename, index=False)
     return df
 
+def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, csv_path: str, min_amount_of_pictures=3):
+    # just need to make it so that if there are species in the dataset, which are below the min_amount, then find them in the global dataset and put into the other one
+    world_df: pd.DataFrame = pd.read_csv(raw_dataset_path, sep="	", low_memory=False)
+    world_df_labels: pd.DataFrame = pd.read_csv(raw_label_path, sep="	", low_memory=False)
 
+    drop_cols([world_df, world_df_labels], MERGE_COLS)
+    world_df = world_df.merge(world_df_labels[world_df_labels['gbifID'].isin(world_df['gbifID'])], on=['gbifID'])
+
+    out = df["species"].value_counts()
+
+    species_with_less_than_optimal_amount_of_images = []
+
+    for index, count in out.items():
+        if count < min_amount_of_pictures:
+            species_with_less_than_optimal_amount_of_images.append(index)
+
+    print("hello", world_df)
+    print("world", df)
+
+    world_df = world_df.loc[world_df['species'].isin(species_with_less_than_optimal_amount_of_images)]
+
+    # world_df.merge(df, on=['species'], how="right")
+
+
+    world_df.to_csv("leopidotera-world.csv", mode="a", index=False, header=False)
+    # add to csv
+
+    # world_df.to_csv(csv_path, mode='a', index=False, header=False)
+
+    return df
 def drop_cols(dfs, cols):
+    print("where are we dropping boys")
     for df in list(dfs):
+        print("yo", df)
         df.drop(columns=[col for col in df if col not in MERGE_COLS], inplace=True)
+        print("yo2", df)
 
 
 def img_path_from_row(row: pd.Series, index: int, column="identifier", extra=None):
