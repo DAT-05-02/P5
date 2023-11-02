@@ -10,7 +10,7 @@ import os
 from PIL import Image
 
 from core.util.logging.logable import Logable
-from core.util.util import timing, setup_log
+from core.util.util import timing, setup_log, log_ent_exit
 from core.util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH, DIRNAME_DELIM
 from core.data.feature import FeatureExtractor
 
@@ -47,6 +47,7 @@ class Database(Logable):
         self._num_rows = num_rows
         self.sort = sort
 
+    @log_ent_exit
     def num_rows(self):
         if self._num_rows is None:
             return None
@@ -90,6 +91,7 @@ class Database(Logable):
         if self._num_rows:
             df.drop(df.index[self._num_rows:], inplace=True)
         df.reset_index(inplace=True, drop=True)
+        df = self.fetch_images(df, "identifier")
         df.to_csv(self.dataset_csv_filename, index=False)
         return df
 

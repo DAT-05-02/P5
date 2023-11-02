@@ -160,18 +160,12 @@ class FeatureExtractor(Logable):
         """
         new_paths = []
         if "all" == degrees:
-            try:
-                new_paths.append(self.flip_and_save_image(row['path']))
-            except FileExistsError:
-                pass
+            new_paths.append(self.flip_and_save_image(row['path']))
             for i in range(90, 360, 90):
-                try:
-                    rotated_path = self.rotate_and_save_image(row['path'], i)
-                    flipped_path = self.flip_and_save_image(rotated_path)
-                    new_paths.append(rotated_path)
-                    new_paths.append(flipped_path)
-                except FileExistsError:
-                    continue
+                rotated_path = self.rotate_and_save_image(row['path'], i)
+                flipped_path = self.flip_and_save_image(rotated_path)
+                new_paths.append(rotated_path)
+                new_paths.append(flipped_path)
         elif "rotate" == degrees:
             for i in range(1, 4):
                 self.rotate_and_save_image(row['path'], i * 90)
@@ -188,7 +182,7 @@ class FeatureExtractor(Logable):
         """
         new_path = self.rotate_path(img_path, degree)
         if os.path.exists(new_path):
-            raise FileExistsError
+            return new_path
         try:
             with open(img_path, 'rb') as f:
                 image = np.load(f, allow_pickle=True)
@@ -215,7 +209,7 @@ class FeatureExtractor(Logable):
         self.log.debug(img_path)
         new_path = f"{img_path.split('.')[0]}f.{img_path.split('.')[1]}"
         if os.path.exists(new_path):
-            raise FileExistsError
+            return new_path
         with open(img_path, 'rb') as f:
             try:
                 self.log.debug(img_path)

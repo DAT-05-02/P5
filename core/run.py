@@ -18,7 +18,6 @@ if __name__ == "__main__":
                   degrees="all",
                   bfly=["all"])
     df = db.setup_dataset()
-    df = db.fetch_images(df, "identifier")
     df = ft_extractor.pre_process(df, "lbp", radius=2)
     model = Model(df, IMGDIR_PATH)
     # model.load()
