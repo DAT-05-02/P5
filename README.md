@@ -1,7 +1,7 @@
 # P5 - Endangered butterfly species in Denmark/Europe
 
 ## Prerequisites:
-- python3.7
+- python3.8.18
 - git lfs
 
 
@@ -11,13 +11,13 @@ Run the following commands:
 ### Linux
 ```bash
 sudo apt update && sudo apt install software-properties-common && sudo add-apt-repository ppa:deadsnakes/ppa && 
-sudo apt install python3.7 && sudo apt install python3.7-distutils
+sudo apt install python3.8 && sudo apt install python3.7-distutils
 ```
 
 
 ### Windows
 ```powershell
-winget install python.python.3.7
+winget install python.python.3.8
 ```
 ## Installing Git Large File Storagesystem
 
@@ -27,8 +27,6 @@ sudo apt install git-lfs
 # run inside project folder
 git lfs fetch
 ```
-### Windows
-todo 🤷
 
 ## Training the model on GPU
 

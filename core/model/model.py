@@ -7,17 +7,19 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from core.data.feature import FeatureExtractor
-from core.util.logging.logable import Logable
 from core.util.constants import FULL_MODEL_CHECKPOINT_PATH
+from core.util.logging.logable import Logable
+from core.data.feature import FeatureExtractor
 
 
 class Model(Logable):
     def __init__(self,
                  df: pd.DataFrame,
+                 path: str,
                  feature="path"):
         super().__init__()
         self.df = df
+        self.path = path
         self.feature = feature
         self.ft_extractor = FeatureExtractor()
         self.shape = self.ft_extractor.shape_from_feature(self.feature, self.df)
@@ -44,18 +46,18 @@ class Model(Logable):
             tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(64, activation='relu'),
-            tf.keras.layers.Dense(len(os.listdir("image-db")), activation="softmax")
+            tf.keras.layers.Dense(len(os.listdir(self.path)), activation="softmax")
         ])
 
         return model
 
     def _setup_dataset(self):
         dataset = tf.keras.utils.image_dataset_from_directory(
-            directory="image_db",
+            directory=self.path,
             labels="inferred",
             label_mode="categorical",
-            image_size=(416, 416),
-        )
+        image_size=(416, 416),
+            )
         self.log.debug(dataset[:10])
         return dataset
 
@@ -81,7 +83,7 @@ class Model(Logable):
 
     def split_dataset(self, validation_split=0.15, test_split=0.15, shuffle=True):
         dataset = tf.keras.utils.image_dataset_from_directory(
-            directory="image_db",
+            directory=self.path,
             labels="inferred",
             label_mode="categorical",
             image_size=(416, 416),
@@ -137,7 +139,7 @@ class Model(Logable):
             print(f"True Label: {true_label}\tPredicted Label: {predicted_label}")
 
     def evaluate_and_show_predictions(self, num_samples=5):
-        species_labels = os.listdir("image_db")
+        species_labels = os.listdir(self.path)
 
         for images, labels in self.test_dataset:
             batch_size = images.shape[0]
@@ -192,7 +194,7 @@ class Model(Logable):
         img_array = tf.keras.preprocessing.image.img_to_array(img)
         img_array = tf.expand_dims(img_array, 0)
         prediction = self.model.predict(img_array)
-        species_labels = os.listdir("image_db")
+        species_labels = os.listdir(self.path)
         sorted_indices = np.argsort(prediction[0])[::-1]
         sorted_labels = [species_labels[i] for i in sorted_indices]
         sorted_confidences = [prediction[0][i] * 100 for i in sorted_indices]
