@@ -7,8 +7,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from data.feature import FeatureExtractor
-from util.logging.logable import Logable
+from core.data.feature import FeatureExtractor
+from core.util.logging.logable import Logable
 from core.util.constants import FULL_MODEL_CHECKPOINT_PATH
 
 
