@@ -52,13 +52,8 @@ class Model(Logable):
         return model
 
     def _setup_dataset(self):
-        dataset = tf.keras.utils.image_dataset_from_directory(
-            directory=self.path,
-            labels="inferred",
-            label_mode="categorical",
-        image_size=(416, 416),
-            )
-        self.log.debug(dataset[:10])
+        dataset = [(np.load(row["path"]), row["species"]) for index, row in self.df.iterrows()]
+        dataset = tf.data.Dataset.from_tensor_slices(dataset)
         return dataset
 
     def print_dataset_info(self):
@@ -82,16 +77,7 @@ class Model(Logable):
         self.model = tf.keras.models.load_model(model_path)
 
     def split_dataset(self, validation_split=0.15, test_split=0.15, shuffle=True):
-        dataset = tf.keras.utils.image_dataset_from_directory(
-            directory=self.path,
-            labels="inferred",
-            label_mode="categorical",
-            image_size=(416, 416),
-            validation_split=validation_split,
-            subset="training",
-            seed=1337 if shuffle else None,
-            shuffle=shuffle
-        )
+        dataset = tf.data.Dataset.from_tensor_slices(self.dataset)
 
         val_size = int(validation_split * len(dataset))
         test_size = int(test_split * len(dataset))
@@ -112,8 +98,9 @@ class Model(Logable):
 
     def fit(self, epochs=10):
         history = self.model.fit(
-            self.train_dataset,
-            validation_data=self.val_dataset,
+            [t[0] for t in self.train_dataset],
+            [t[1] for t in self.train_dataset],
+            validation_split=self.val_split_size,
             epochs=epochs,
             callbacks=self.callbacks()
         )
@@ -139,7 +126,7 @@ class Model(Logable):
             print(f"True Label: {true_label}\tPredicted Label: {predicted_label}")
 
     def evaluate_and_show_predictions(self, num_samples=5):
-        species_labels = os.listdir(self.path)
+        species_labels = [species.replace("-", " ") for species in os.listdir(self.path)]
 
         for images, labels in self.test_dataset:
             batch_size = images.shape[0]
