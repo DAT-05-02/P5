@@ -1,6 +1,4 @@
-
 def obj_det(img, model):
-    res = model.predict(source=img, save=False, imgsz=640, conf=0.25)
-    xywhn = res[0].boxes.xywhn
+    res = model.predict(source=img, save=False, save_txt=False, imgsz=640, conf=0.25)
 
-    return xywhn
+    return res

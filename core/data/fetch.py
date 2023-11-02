@@ -9,11 +9,6 @@ import os
 from PIL import Image
 from core.util.util import timing
 from core.util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH
-from core.yolo.yolo_crop import yolo_crop
-
-from ultralytics import YOLO
-
-model = YOLO('yolo/medium250e.pt')
 
 
 def setup_dataset(raw_dataset_path: str,
