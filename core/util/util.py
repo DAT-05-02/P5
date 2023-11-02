@@ -54,7 +54,9 @@ def setup_log(log_level):
 class LogFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         if (
-                record.module.startswith('matplotlib')
+                record.module.startswith('matplotlib') |
+                record.module.startswith('urllib3.connectionpool') |
+                record.module.startswith('PIL.Image')
         ):
             return False
         return True
