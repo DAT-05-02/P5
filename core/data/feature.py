@@ -168,9 +168,11 @@ class FeatureExtractor(Logable):
                 new_paths.append(flipped_path)
         elif "rotate" == degrees:
             for i in range(1, 4):
-                self.rotate_and_save_image(row['path'], i * 90)
+                rotated_path = self.rotate_and_save_image(row['path'], i * 90)
+                new_paths.append(rotated_path)
         elif "flip" == degrees:
-            self.flip_and_save_image(row['path'])
+            flipped_path = self.flip_and_save_image(row['path'])
+            new_paths.append(flipped_path)
         return new_paths
 
     @log_ent_exit
