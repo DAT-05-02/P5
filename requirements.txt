@@ -9,4 +9,4 @@ matplotlib==3.5.3
 roboflow==1.1.6
 ultralytics==8.0.134
 pre-commit==3.5.0
-
+numpy==1.24.3
