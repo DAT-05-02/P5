@@ -109,8 +109,7 @@ def fetch_images(df: pd.DataFrame, col: str):
         if not os.path.exists(path):
             try:
                 img = Image.open(requests.get(row[col], stream=True, timeout=40).raw)
-                img1 = yolo_crop(img, model)
-                img1.save(path)
+                img.save(path)
                 out = path
                 print(path)
 
