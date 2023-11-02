@@ -29,7 +29,6 @@ class FeatureExtractor(Logable):
                     df: pd.DataFrame,
                     feature="",
                     **kwargs):
-        df = self.create_augmented_df(df)
         ft = getattr(self, feature, None)
         paths = np.full(len(df.index), fill_value=np.nan).tolist()
         for index, row in df.iterrows():
@@ -135,6 +134,7 @@ class FeatureExtractor(Logable):
         new_im.paste(im, (int((size - x) / 2), int((size - y) / 2)))
         return new_im
 
+    @log_ent_exit
     def create_augmented_df(self, df: pd.DataFrame, degrees: str = "all") -> pd.DataFrame:
         """Creates transformed image as rows in df inserts them
         @param df: pandas dataframe
@@ -150,7 +150,6 @@ class FeatureExtractor(Logable):
                 new_rows.append(new_r)
 
         df = pd.concat([df, pd.DataFrame(new_rows, columns=df.columns)], ignore_index=True, axis=0)
-        self.log.debug(df)
         return df
 
     def augment_image(self, row: pd.Series, degrees: str = "all"):
@@ -162,7 +161,7 @@ class FeatureExtractor(Logable):
         new_paths = []
         if "all" == degrees:
             try:
-                self.flip_and_save_image(row['path'])
+                new_paths.append(self.flip_and_save_image(row['path']))
             except FileExistsError:
                 pass
             for i in range(90, 360, 90):
@@ -226,7 +225,7 @@ class FeatureExtractor(Logable):
                 np.save(new_path, np.asarray(image))
                 return new_path
             except IOError as e:
-                self.log.error("Error when trying to flip and save images")
+                self.log.error(f"Error when trying to flip and save images: {e}")
                 raise e
 
     def shape_from_feature(self, feature: str, df):
