@@ -228,19 +228,19 @@ class FeatureExtractor(Logable):
                 self.log.error(f"Error when trying to flip and save images: {e}")
                 raise e
 
+    @log_ent_exit
     def shape_from_feature(self, feature: str, df):
         paths = df[feature]
-        unique_output_shapes = []
-
-        feature_function = getattr(self, feature, '')
+        unique_output_shapes = set()
 
         for path in paths:
-            img = Image.open(path)
-            output_shape = feature_function(img).shape
-            if output_shape not in unique_output_shapes:
-                print("unique shape: ", output_shape)
-                unique_output_shapes.append(output_shape)
+            with open(path, 'rb') as f:
+                img = np.load(f)
+                output_shape = img.shape
+                if output_shape not in unique_output_shapes:
+                    print("unique shape: ", output_shape)
+                    unique_output_shapes.add(output_shape)
 
         if len(unique_output_shapes) > 1:
             raise ValueError(f"Not all features are the same shape: {unique_output_shapes}")
-        return unique_output_shapes[0]
+        return unique_output_shapes.pop()

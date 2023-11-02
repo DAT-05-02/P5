@@ -44,7 +44,7 @@ class Model(Logable):
             tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(64, activation='relu'),
-            tf.keras.layers.Dense(len(os.listdir("image_db")), activation="softmax")
+            tf.keras.layers.Dense(len(os.listdir("image-db")), activation="softmax")
         ])
 
         return model
