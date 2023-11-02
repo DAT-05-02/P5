@@ -56,7 +56,7 @@ class Model(Logable):
             directory=self.path,
             labels="inferred",
             label_mode="categorical",
-        image_size=(416, 416),
+            image_size=(416, 416),
             )
         self.log.debug(dataset[:10])
         return dataset
