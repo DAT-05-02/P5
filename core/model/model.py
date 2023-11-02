@@ -52,8 +52,10 @@ class Model(Logable):
         return model
 
     def _setup_dataset(self):
-        dataset = [(np.load(row["path"]), row["species"]) for index, row in self.df.iterrows()]
-        dataset = tf.data.Dataset.from_tensor_slices(dataset)
+        data = self.df[self.feature]
+        label = self.df['species']
+        #tmp = [(np.load(row["path"]), row["species"]) for index, row in self.df.iterrows()]
+        dataset = tf.data.Dataset.from_tensor_slices((data, label))
         return dataset
 
     def print_dataset_info(self):
@@ -77,7 +79,7 @@ class Model(Logable):
         self.model = tf.keras.models.load_model(model_path)
 
     def split_dataset(self, validation_split=0.15, test_split=0.15, shuffle=True):
-        dataset = tf.data.Dataset.from_tensor_slices(self.dataset)
+        dataset = self.dataset
 
         val_size = int(validation_split * len(dataset))
         test_size = int(test_split * len(dataset))
@@ -98,9 +100,8 @@ class Model(Logable):
 
     def fit(self, epochs=10):
         history = self.model.fit(
-            [t[0] for t in self.train_dataset],
-            [t[1] for t in self.train_dataset],
-            validation_split=self.val_split_size,
+            self.train_dataset,
+            validation_data=self.val_dataset,
             epochs=epochs,
             callbacks=self.callbacks()
         )

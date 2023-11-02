@@ -21,7 +21,7 @@ if __name__ == "__main__":
     df = ft_extractor.pre_process(df, "lbp", radius=2)
     model = Model(df, IMGDIR_PATH)
     # model.load()
-    model.print_dataset_info()
+    # model.print_dataset_info()
     model.compile()
     model.split_dataset()
     model.fit(5)  # Epochs
