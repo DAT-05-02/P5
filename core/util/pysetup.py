@@ -19,7 +19,7 @@ class PySetup(Logable):
     def _check_py_version(self):
         def pretty_version(y): return '.'.join(list(tuple(map(lambda x: str(x), y))))
 
-        if sys.version_info[:3] <= self.version:
+        if sys.version_info[:3] < self.version:
             raise ImportError(f"Required Python version: {pretty_version(sys.version_info[:3])}\n"
                               f"Current version: {pretty_version(self.version[:3])}")
 
