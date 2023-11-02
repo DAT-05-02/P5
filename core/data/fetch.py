@@ -45,6 +45,7 @@ class Database(Logable):
         self.bfly = bfly
         self.degrees = degrees
         self._num_rows = num_rows
+        self.num_rows = self.num_rows()
         self.sort = sort
 
     @log_ent_exit
