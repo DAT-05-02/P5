@@ -1,7 +1,7 @@
 # P5 - Endangered butterfly species in Denmark/Europe
 
 ## Prerequisites:
-- python3.7
+- python3.8.18
 - git lfs
 
 
@@ -11,13 +11,13 @@ Run the following commands:
 ### Linux
 ```bash
 sudo apt update && sudo apt install software-properties-common && sudo add-apt-repository ppa:deadsnakes/ppa && 
-sudo apt install python3.7 && sudo apt install python3.7-distutils
+sudo apt install python3.8 && sudo apt install python3.7-distutils
 ```
 
 
 ### Windows
 ```powershell
-winget install python.python.3.7
+winget install python.python.3.8
 ```
 ## Installing Git Large File Storagesystem
 
@@ -27,9 +27,21 @@ sudo apt install git-lfs
 # run inside project folder
 git lfs fetch
 ```
-### Windows
-todo 🤷
 
+## Training the model on GPU
+### Windows
+For quick setup of GPU training for windows machines.
+
+#### Requirements
+- Tensorflow-cpu version 2.10.0 (not tensorflow or tensorflow-gpu)
+- Tensorflow-directml-plugin
+
+```python
+pip install tensorflow-cpu==2.10.0
+pip install tensorflow-directml-plugin
+```
+
+Works with python 3.7 and upto python 3.10.
 
 ## Installing requirements
 ```bash
