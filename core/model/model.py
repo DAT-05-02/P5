@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from core.util.constants import FULL_MODEL_CHECKPOINT_PATH
 from core.util.logging.logable import Logable
 from core.data.feature import FeatureExtractor
+from sklearn import preprocessing
 
 
 class Model(Logable):
@@ -22,10 +23,10 @@ class Model(Logable):
         self.path = path
         self.feature = feature
         self.ft_extractor = FeatureExtractor()
-        self.shape = self.ft_extractor.shape_from_feature(self.feature, self.df)
+        self.shape = self.ft_extractor.shape_from_feature(self.df, self.feature)
         self.dataset = self._setup_dataset()
         self.model = self._create_model()
-        self.train_dataset = None
+        self.train_dataset: tf.data.Dataset = None
         self.val_dataset = None
         self.test_dataset = None
 
@@ -40,7 +41,7 @@ class Model(Logable):
 
         model = tf.keras.models.Sequential([
             tf.keras.layers.Conv2D(32, (3, 3), activation='relu', data_format="channels_last",
-                                   input_shape=(self.shape[0], self.shape[1], self.shape[2])),
+                                   input_shape=self.shape),
             tf.keras.layers.MaxPooling2D((2, 2)),
             tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
             tf.keras.layers.MaxPooling2D((2, 2)),
@@ -53,12 +54,28 @@ class Model(Logable):
         return model
 
     def _setup_dataset(self):
+        # Load arrays and slice to tensors
         data = np.array(list(map(lambda x: np.load(x, allow_pickle=True), self.df[self.feature])))
-        self.log.info(data.shape)
-        label = np.array(self.df['species'])
-        # tmp = [(np.load(row["path"]), row["species"]) for index, row in self.df.iterrows()]
-        dataset = tf.data.Dataset.from_tensor_slices((data, label))
-        # dataset = dataset.batch(32)
+        data = tf.data.Dataset.from_tensor_slices(data)
+        # Encode labels from strings to integers, then as tensors
+        label_encoder = preprocessing.LabelEncoder()
+        self.df['species'] = label_encoder.fit_transform(self.df['species'])
+        label = tf.data.Dataset.from_tensor_slices(np.array(self.df['species']))
+        # log
+        self.log.debug(self.df['species'])
+        self.log.debug(data.element_spec)
+        self.log.debug(label.element_spec)
+        self.log.debug(f"unique species: {len(self.df['species'].unique())}")
+        # Convert to one-hot tensors, essentially selector matrices with a 1 corresponding to the label index
+        label = label.map(
+            lambda x: tf.one_hot(x, len(self.df['species'].unique())),
+            num_parallel_calls=tf.data.AUTOTUNE,
+        )
+        self.log.debug(label)
+        # np.arrays and labels to same dataset, set batch size and shuffle settings
+        dataset = tf.data.Dataset.zip((data, label))
+        dataset = dataset.batch(32)
+        dataset = dataset.shuffle(reshuffle_each_iteration=True, buffer_size=len(self.df[self.feature]))
         return dataset
 
     def print_dataset_info(self):
@@ -82,14 +99,12 @@ class Model(Logable):
         self.model = tf.keras.models.load_model(model_path)
 
     def split_dataset(self, validation_split=0.15, test_split=0.15, shuffle=True):
-        dataset = self.dataset
-
-        val_size = int(validation_split * len(dataset))
-        test_size = int(test_split * len(dataset))
-        train_size = len(dataset) - val_size - test_size
-
-        self.train_dataset = dataset.take(train_size)
-        remaining_dataset = dataset.skip(train_size)
+        val_size = int(validation_split * len(self.dataset))
+        test_size = int(test_split * len(self.dataset))
+        train_size = len(self.dataset) - val_size - test_size
+        self.log.info(self.dataset.element_spec)
+        self.train_dataset = self.dataset.take(train_size)
+        remaining_dataset = self.dataset.skip(train_size)
         self.val_dataset = remaining_dataset.take(val_size)
         self.test_dataset = remaining_dataset.skip(val_size)
 
@@ -132,7 +147,7 @@ class Model(Logable):
     def evaluate_and_show_predictions(self, num_samples=5):
         species_labels = [species.replace("-", " ") for species in os.listdir(self.path)]
 
-        for images, labels in self.test_dataset:
+        for images, labels in self.test_dataset[:num_samples]:
             batch_size = images.shape[0]
             predictions = self.model.predict(images)
 
