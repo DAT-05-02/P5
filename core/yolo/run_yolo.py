@@ -13,7 +13,7 @@ def run_yolo(model, root_path) -> None:
 
     for dirpath in os.scandir(root_path):
         imgdir_name = os.path.splitext(f"{dirpath.name}")[0]
-        if len(f"{root_path}/{imgdir_name}") > 0:
+        if len(os.listdir(f"{root_path}/{imgdir_name}")) > 0:
             for imgpath in os.scandir(f"{root_path}/{imgdir_name}"):
                 img_name = os.path.splitext(f"{imgpath.name}")[0]
                 img_type = os.path.splitext(f"{imgpath.name}")[1]
