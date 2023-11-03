@@ -66,8 +66,12 @@ class Database(Logable):
             os.makedirs(IMGDIR_PATH)
         if os.path.exists(self.dataset_csv_filename):
             df = pd.read_csv(self.dataset_csv_filename, low_memory=False)
+            self.log.debug(f"len(df): {len(df)}, self.num_rows: {self.num_rows}")
             if self._num_rows and len(df) == self.num_rows:
                 return df
+
+        if os.path.exists(self.dataset_csv_filename):
+            os.remove(self.dataset_csv_filename)
 
         df: pd.DataFrame = pd.read_csv(self.raw_dataset_path, sep="	", low_memory=False)
         if os.path.exists(self.label_dataset_path):
