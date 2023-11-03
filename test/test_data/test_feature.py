@@ -38,7 +38,7 @@ def data_frame() -> pd.DataFrame:
                   label_dataset_path=LABEL_DATASET_PATH,
                   dataset_csv_filename=DATASET_PATH,
                   ft_extractor=FeatureExtractor(),
-                  num_rows=50,
+                  num_rows=5,
                   degrees="all",
                   bfly=["all"])
     df = db.setup_dataset()
