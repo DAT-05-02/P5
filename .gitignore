@@ -20,3 +20,5 @@ venv
 core/logs/*
 core/modelcheckpoint/*
 .conda/*
+
+core/latest.keras
