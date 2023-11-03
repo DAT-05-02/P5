@@ -225,7 +225,7 @@ class FeatureExtractor(Logable):
                 raise e
 
     @log_ent_exit
-    def shape_from_feature(self, feature: str, df):
+    def shape_from_feature(self, df, feature='path', ):
         paths = df[feature]
         unique_output_shapes = set()
 
