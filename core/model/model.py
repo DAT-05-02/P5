@@ -203,7 +203,7 @@ class Model(Logable):
                 tf.summary.image("Training data", tensorboard_training_images, max_outputs=12, step=0)
 
     def callbacks(self):
-        datetimeString = datetime.datetime.now().strftime("%Y%m%d-%H%M%S");
+        datetimeString = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
         
         # creating a callback for the tensorboard
         log_dir = "logs/fit/" + datetimeString
