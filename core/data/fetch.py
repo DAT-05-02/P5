@@ -126,7 +126,7 @@ class Database(Logable):
         return out + "_0.npy"
 
     @timing
-    def fetch_images(self, df: pd.DataFrame, col: str):
+    def fetch_images(self, df: pd.DataFrame, col: str) -> pd.DataFrame:
         """
         Fetches all image links in a DataFrame column to path defined by :func:`~fetch.img_path_from_row`
         and assigns the column value to the path saved to.
