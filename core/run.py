@@ -8,17 +8,18 @@ from core.util.pysetup import PySetup
 
 if __name__ == "__main__":
     ops = PySetup()
-    ft_extractor = FeatureExtractor(log_level=logging.DEBUG)
+    ft_extractor = FeatureExtractor(log_level=logging.INFO)
     db = Database(raw_dataset_path=RAW_DATA_PATH,
                   raw_label_path=RAW_LABEL_PATH,
                   label_dataset_path=LABEL_DATASET_PATH,
                   dataset_csv_filename=DATASET_PATH,
+                  log_level=logging.DEBUG,
                   ft_extractor=ft_extractor,
                   num_rows=50,
                   degrees="all",
                   bfly=["all"])
     df = db.setup_dataset()
-    df = ft_extractor.pre_process(df, "lbp", radius=2)
+    df = ft_extractor.pre_process(df, "", radius=2)
     model = Model(df, IMGDIR_PATH)
     # model.load()
     # model.print_dataset_info()
