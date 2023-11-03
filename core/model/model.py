@@ -13,9 +13,11 @@ from core.model.memoryCallbacks import GpuMemoryCallback, CpuMemoryCallback
 
 class Model(Logable):
     def __init__(self,
-                 df: pd.DataFrame):
+                 df: pd.DataFrame,
+                 path: str):
         super().__init__()
         self.df = df
+        self.path = path
         self.model = self._create_model()
         self.dataset = self._setup_dataset()
         self.train_dataset = None
@@ -39,14 +41,14 @@ class Model(Logable):
             tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dense(64, activation='relu'),
-            tf.keras.layers.Dense(len(os.listdir("image_db")), activation="softmax")
+            tf.keras.layers.Dense(len(os.listdir(self.path)), activation="softmax")
         ])
 
         return model
 
     def _setup_dataset(self):
         dataset = tf.keras.utils.image_dataset_from_directory(
-            directory="image_db", 
+            directory=self.path,
             labels="inferred", 
             label_mode="categorical", 
             image_size=(416, 416), 
@@ -75,7 +77,7 @@ class Model(Logable):
 
     def split_dataset(self, validation_split=0.15, test_split=0.15, shuffle=True):
         dataset = tf.keras.utils.image_dataset_from_directory(
-            directory="image_db",
+            directory=self.path,
             labels="inferred",
             label_mode="categorical",
             image_size=(416, 416),
@@ -131,7 +133,7 @@ class Model(Logable):
             print(f"True Label: {true_label}\tPredicted Label: {predicted_label}")
 
     def evaluate_and_show_predictions(self, num_samples=5):
-        species_labels = os.listdir("image_db")
+        species_labels = os.listdir(self.path)
 
         for images, labels in self.test_dataset:
             batch_size = images.shape[0]
@@ -163,7 +165,7 @@ class Model(Logable):
             img_array = tf.keras.preprocessing.image.img_to_array(img)
             img_array = tf.expand_dims(img_array, 0)
             prediction = self.model.predict(img_array)
-            species_labels = os.listdir("image_db")
+            species_labels = os.listdir(self.path)
             sorted_indices = np.argsort(prediction[0])[::-1]
             sorted_labels = [species_labels[i] for i in sorted_indices]
             sorted_confidences = [prediction[0][i] * 100 for i in sorted_indices]
@@ -186,7 +188,7 @@ class Model(Logable):
         img_array = tf.keras.preprocessing.image.img_to_array(img)
         img_array = tf.expand_dims(img_array, 0)
         prediction = self.model.predict(img_array)
-        species_labels = os.listdir("image_db")
+        species_labels = os.listdir(self.path)
         sorted_indices = np.argsort(prediction[0])[::-1]
         sorted_labels = [species_labels[i] for i in sorted_indices]
         sorted_confidences = [prediction[0][i] * 100 for i in sorted_indices]
