@@ -1,5 +1,4 @@
 import os
-from ultralytics import YOLO
 from PIL import Image
 
 from .obj_det import obj_det
