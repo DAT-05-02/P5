@@ -73,10 +73,8 @@ class Model(Logable):
             num_parallel_calls=tf.data.AUTOTUNE,
         )
         self.log.debug(label)
-        # np.arrays and labels to same dataset, set batch size and shuffle settings
+        # np.arrays and labels to same dataset
         dataset = tf.data.Dataset.zip((data, label))
-        dataset = dataset.batch(32)
-        dataset = dataset.shuffle(reshuffle_each_iteration=True, buffer_size=len(self.df[self.feature]))
         return dataset
 
     def print_dataset_info(self):
@@ -108,6 +106,7 @@ class Model(Logable):
         remaining_dataset = self.dataset.skip(train_size)
         self.val_dataset = remaining_dataset.take(val_size)
         self.test_dataset = remaining_dataset.skip(val_size)
+        self.train_dataset = self.train_dataset.batch(32).shuffle(reshuffle_each_iteration=True, buffer_size=len(self.df[self.feature]))
 
     def compile(self, lr=0.001):
         custom_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
