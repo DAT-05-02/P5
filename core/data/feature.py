@@ -31,6 +31,7 @@ class FeatureExtractor(Logable):
                     **kwargs):
         ft = getattr(self, feature, None)
         paths = np.full(len(df.index), fill_value=np.nan).tolist()
+        self.log.info(f"paths len: {len(paths)}")
         for index, row in df.iterrows():
             p_new = self.path_from_row_ft(row, feature)
             if not os.path.exists(p_new):
@@ -52,7 +53,11 @@ class FeatureExtractor(Logable):
                 np.save(p_new, out, allow_pickle=True)
 
             else:
-                paths[int(index)] = p_new
+                try:
+                    paths[int(index)] = p_new
+                except IndexError as e:
+                    self.log.error(f"index: {index}")
+                    raise e
         df[feature] = paths
         df.to_csv(DATASET_PATH, index=False)
         return df
@@ -111,13 +116,14 @@ class FeatureExtractor(Logable):
         return (local_binary_pattern(ch, n_points, radius, method) for ch in channels)
 
     @staticmethod
-    def glcm(img: Image, distance: list, angles: list):
+    def glcm(img: np.ndarray, distance: list, angles: list):
         if angles is None:
             angles = range(0, 361, 45)
         if distance is None:
             distance = range(0, 5)
-        if img.mode != "L":
-            img = img.convert("L")
+        img = Image.fromarray(img)
+        img = img.convert("L")
+        img = np.array(img)
         return graycomatrix(img, distance, angles)
 
     def sift(self, img: Image.Image):
