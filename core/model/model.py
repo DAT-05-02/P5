@@ -2,6 +2,7 @@ import datetime
 from pprint import pprint
 import os
 
+import keras.layers
 import tensorflow as tf
 import pandas as pd
 import numpy as np
@@ -14,24 +15,27 @@ from sklearn import preprocessing
 
 from core.model.memoryCallbacks import GpuMemoryCallback, CpuMemoryCallback
 
+
 class Model(Logable):
     def __init__(self,
                  df: pd.DataFrame,
                  path: str,
-                 feature="path"):
+                 feature="path",
+                 kernel_size=(3, 3)):
         super().__init__()
+        os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
         self.df = df
         self.path = path
         self.feature = feature
         self.ft_extractor = FeatureExtractor()
         self.shape = self.ft_extractor.shape_from_feature(self.df, self.feature)
         self.dataset = self._setup_dataset()
-        self.model = self._create_model()
+        self.model = self._create_model(kernel_size)
         self.train_dataset: tf.data.Dataset = None
         self.val_dataset = None
         self.test_dataset = None
 
-    def _create_model(self):
+    def _create_model(self, kernel_size=(3, 3)):
         """
         model = tf.keras.models.Sequential([
             tf.keras.layers.Flatten(input_shape=(size[0], size[1], depth)),
@@ -39,17 +43,25 @@ class Model(Logable):
             tf.keras.layers.Dense(len(os.listdir("image_db")), activation="softmax")
         ])
         """
-
+        l_relu = keras.layers.LeakyReLU(alpha=0.1)
         model = tf.keras.models.Sequential([
-            tf.keras.layers.Conv2D(32, (3, 3), activation='relu', data_format="channels_last",
+            tf.keras.layers.Conv2D(32, kernel_size, activation=l_relu, data_format="channels_last",
                                    input_shape=self.shape),
             tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+            tf.keras.layers.Conv2D(32, kernel_size, activation=l_relu),
             tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(128, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(128, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(128, kernel_size, activation=l_relu),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(64, activation='relu'),
-            tf.keras.layers.Dense(len(os.listdir(self.path)), activation="softmax")
+            tf.keras.layers.Dense(128, activation=l_relu),
+            tf.keras.layers.Dense(len(self.df['species'].unique()), activation="softmax")
         ])
 
         return model
@@ -63,16 +75,16 @@ class Model(Logable):
         self.df['species'] = label_encoder.fit_transform(self.df['species'])
         label = tf.data.Dataset.from_tensor_slices(np.array(self.df['species']))
         # log
-        self.log.debug(self.df['species'])
-        self.log.debug(data.element_spec)
-        self.log.debug(label.element_spec)
-        self.log.debug(f"unique species: {len(self.df['species'].unique())}")
+        self.log.info(self.df['species'])
+        self.log.info(data.element_spec)
+        self.log.info(label.element_spec)
+        self.log.info(f"unique species: {len(self.df['species'].unique())}")
         # Convert to one-hot tensors, essentially selector matrices with a 1 corresponding to the label index
         label = label.map(
             lambda x: tf.one_hot(x, len(self.df['species'].unique())),
             num_parallel_calls=tf.data.AUTOTUNE,
         )
-        self.log.debug(label)
+        self.log.info(label)
         # np.arrays and labels to same dataset
         dataset = tf.data.Dataset.zip((data, label))
         return dataset
@@ -106,7 +118,12 @@ class Model(Logable):
         remaining_dataset = self.dataset.skip(train_size)
         self.val_dataset = remaining_dataset.take(val_size)
         self.test_dataset = remaining_dataset.skip(val_size)
-        self.train_dataset = self.train_dataset.batch(32).shuffle(reshuffle_each_iteration=True, buffer_size=len(self.df[self.feature]))
+        self.train_dataset = self.train_dataset.batch(32).shuffle(reshuffle_each_iteration=True,
+                                                                  buffer_size=len(self.df[self.feature]))
+        self.val_dataset = self.val_dataset.batch(32).shuffle(reshuffle_each_iteration=True,
+                                                              buffer_size=len(self.df[self.feature]))
+        self.test_dataset = self.test_dataset.batch(32).shuffle(reshuffle_each_iteration=True,
+                                                                buffer_size=len(self.df[self.feature]))
 
     def compile(self, lr=0.001):
         custom_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
@@ -210,7 +227,7 @@ class Model(Logable):
     def setup_logs(self):
         # logging training data - only if it is not allready there
         if not os.path.exists("logs/train_data"):
-            tensorboard_training_images = np.reshape(self.train_dataset / 255, (-1, 416, 416, 1))
+            tensorboard_training_images = np.reshape(self.train_dataset.as_numpy_iterator() / 255, (-1, 416, 416, 1))
 
             data_log = "logs/train_data/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             with tf.summary.create_file_writer(data_log).as_default():
@@ -248,12 +265,3 @@ class Model(Logable):
             callbacks.append(GpuMemoryCallback(gpu_memory_dir, 5))
 
         return callbacks
-
-    def img_with_labels(self):
-        self.df['image'] = ""
-        arr = []
-        for index, row in self.df.iterrows():
-            if row[self.feature] and row[self.feature] != "":
-                arr.append(np.load(np.load(row[self.feature])))
-
-        return np.array(arr), self.df['species']
