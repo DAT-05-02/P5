@@ -2,9 +2,9 @@ import os
 from ultralytics import YOLO
 from PIL import Image
 
-from .obj_det import obj_det
-from .yolo_crop import yolo_crop
+from .yolo_func import obj_det, yolo_crop
 import time
+
 
 def run_yolo(model, root_path) -> None:
     start_time = time.time()

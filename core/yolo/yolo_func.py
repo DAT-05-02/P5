@@ -1,5 +1,10 @@
 from typing import Tuple
 
+def obj_det(img, model):
+    res = model.predict(source=img, save=False, save_txt=False, imgsz=640, conf=0.25)
+
+    return res
+
 def load_img(img, xywhn) -> Tuple[float, float, float, float]:
     img_width, img_height = img.size
 
@@ -18,3 +23,9 @@ def load_img(img, xywhn) -> Tuple[float, float, float, float]:
     fcorners = (left, top, right, bottom)
 
     return fcorners
+
+def yolo_crop(img, xywhn):
+
+    corners = load_img(img, xywhn)
+    img1 = img.crop(corners)
+    return img1
