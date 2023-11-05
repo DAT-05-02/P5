@@ -97,6 +97,7 @@ class Database(Logable):
             df.drop(df.index[self._num_rows:], inplace=True)
         df.reset_index(inplace=True, drop=True)
         df = self.fetch_images(df, "identifier")
+        df.reset_index(inplace=True, drop=True)
         df.to_csv(self.dataset_csv_filename, index=False)
         return df
 
@@ -140,7 +141,7 @@ class Database(Logable):
             out = np.nan
             if not os.path.exists(path):
                 try:
-                    img = Image.open(requests.get(row[col], stream=True, timeout=40).raw)
+                    img = Image.open(requests.get(row[col], stream=True, timeout=40, verify=False).raw)
                     img = FeatureExtractor.make_square_with_bb(img)
                     img = img.resize((416, 416))
                     img = np.asarray(img)
