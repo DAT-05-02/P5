@@ -1,5 +1,4 @@
 import os
-from ultralytics import YOLO
 from PIL import Image
 
 from .yolo_func import obj_det, yolo_crop

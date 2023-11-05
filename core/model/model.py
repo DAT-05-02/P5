@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 from core.util.constants import FULL_MODEL_CHECKPOINT_PATH
 from core.util.logging.logable import Logable
-
+from core.model.memoryCallbacks import GpuMemoryCallback, CpuMemoryCallback
 
 class Model(Logable):
     def __init__(self,
@@ -205,15 +205,34 @@ class Model(Logable):
                 tf.summary.image("Training data", tensorboard_training_images, max_outputs=12, step=0)
 
     def callbacks(self):
-        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+        datetimeString = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        
+        # creating a callback for the tensorboard
+        log_dir = "logs/fit/" + datetimeString
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(
+            log_dir=log_dir, 
+            histogram_freq=1,
+            write_images=True)
 
+        # creating a callback for checkpoints
         cp_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=FULL_MODEL_CHECKPOINT_PATH,
             save_weights_only=True,
-            save_freq=1000,
+            save_freq='epoch',
             verbose=1)
 
         # loss_f = tf.keras.metrics.categorical_crossentropy()
 
-        return [tensorboard_callback, cp_callback]
+        # creating callbacks for cpu memory usage
+        cpu_memory_dir = "logs/cpu_memory_usage/" + datetimeString
+        cpu_memory_callback = CpuMemoryCallback(cpu_memory_dir, 5)
+        
+        # listing all callbacks
+        callbacks = [tensorboard_callback, cp_callback, cpu_memory_callback]
+        
+        # checking if there exist at least one GPU on the current machine or not
+        if tf.config.list_physical_devices('GPU'):
+            gpu_memory_dir = "logs/gpu_memory_usage/" + datetimeString
+            callbacks.append(GpuMemoryCallback(gpu_memory_dir, 5))
+        
+        return callbacks
