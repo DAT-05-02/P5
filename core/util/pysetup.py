@@ -24,6 +24,7 @@ class PySetup(Logable):
                               f"Current version: {pretty_version(self.version[:3])}")
 
     def _append_cwd(self):
+        print(f"CWD={os.getcwd()}")
         sys.path.append(f"{os.getcwd()}{os.sep}{self.cwd}")
         if not os.getcwd().split("/")[-1] == self.cwd:
             os.chdir(self.cwd)
