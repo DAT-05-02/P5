@@ -1,3 +1,4 @@
 occurrence.txt filter=lfs diff=lfs merge=lfs -text
 core/leopidotera-world/occurrence.txt filter=lfs diff=lfs merge=lfs -text
 core/leopidotera-world/multimedia.txt filter=lfs diff=lfs merge=lfs -text
+core/leopidotera-world/occurrence-world.csv filter=lfs diff=lfs merge=lfs -text
