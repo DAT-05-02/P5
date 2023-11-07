@@ -65,18 +65,25 @@ def setup_dataset(raw_dataset_path: str,
     return df
 
 def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, csv_path: str, min_amount_of_pictures=3):
-    dir = os.listdir(IMGDIR_PATH)
     run_correction = False
-    for folder in dir:
-        if len(os.listdir(IMGDIR_PATH + folder)) < min_amount_of_pictures:
+
+    for item in df['species'].value_counts():
+        if min_amount_of_pictures > item:
             run_correction = True
 
+    '''
+    for folder in df["species"].unique:
+        if len(os.listdir(IMGDIR_PATH + folder)) < min_amount_of_pictures:
+            run_correction = True
+    '''
     if run_correction:
         # just need to make it so that if there are species in the dataset, which are below the min_amount, then find them in the global dataset and put into the other one
         world_df: pd.DataFrame = pd.read_csv(raw_dataset_path, sep="	", low_memory=False)
-        world_df_labels: pd.DataFrame = pd.read_csv(raw_label_path, sep="	", low_memory=False)
+        # This file is separated by commas
+        world_df_labels: pd.DataFrame = pd.read_csv(raw_label_path, sep=",", low_memory=False)
 
         drop_cols([world_df, world_df_labels], MERGE_COLS)
+
         world_df = world_df.merge(world_df_labels[world_df_labels['gbifID'].isin(world_df['gbifID'])], on=['gbifID'])
 
         out = df["species"].value_counts()

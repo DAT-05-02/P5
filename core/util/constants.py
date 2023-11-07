@@ -14,4 +14,4 @@ MODEL_CHECKPOINT_PATH: str = "modelcheckpoint/"
 FULL_MODEL_CHECKPOINT_PATH: str = MODEL_CHECKPOINT_PATH + "model.ckpt"
 
 RAW_WORLD_DATA_PATH="leopidotera-world/multimedia.txt"
-RAW_WORLD_LABEL_PATH="leopidotera-world/occurrence.txt"
+RAW_WORLD_LABEL_PATH="leopidotera-world/occurrence-world.csv"
