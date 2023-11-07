@@ -36,4 +36,5 @@ def run_yolo(model, df) -> None:
     print("--- Took %s seconds ---" % (time.time() - start_time))
     print("======= RUN YOLO DONE ======")
 
-    return df
+    new_df = df[df["yolo_accepted"] == True] # Drops all rows that doesn't satisfy yolo accepted
+    return new_df
