@@ -4,6 +4,7 @@ import re
 
 import numpy as np
 import pandas as pd
+import skimage.color
 from PIL import Image
 from skimage.feature import local_binary_pattern, graycomatrix, SIFT
 from core.util.constants import FEATURE_DIR_PATH, IMGDIR_PATH, DATASET_PATH, PATH_SEP, DIRNAME_DELIM
@@ -28,29 +29,35 @@ class FeatureExtractor(Logable):
                     df: pd.DataFrame,
                     feature="",
                     **kwargs):
-        df = self.create_augmented_df(df)
         ft = getattr(self, feature, None)
         paths = np.full(len(df.index), fill_value=np.nan).tolist()
+        self.log.info(f"paths len: {len(paths)}")
         for index, row in df.iterrows():
             p_new = self.path_from_row_ft(row, feature)
-            l_new = self.l_dirpath_from_row(row, feature)
             if not os.path.exists(p_new):
-                with Image.open(row['path']) as img:
-                    if feature == "lbp":
-                        lbp_arr: np.ndarray = ft(img, kwargs.get('method', 'ror'), kwargs.get('radius', 1))
-                        img = Image.fromarray(lbp_arr.astype(np.uint8))
-                        img.convert("L")
-                        paths[int(index)] = p_new
-                    elif feature == "sift":
-                        pass
-                        # todo should save in json, np.save() or something else
-                    elif feature == "glcm":
-                        pass
-                        # todo should save in json, np.save() or something else
-                    os.makedirs(l_new, exist_ok=True)
-                    img.save(p_new)
+                os.makedirs(self.l_dirpath_from_row(row, feature), exist_ok=True)
+                img = np.load(row['path'], allow_pickle=True)
+                if feature == "lbp":
+                    out: np.ndarray = ft(img, kwargs.get('method', 'ror'), kwargs.get('radius', 1))
+                    paths[int(index)] = p_new
+                elif feature == "sift":
+                    out: np.ndarray = ft(img)
+                    paths[int(index)] = p_new
+                elif feature == "glcm":
+                    out: np.ndarray = ft(img, kwargs.get('distances', None), kwargs.get('angles', None))
+                    paths[int(index)] = p_new
+                elif feature == "" or feature is None:
+                    out: np.ndarray = np.array(img)
+                else:
+                    raise ValueError(f'"{feature}" is not supported')
+                np.save(p_new, out, allow_pickle=True)
+
             else:
-                paths[int(index)] = p_new
+                try:
+                    paths[int(index)] = p_new
+                except IndexError as e:
+                    self.log.error(f"index: {index}")
+                    raise e
         df[feature] = paths
         df.to_csv(DATASET_PATH, index=False)
         return df
@@ -62,12 +69,13 @@ class FeatureExtractor(Logable):
         l_name = str(row['path']).split(PATH_SEP)[-2]
         return self.dirpath_from_ft(feature) + l_name + PATH_SEP
 
+    @log_ent_exit
     def path_from_row_ft(self, row: pd.Series, feature: str):
-        f_name = str(row['path']).split(PATH_SEP)[-1]
+        f_name = str(row['path']).split(PATH_SEP)[-1].split('.')[0] + ".npy"
         return self.l_dirpath_from_row(row, feature) + f_name
 
     def dirpath_from_ft(self, feature):
-        if feature is None or feature == "":
+        if feature == "" or feature is None:
             out_ft = "db"
         else:
             out_ft = feature
@@ -79,8 +87,8 @@ class FeatureExtractor(Logable):
             if not os.path.exists(dir_new):
                 os.makedirs(dir_new)
 
-    @log_ent_exit
-    def lbp(self, img: Image, method="ror", radius=1):
+    @staticmethod
+    def lbp(img: np.ndarray, method="ror", radius=1):
         """Create Local Binary Pattern for an image
         @param img: image to convert
         @param method: which method, accepts 'default', 'ror', 'uniform', 'nri_uniform' or 'var'.
@@ -89,9 +97,10 @@ class FeatureExtractor(Logable):
         @return: (n, m) array as image
         """
         n_points = 8 * radius
-        if img.mode != "L":
-            img = img.convert("L")
-        return local_binary_pattern(np.asarray(img, dtype=np.uint8), n_points, radius, method)
+        if len(img.shape) > 2:
+            img = skimage.color.rgb2gray(img)
+
+        return local_binary_pattern(img, n_points, radius, method)
 
     @staticmethod
     def rlbp(img: Image, method="ror", radius=1):
@@ -107,13 +116,14 @@ class FeatureExtractor(Logable):
         return (local_binary_pattern(ch, n_points, radius, method) for ch in channels)
 
     @staticmethod
-    def glcm(img: Image, distance: list, angles: list):
+    def glcm(img: np.ndarray, distance: list, angles: list):
         if angles is None:
             angles = range(0, 361, 45)
         if distance is None:
             distance = range(0, 5)
-        if img.mode != "L":
-            img = img.convert("L")
+        img = Image.fromarray(img)
+        img = img.convert("L")
+        img = np.array(img)
         return graycomatrix(img, distance, angles)
 
     def sift(self, img: Image.Image):
@@ -130,6 +140,7 @@ class FeatureExtractor(Logable):
         new_im.paste(im, (int((size - x) / 2), int((size - y) / 2)))
         return new_im
 
+    @log_ent_exit
     def create_augmented_df(self, df: pd.DataFrame, degrees: str = "all") -> pd.DataFrame:
         """Creates transformed image as rows in df inserts them
         @param df: pandas dataframe
@@ -155,7 +166,7 @@ class FeatureExtractor(Logable):
         """
         new_paths = []
         if "all" == degrees:
-            self.flip_and_save_image(row['path'])
+            new_paths.append(self.flip_and_save_image(row['path']))
             for i in range(90, 360, 90):
                 rotated_path = self.rotate_and_save_image(row['path'], i)
                 flipped_path = self.flip_and_save_image(rotated_path)
@@ -163,9 +174,11 @@ class FeatureExtractor(Logable):
                 new_paths.append(flipped_path)
         elif "rotate" == degrees:
             for i in range(1, 4):
-                self.rotate_and_save_image(row['path'], i * 90)
+                rotated_path = self.rotate_and_save_image(row['path'], i * 90)
+                new_paths.append(rotated_path)
         elif "flip" == degrees:
-            self.flip_and_save_image(row['path'])
+            flipped_path = self.flip_and_save_image(row['path'])
+            new_paths.append(flipped_path)
         return new_paths
 
     @log_ent_exit
@@ -175,10 +188,15 @@ class FeatureExtractor(Logable):
         @param degree: amount of degrees to rotate image
         @return: path to rotated image
         """
+        new_path = self.rotate_path(img_path, degree)
+        if os.path.exists(new_path):
+            return new_path
         try:
-            with Image.open(img_path) as image:
-                new_path = self.rotate_path(img_path, degree)
-                image.rotate(degree, expand=True).save(new_path)
+            with open(img_path, 'rb') as f:
+                image = np.load(f, allow_pickle=True)
+                image = Image.fromarray(image)
+                image = image.rotate(degree, expand=True)
+                np.save(new_path, np.asarray(image))
                 return new_path
         except IOError as e:
             print("Error when trying to rotate and save images")
@@ -196,28 +214,35 @@ class FeatureExtractor(Logable):
         @param img_path: path of image to flip
         @return: path to flipped image
         """
+        self.log.debug(img_path)
         new_path = f"{img_path.split('.')[0]}f.{img_path.split('.')[1]}"
-        with Image.open(img_path) as image:
+        if os.path.exists(new_path):
+            return new_path
+        with open(img_path, 'rb') as f:
             try:
-                image.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT).save(new_path)
+                self.log.debug(img_path)
+                image = np.load(f, allow_pickle=True)
+                image = Image.fromarray(image)
+                image.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT)
+                np.save(new_path, np.asarray(image))
                 return new_path
             except IOError as e:
-                self.log.error("Error when trying to flip and save images")
+                self.log.error(f"Error when trying to flip and save images: {e}")
                 raise e
 
-    def feature_output_same_checker(self, feature: str, df):
+    @log_ent_exit
+    def shape_from_feature(self, df, feature='path', ):
         paths = df[feature]
-        unique_output_shapes = []
-
-        feature_function = getattr(self, feature)
+        unique_output_shapes = set()
 
         for path in paths:
-            img = Image.open(path)
-            output_shape = feature_function(img).shape
-            if output_shape not in unique_output_shapes:
-                print("unique shape: ", output_shape)
-                unique_output_shapes.append(output_shape)
+            with open(path, 'rb') as f:
+                img = np.load(f)
+                output_shape = img.shape
+                if output_shape not in unique_output_shapes:
+                    print("unique shape: ", output_shape)
+                    unique_output_shapes.add(output_shape)
 
         if len(unique_output_shapes) > 1:
-            raise ValueError("Not all features are the same shape")
-        return unique_output_shapes
+            raise ValueError(f"Not all features are the same shape: {unique_output_shapes}")
+        return unique_output_shapes.pop()

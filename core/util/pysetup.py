@@ -19,11 +19,12 @@ class PySetup(Logable):
     def _check_py_version(self):
         def pretty_version(y): return '.'.join(list(tuple(map(lambda x: str(x), y))))
 
-        if sys.version_info[:3] <= self.version:
+        if sys.version_info[:3] < self.version:
             raise ImportError(f"Required Python version: {pretty_version(sys.version_info[:3])}\n"
                               f"Current version: {pretty_version(self.version[:3])}")
 
     def _append_cwd(self):
+        print(f"CWD={os.getcwd()}")
         sys.path.append(f"{os.getcwd()}{os.sep}{self.cwd}")
         if not os.getcwd().split("/")[-1] == self.cwd:
             os.chdir(self.cwd)
