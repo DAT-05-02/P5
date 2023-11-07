@@ -101,6 +101,8 @@ def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, csv_path: str, m
         world_df = world_df.loc[world_df['species'].isin(species_with_less_than_optimal_amount_of_images)]
 
         world_df = world_df.iloc[:totalRows]
+        # this right here officer:
+        # world_df = world_df.iloc[world_df['species'].isin(df['species'].unique())]
 
         df = pd.concat([df, world_df], ignore_index=True, sort=False)
 
