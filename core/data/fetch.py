@@ -99,7 +99,6 @@ def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, csv_path: str, m
 
     return df
 def drop_cols(dfs, cols):
-    print("where are we dropping boys")
     for df in list(dfs):
         df.drop(columns=[col for col in df if col not in MERGE_COLS], inplace=True)
 
