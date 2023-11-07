@@ -1,11 +1,8 @@
-import logging
 import os
 import sys
 
-from core.data.fetch import fetch_images, setup_dataset
-from core.util.constants import RAW_DATA_PATH, RAW_LABEL_PATH, DATASET_PATH, LABEL_DATASET_PATH
-from core.data.feature import FeatureExtractor
-from core.model.model import Model
+from core.data.fetch import fetch_images, setup_dataset, pad_dataset
+from core.util.constants import RAW_DATA_PATH, RAW_LABEL_PATH, DATASET_PATH, LABEL_DATASET_PATH, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH
 
 
 if __name__ == "__main__":
@@ -18,7 +15,9 @@ if __name__ == "__main__":
                        dataset_csv_filename=DATASET_PATH,
                        num_rows=50,
                        bfly=["all"])
+    df = pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, DATASET_PATH, min_amount_of_pictures=5)
     fetch_images(df, "identifier")
+    '''
     ft_extractor = FeatureExtractor(log_level=logging.INFO)
     df = ft_extractor.pre_process(df, "lbp", radius=7, should_bb=True, should_resize=True)
     model = Model(df)
@@ -29,3 +28,4 @@ if __name__ == "__main__":
     model.fit(5)  # Epochs
     model.save()
     model.evaluate_and_show_predictions()
+    '''
