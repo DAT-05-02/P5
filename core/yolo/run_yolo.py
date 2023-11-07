@@ -6,7 +6,7 @@ from .yolo_func import obj_det, yolo_crop
 import time
 
 
-def run_yolo(model, df, root_path) -> None:
+def run_yolo(model, df) -> None:
     print("======= RUN YOLO START ======")
     start_time = time.time()
     overwrite_count = 0
@@ -35,3 +35,5 @@ def run_yolo(model, df, root_path) -> None:
     print(f"Deleted {delete_count} out of {total_img} total images.")
     print("--- Took %s seconds ---" % (time.time() - start_time))
     print("======= RUN YOLO DONE ======")
+
+    return df
