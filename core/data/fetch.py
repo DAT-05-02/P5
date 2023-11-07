@@ -17,7 +17,6 @@ def setup_dataset(raw_dataset_path: str,
                   label_dataset_path: str,
                   dataset_csv_filename: str,
                   num_rows=None,
-                  min_amount_of_pictures=4,
                   sort=False,
                   bfly: list = []):
     """ Loads a file, converts to csv if none exists, or loads an existing csv into a pd.DateFrame object
