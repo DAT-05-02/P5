@@ -3,7 +3,7 @@ line-length = 121
 
 [tool.pytest.ini_options]
 log_cli = true
-log_cli_level = "DEBUG"
+log_cli_level = "INFO"
 pythonpath=[".", "core"]
 addopts = [
     "--import-mode=prepend",

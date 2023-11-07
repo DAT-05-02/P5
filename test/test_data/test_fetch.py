@@ -5,10 +5,9 @@ import shutil
 
 import pandas as pd
 import pytest
-from PIL import Image
 
-from core.data.fetch import img_path_from_row, setup_dataset, fetch_images
-from core.util.constants import DIRNAME_DELIM, PATH_SEP
+from core.data.feature import FeatureExtractor
+from core.data.fetch import Database
 
 
 class FetchTester:
@@ -43,36 +42,38 @@ def test_setup(fetcher: FetchTester):
     if os.path.exists(fetcher.save_path):
         os.remove(fetcher.save_path)
     assert os.path.exists(fetcher.import_path)
-    fetcher.df = setup_dataset(raw_dataset_path=fetcher.import_path,
-                               raw_label_path=fetcher.label_path,
-                               label_dataset_path=fetcher.label_csv_name,
-                               dataset_csv_filename=fetcher.save_path)
+    db = Database(raw_dataset_path=fetcher.import_path,
+                  raw_label_path=fetcher.label_path,
+                  label_dataset_path=fetcher.label_csv_name,
+                  dataset_csv_filename=fetcher.save_path,
+                  ft_extractor=FeatureExtractor(),
+                  num_rows=5,
+                  degrees="all",
+                  bfly=["all"])
+    fetcher.df = db.setup_dataset()
     assert os.path.exists(fetcher.save_path) is True
-
-
-@pytest.mark.parametrize("index", [5, 10, 100, 15004, 110521])
-def test_img_path_from_row(index, fetcher: FetchTester):
-    supported_ext = [fetcher.img_path
-                     + str(fetcher.df.iloc[index]['species']).replace(" ", DIRNAME_DELIM)
-                     + PATH_SEP
-                     + str(index)
-                     + "_0"
-                     + w for w in Image.registered_extensions().keys()]
-    assert img_path_from_row(index=index, row=fetcher.df.iloc[index], column="identifier") in supported_ext
 
 
 def random_index(df):
     count = random.randrange(3, 7)
-    start = random.randrange(count, len(df))
-    logging.warning(f"range:{count}, start: {start}, df.len: {len(df)}")
-    return count, start
+    logging.warning(f"range:{count}, df.len: {len(df)}")
+    return count
 
 
 @pytest.mark.parametrize("n_times", range(5))
 def test_fetch_images(fetcher: FetchTester, n_times):
     shutil.rmtree(fetcher.img_path)
-    amount, start = random_index(fetcher.df)
-    df = fetcher.df.copy()[start:start + amount]
-    fetch_images(df, fetcher.img_col)
-    file_count = sum(len(files) for _, _, files in os.walk(fetcher.img_path))
-    assert file_count == amount
+    os.remove(fetcher.save_path)
+    amount = random_index(fetcher.df)
+    db = Database(raw_dataset_path=fetcher.import_path,
+                  raw_label_path=fetcher.label_path,
+                  label_dataset_path=fetcher.label_csv_name,
+                  dataset_csv_filename=fetcher.save_path,
+                  ft_extractor=FeatureExtractor(),
+                  num_rows=amount,
+                  degrees="all",
+                  bfly=["all"])
+    df = db.setup_dataset()
+    df = db.fetch_images(df, "identifier")
+    for row in df.itertuples():
+        assert os.path.exists(row.path)
