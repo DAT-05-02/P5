@@ -67,9 +67,10 @@ def setup_dataset(raw_dataset_path: str,
 def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, csv_path: str, min_amount_of_pictures=3):
     run_correction = False
 
-    for item in df['species'].value_counts():
-        if min_amount_of_pictures > item:
+    for count in df['species'].value_counts():
+        if min_amount_of_pictures > count:
             run_correction = True
+
 
     '''
     for folder in df["species"].unique:
@@ -101,8 +102,6 @@ def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, csv_path: str, m
         world_df = world_df.loc[world_df['species'].isin(species_with_less_than_optimal_amount_of_images)]
 
         world_df = world_df.iloc[:totalRows]
-        # this right here officer:
-        # world_df = world_df.iloc[world_df['species'].isin(df['species'].unique())]
 
         df = pd.concat([df, world_df], ignore_index=True, sort=False)
 
