@@ -4,8 +4,6 @@ from core.data.fetch import Database
 from core.util.constants import RAW_DATA_PATH, RAW_LABEL_PATH, DATASET_PATH, LABEL_DATASET_PATH, IMGDIR_PATH
 from core.data.feature import FeatureExtractor
 from core.model.model import Model
-from ultralytics import YOLO
-from yolo import run_yolo
 from core.util.pysetup import PySetup
 
 if __name__ == "__main__":
@@ -24,6 +22,7 @@ if __name__ == "__main__":
                   bfly=["all"])
     df = db.setup_dataset()
     df = ft_extractor.pre_process(df, feature, radius=2)
+    df = db.only_accepted(df)
     model = Model(df, IMGDIR_PATH, feature=feature, kernel_size=(7, 7))
     # model.load()
     # model.print_dataset_info()
