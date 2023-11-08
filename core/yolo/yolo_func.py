@@ -1,9 +1,11 @@
 from typing import Tuple
+from ultralytics import YOLO
 
-def obj_det(img, model):
-    res = model.predict(source=img, save=False, save_txt=False, imgsz=640, conf=0.25)
 
+def obj_det(img, model: YOLO, conf=0.25):
+    res = model.predict(source=img, save=False, save_txt=False, imgsz=640, conf=conf, device="cpu")
     return res
+
 
 def load_img(img, xywhn) -> Tuple[float, float, float, float]:
     img_width, img_height = img.size
@@ -24,8 +26,8 @@ def load_img(img, xywhn) -> Tuple[float, float, float, float]:
 
     return fcorners
 
-def yolo_crop(img, xywhn):
 
+def yolo_crop(img, xywhn):
     corners = load_img(img, xywhn)
     img1 = img.crop(corners)
     return img1
