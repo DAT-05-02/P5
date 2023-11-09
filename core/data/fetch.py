@@ -64,19 +64,22 @@ def setup_dataset(raw_dataset_path: str,
     df.to_csv(dataset_csv_filename, index=False)
     return df
 
-def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, csv_path: str, min_amount_of_pictures=3):
+def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, min_amount_of_pictures=3):
     run_correction = False
 
-    for count in df['species'].value_counts():
+    values = df['species'].value_counts().keys().tolist()
+    counts = df['species'].value_counts().tolist()
+
+    itt = 0
+
+    less_than_list = []
+
+    for count in counts:
         if min_amount_of_pictures > count:
+            less_than_list.append((values[itt], count))
             run_correction = True
+        itt += 1
 
-
-    '''
-    for folder in df["species"].unique:
-        if len(os.listdir(IMGDIR_PATH + folder)) < min_amount_of_pictures:
-            run_correction = True
-    '''
     if run_correction:
         # just need to make it so that if there are species in the dataset, which are below the min_amount, then find them in the global dataset and put into the other one
         world_df: pd.DataFrame = pd.read_csv(raw_dataset_path, sep="	", low_memory=False)
@@ -101,9 +104,12 @@ def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, csv_path: str, m
         print("Total number of extra rows: ", totalRows)
         world_df = world_df.loc[world_df['species'].isin(species_with_less_than_optimal_amount_of_images)]
 
-        world_df = world_df.iloc[:totalRows]
-
-        df = pd.concat([df, world_df], ignore_index=True, sort=False)
+        # loop that gets the species, which are below the required amount
+        for item, count in less_than_list:
+            print("World pictures to add: ", min_amount_of_pictures - count)
+            world_specific = world_df.loc[world_df["species"] == item]
+            world_specific = world_specific.iloc[:min_amount_of_pictures]
+            df = df.append(world_specific, ignore_index=True)
 
     return df
 def drop_cols(dfs, cols):
