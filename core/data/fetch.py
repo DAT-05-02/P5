@@ -145,11 +145,11 @@ class Database(Logable):
 
         def save_img(row: pd.Series, index) -> Any:
             path = self.img_path_from_row(row, index)
-            model = YOLO('yolo/medium250e.pt')
             out = np.nan
             accepted = False
             if not os.path.exists(path):
                 try:
+                    model = YOLO('yolo/medium250e.pt')
                     img = Image.open(requests.get(row[col], stream=True, timeout=40, verify=False).raw)
                     res = obj_det(img, model, conf=0.50)
                     xywhn = res[0].boxes.xywhn
