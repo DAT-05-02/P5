@@ -2,27 +2,40 @@ import datetime
 from pprint import pprint
 import os
 
+import keras.layers
 import tensorflow as tf
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from util.constants import FULL_MODEL_CHECKPOINT_PATH
-from util.logging.logable import Logable
+from core.util.constants import FULL_MODEL_CHECKPOINT_PATH
+from core.util.logging.logable import Logable
+from core.data.feature import FeatureExtractor
+from sklearn import preprocessing
+
+from core.model.memoryCallbacks import GpuMemoryCallback, CpuMemoryCallback
 
 
 class Model(Logable):
     def __init__(self,
-                 df: pd.DataFrame):
+                 df: pd.DataFrame,
+                 path: str,
+                 feature="path",
+                 kernel_size=(3, 3)):
         super().__init__()
+        os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
         self.df = df
-        self.model = self._create_model()
+        self.path = path
+        self.feature = feature
+        self.ft_extractor = FeatureExtractor()
+        self.shape = self.ft_extractor.shape_from_feature(self.df, self.feature)
         self.dataset = self._setup_dataset()
-        self.train_dataset = None
+        self.model = self._create_model(kernel_size)
+        self.train_dataset: tf.data.Dataset = None
         self.val_dataset = None
         self.test_dataset = None
 
-    def _create_model(self, size=(416, 416), depth=3):
+    def _create_model(self, kernel_size=(3, 3)):
         """
         model = tf.keras.models.Sequential([
             tf.keras.layers.Flatten(input_shape=(size[0], size[1], depth)),
@@ -30,27 +43,50 @@ class Model(Logable):
             tf.keras.layers.Dense(len(os.listdir("image_db")), activation="softmax")
         ])
         """
-
+        l_relu = keras.layers.LeakyReLU(alpha=0.1)
         model = tf.keras.models.Sequential([
-            tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=(size[0], size[1], depth)),
+            tf.keras.layers.Conv2D(32, kernel_size, activation=l_relu, data_format="channels_last",
+                                   input_shape=self.shape),
             tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+            tf.keras.layers.Conv2D(32, kernel_size, activation=l_relu),
             tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(128, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(128, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(128, kernel_size, activation=l_relu),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(64, activation='relu'),
-            tf.keras.layers.Dense(len(os.listdir("image_db")), activation="softmax")
+            tf.keras.layers.Dense(128, activation=l_relu),
+            tf.keras.layers.Dense(len(self.df['species'].unique()), activation="softmax")
         ])
 
         return model
 
     def _setup_dataset(self):
-        dataset = tf.keras.utils.image_dataset_from_directory(
-            directory="image_db", 
-            labels="inferred", 
-            label_mode="categorical", 
-            image_size=(416, 416), 
-            )
+        # Load arrays and slice to tensors
+        data = np.array(list(map(lambda x: np.load(x, allow_pickle=True), self.df[self.feature])))
+        data = tf.data.Dataset.from_tensor_slices(data)
+        # Encode labels from strings to integers, then as tensors
+        label_encoder = preprocessing.LabelEncoder()
+        self.df['species'] = label_encoder.fit_transform(self.df['species'])
+        label = tf.data.Dataset.from_tensor_slices(np.array(self.df['species']))
+        # log
+        self.log.info(self.df['species'])
+        self.log.info(data.element_spec)
+        self.log.info(label.element_spec)
+        self.log.info(f"unique species: {len(self.df['species'].unique())}")
+        # Convert to one-hot tensors, essentially selector matrices with a 1 corresponding to the label index
+        label = label.map(
+            lambda x: tf.one_hot(x, len(self.df['species'].unique())),
+            num_parallel_calls=tf.data.AUTOTUNE,
+        )
+        self.log.info(label)
+        # np.arrays and labels to same dataset
+        dataset = tf.data.Dataset.zip((data, label))
         return dataset
 
     def print_dataset_info(self):
@@ -74,25 +110,20 @@ class Model(Logable):
         self.model = tf.keras.models.load_model(model_path)
 
     def split_dataset(self, validation_split=0.15, test_split=0.15, shuffle=True):
-        dataset = tf.keras.utils.image_dataset_from_directory(
-            directory="image_db",
-            labels="inferred",
-            label_mode="categorical",
-            image_size=(416, 416),
-            validation_split=validation_split,
-            subset="training",
-            seed=1337 if shuffle else None,
-            shuffle=shuffle
-        )
-
-        val_size = int(validation_split * len(dataset))
-        test_size = int(test_split * len(dataset))
-        train_size = len(dataset) - val_size - test_size
-
-        self.train_dataset = dataset.take(train_size)
-        remaining_dataset = dataset.skip(train_size)
+        val_size = int(validation_split * len(self.dataset))
+        test_size = int(test_split * len(self.dataset))
+        train_size = len(self.dataset) - val_size - test_size
+        self.log.info(self.dataset.element_spec)
+        self.train_dataset = self.dataset.take(train_size)
+        remaining_dataset = self.dataset.skip(train_size)
         self.val_dataset = remaining_dataset.take(val_size)
         self.test_dataset = remaining_dataset.skip(val_size)
+        self.train_dataset = self.train_dataset.batch(32).shuffle(reshuffle_each_iteration=True,
+                                                                  buffer_size=len(self.df[self.feature]))
+        self.val_dataset = self.val_dataset.batch(32).shuffle(reshuffle_each_iteration=True,
+                                                              buffer_size=len(self.df[self.feature]))
+        self.test_dataset = self.test_dataset.batch(32).shuffle(reshuffle_each_iteration=True,
+                                                                buffer_size=len(self.df[self.feature]))
 
     def compile(self, lr=0.001):
         custom_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
@@ -131,12 +162,12 @@ class Model(Logable):
             print(f"True Label: {true_label}\tPredicted Label: {predicted_label}")
 
     def evaluate_and_show_predictions(self, num_samples=5):
-        species_labels = os.listdir("image_db")
+        species_labels = [species.replace("-", " ") for species in os.listdir(self.path)]
 
-        for images, labels in self.test_dataset:
+        for images, labels in self.test_dataset[:num_samples]:
             batch_size = images.shape[0]
             predictions = self.model.predict(images)
-            
+
             for i in range(batch_size):
                 img = images[i].numpy().astype("uint8")
                 actual_label = species_labels[labels[i].numpy().argmax()]
@@ -147,39 +178,16 @@ class Model(Logable):
 
                 plt.figure(figsize=(6, 8))
                 plt.imshow(img)
-                
+
                 label_str = f"Actual Label: {actual_label}\nPredictions:\n"
                 for label, confidence in zip(top3_labels, top3_confidences):
                     label_str += f"{label}: {confidence:.2f}%\n"
-                
+
                 plt.title(label_str)
                 plt.axis("off")
                 plt.show()
 
     def predict_and_show(self, image_path):
-            img = tf.keras.preprocessing.image.load_img(
-                image_path, target_size=(416, 416)
-            )
-            img_array = tf.keras.preprocessing.image.img_to_array(img)
-            img_array = tf.expand_dims(img_array, 0)
-            prediction = self.model.predict(img_array)
-            species_labels = os.listdir("image_db")
-            sorted_indices = np.argsort(prediction[0])[::-1]
-            sorted_labels = [species_labels[i] for i in sorted_indices]
-            sorted_confidences = [prediction[0][i] * 100 for i in sorted_indices]
-
-            plt.figure(figsize=(6, 8))
-            plt.imshow(img)
-            
-            label_str = "Predictions:\n"
-            for label, confidence in zip(sorted_labels[:5], sorted_confidences[:5]):
-                label_str += f"{label}: {confidence:.2f}%\n"
-            
-            plt.title(label_str)
-            plt.axis("off")
-            plt.show()
-
-    def predict(self, image_path):
         img = tf.keras.preprocessing.image.load_img(
             image_path, target_size=(416, 416)
         )
@@ -191,27 +199,69 @@ class Model(Logable):
         sorted_labels = [species_labels[i] for i in sorted_indices]
         sorted_confidences = [prediction[0][i] * 100 for i in sorted_indices]
 
+        plt.figure(figsize=(6, 8))
+        plt.imshow(img)
+
+        label_str = "Predictions:\n"
+        for label, confidence in zip(sorted_labels[:5], sorted_confidences[:5]):
+            label_str += f"{label}: {confidence:.2f}%\n"
+
+        plt.title(label_str)
+        plt.axis("off")
+        plt.show()
+
+    def predict(self, image_path):
+        img = tf.keras.preprocessing.image.load_img(
+            image_path, target_size=(416, 416)
+        )
+        img_array = tf.keras.preprocessing.image.img_to_array(img)
+        img_array = tf.expand_dims(img_array, 0)
+        prediction = self.model.predict(img_array)
+        species_labels = os.listdir(self.path)
+        sorted_indices = np.argsort(prediction[0])[::-1]
+        sorted_labels = [species_labels[i] for i in sorted_indices]
+        sorted_confidences = [prediction[0][i] * 100 for i in sorted_indices]
+
         return sorted_labels, sorted_confidences
 
     def setup_logs(self):
         # logging training data - only if it is not allready there
         if not os.path.exists("logs/train_data"):
-            tensorboard_training_images = np.reshape(self.train_dataset / 255, (-1, 416, 416, 1))
+            tensorboard_training_images = np.reshape(self.train_dataset.as_numpy_iterator() / 255, (-1, 416, 416, 1))
 
             data_log = "logs/train_data/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             with tf.summary.create_file_writer(data_log).as_default():
                 tf.summary.image("Training data", tensorboard_training_images, max_outputs=12, step=0)
 
     def callbacks(self):
-        log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+        datetimeString = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
+        # creating a callback for the tensorboard
+        log_dir = "logs/fit/" + datetimeString
+        tensorboard_callback = tf.keras.callbacks.TensorBoard(
+            log_dir=log_dir,
+            histogram_freq=1,
+            write_images=True)
+
+        # creating a callback for checkpoints
         cp_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=FULL_MODEL_CHECKPOINT_PATH,
             save_weights_only=True,
-            save_freq=1000,
+            save_freq='epoch',
             verbose=1)
 
         # loss_f = tf.keras.metrics.categorical_crossentropy()
 
-        return [tensorboard_callback, cp_callback]
+        # creating callbacks for cpu memory usage
+        cpu_memory_dir = "logs/cpu_memory_usage/" + datetimeString
+        cpu_memory_callback = CpuMemoryCallback(cpu_memory_dir, 5)
+
+        # listing all callbacks
+        callbacks = [tensorboard_callback, cp_callback, cpu_memory_callback]
+
+        # checking if there exist at least one GPU on the current machine or not
+        if tf.config.list_physical_devices('GPU'):
+            gpu_memory_dir = "logs/gpu_memory_usage/" + datetimeString
+            callbacks.append(GpuMemoryCallback(gpu_memory_dir, 5))
+
+        return callbacks
