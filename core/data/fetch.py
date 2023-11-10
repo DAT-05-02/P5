@@ -17,6 +17,7 @@ from core.data.feature import FeatureExtractor
 
 class Database(Logable):
     def __init__(self,
+                 min_amount_of_pictures,
                  raw_dataset_path: str,
                  raw_label_path: str,
                  label_dataset_path: str,
@@ -26,7 +27,8 @@ class Database(Logable):
                  degrees: str,
                  num_rows=None,
                  sort=False,
-                 log_level=logging.INFO):
+                 log_level=logging.INFO,
+                 ):
         """ Loads a file, converts to csv if none exists, or loads an existing csv into a pd.DateFrame object
             @param raw_label_path: path to original label dataset file
             @param raw_dataset_path: path to original dataset file
@@ -37,6 +39,7 @@ class Database(Logable):
             @param bfly: list of species that is included in dataset, have "all" in list for only butterflies (no moths)"""
         super().__init__()
         setup_log(log_level=log_level)
+        self.min_amount_of_pictures = min_amount_of_pictures
         self.raw_dataset_path = raw_dataset_path
         self.raw_label_path = raw_label_path
         self.label_dataset_path = label_dataset_path
@@ -97,13 +100,7 @@ class Database(Logable):
             df.drop(df.index[self._num_rows:], inplace=True)
         df.reset_index(inplace=True, drop=True)
 
-        # HACKY HACKY HAHA HOO HOO
-        print("df_kek_before: ", df)
-
-        df = self.pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, min_amount_of_pictures=5)
-
-        print("df_after: ", df)
-
+        df = self.pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, min_amount_of_pictures=self.min_amount_of_pictures)
         df = self.fetch_images(df, "identifier")
         df.reset_index(inplace=True, drop=True)
         df.to_csv(self.dataset_csv_filename, index=False)
@@ -181,7 +178,7 @@ class Database(Logable):
             for item, count in less_than_list:
                 # print("World pictures to add: ", min_amount_of_pictures - count)
                 world_specific = world_df.loc[world_df["species"] == item]
-                world_specific = world_specific.iloc[:min_amount_of_pictures]
+                world_specific = world_specific.iloc[:min_amount_of_pictures - count]
                 df = df.append(world_specific, ignore_index=True)
             # df = Database.fetch_images(df, "identifier")
         return df
