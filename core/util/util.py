@@ -28,7 +28,7 @@ def log_ent_exit(method):
     def _impl(self, *args, **kwargs):
         self.log.debug('Entering: %s', method.__name__)
         tmp = method(self, *args, **kwargs)
-        if tmp:
+        if tmp is not None:
             self.log.debug('%s', tmp)
         self.log.debug('Exiting: %s', method.__name__)
         return tmp
@@ -54,7 +54,9 @@ def setup_log(log_level):
 class LogFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         if (
-                record.module.startswith('matplotlib')
+                record.module.startswith('matplotlib') |
+                record.module.startswith('urllib3.connectionpool') |
+                record.module.startswith('PIL.Image')
         ):
             return False
         return True
