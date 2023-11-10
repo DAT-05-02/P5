@@ -134,8 +134,6 @@ class Database(Logable):
     def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, min_amount_of_pictures=3):
         run_correction = False
 
-        print("coo coo", df)
-
         values = df['species'].value_counts().keys().tolist()
         counts = df['species'].value_counts().tolist()
 
@@ -150,9 +148,7 @@ class Database(Logable):
             itt += 1
 
         if run_correction:
-            # just need to make it so that if there are species in the dataset, which are below the min_amount, then find them in the global dataset and put into the other one
             world_df: pd.DataFrame = pd.read_csv(raw_dataset_path, sep="	", low_memory=False)
-            # This file is separated by commas
             world_df_labels: pd.DataFrame = pd.read_csv(raw_label_path, sep=",", low_memory=False)
 
             Database.drop_cols([world_df, world_df_labels])
