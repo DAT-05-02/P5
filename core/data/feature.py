@@ -33,7 +33,7 @@ class FeatureExtractor(Logable):
         paths into the dataframe. Saves the augmented df.
         @param df: containing paths to .npy arrays to perform feature extraction on.
         @param feature: to extract
-        @param kwargs: additional arguments
+        @param kwargs: additional arguments for the given feature
         @return: dataframe with paths to extracted features in separate column
         """
         ft = getattr(self, feature, None)
@@ -111,7 +111,7 @@ class FeatureExtractor(Logable):
     @staticmethod
     def lbp(img: np.ndarray, method="ror", radius=1):
         """Create Local Binary Pattern for an image
-        @param img: image to convert
+        @param img: to convert
         @param method: which method, accepts 'default', 'ror', 'uniform', 'nri_uniform' or 'var'.
         Read skimage.feature.local_binary_pattern for more information
         @param radius: how many pixels adjacent to center pixel to calculate from.
@@ -138,9 +138,9 @@ class FeatureExtractor(Logable):
 
     @staticmethod
     def glcm(img: np.ndarray, distance: list, angles: list):
-        """Creates Grey-Level-Co-Occurence Matrix.
+        """Creates Grey-Level-Co-Occurrence Matrix.
         @param img: array of image to convert
-        @param distance: depth of matrix, how far away from pixel should it look for co-occuring values
+        @param distance: depth of matrix, how far away from pixel should it look for co-occurring values
         @param angles: which directions to look
         @return: glcm matrix
         """
@@ -156,7 +156,7 @@ class FeatureExtractor(Logable):
     def sift(self, img: Image.Image):
         """Create SIFT features
         @param img: Image to extract features from
-        @return: list of tuples of keypoints and features
+        @return: list of tuples of key points and features
         """
         sift_detector = SIFT()
         img = img.convert("L")
@@ -170,7 +170,7 @@ class FeatureExtractor(Logable):
         @param min_size: minimum size of image
         @param fill_color: what color (default black) to paste
         @param mode: which mode image resulting image should be
-        @return: image with black bars
+        @return: resulting image with black bars
         """
         x, y = im.size
         size = max(min_size, x, y)
@@ -222,7 +222,7 @@ class FeatureExtractor(Logable):
     @log_ent_exit
     def rotate_and_save_image(self, img_path: str, degree: int) -> str:
         """ Rotates an image 4 and saves the rotated images to a path
-        @param img_path: path for where to store the newly created image
+        @param img_path: where to store the newly created image
         @param degree: amount of degrees to rotate image
         @return: path to rotated image
         """
@@ -254,7 +254,7 @@ class FeatureExtractor(Logable):
     @log_ent_exit
     def flip_and_save_image(self, img_path: str) -> str:
         """ Flips an image and saves to a path
-        @param img_path: path of image to flip
+        @param img_path: of image to flip
         @return: path to flipped image
         """
         self.debug(img_path)
