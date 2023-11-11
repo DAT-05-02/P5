@@ -32,7 +32,7 @@ class Database(Logable):
                  num_rows=None,
                  sort=False,
                  log_level=logging.INFO):
-        """ Loads a file, converts to csv if none exists, or loads an existing csv into a pd.DateFrame object
+        """ Database class
             @param raw_label_path: path to original label dataset file
             @param raw_dataset_path: path to original dataset file
             @param label_dataset_path: path to label csv file
@@ -82,8 +82,7 @@ class Database(Logable):
 
     @timing
     def fetch_images(self, df: pd.DataFrame, col: str) -> pd.DataFrame:
-        """
-        Fetches all image links in a DataFrame column to path defined by :func:`~fetch.img_path_from_row`
+        """Fetches all image links in a DataFrame column to path defined by :func:`~fetch.img_path_from_row`
         and assigns the 'path' column value to saved location. Creates augmented images defined by 'degrees' argument,
         and saves the df to a csv file.
         @param df: the DataFrame containing links
@@ -219,8 +218,7 @@ class Database(Logable):
     @staticmethod
     def drop_cols(dfs):
         """drops all columns not MERGE_COLS from the given dataframes
-        @param dfs:
-        @return:
+        @param dfs: list of dataframes to remove columns for
         """
         for df in list(dfs):
             df.drop(columns=[col for col in df if col not in MERGE_COLS], inplace=True)
