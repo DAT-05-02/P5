@@ -172,6 +172,9 @@ class Database(Logable):
         return df
 
     def _sort_drop_rows(self, df: pd.DataFrame):
+        """If self is initialized with sort, sort species. If self has num_rows, drop rest of rows.
+        @param df: dataframe
+        @return resulting dataframe after sort/drop"""
         if self.sort:
             df.sort_values(by=['species'], inplace=True)
         self.info(f"found {len(df['species'].unique())} unique species")
