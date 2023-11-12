@@ -145,7 +145,6 @@ class Database(Logable):
             if min_amount_of_pictures > counts[itt]:
                 less_than_list.append((values[itt], counts[itt]))
                 run_correction = True
-            itt += 1
 
         if run_correction:
             world_df: pd.DataFrame = pd.read_csv(raw_dataset_path, sep="	", low_memory=False)
