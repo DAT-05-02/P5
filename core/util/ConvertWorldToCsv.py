@@ -2,7 +2,7 @@ import pandas as pd
 
 
 # Converts the world data to have less useless rows
-def WorldConverter():
+def world_converter():
     df = pd.DataFrame = pd.read_csv("leopidotera-world/occurrence.txt", sep="	", low_memory=False)
     # df.to_csv("occurrence.csv", index=False)
     print(df[df.columns])

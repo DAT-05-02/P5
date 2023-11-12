@@ -141,9 +141,9 @@ class Database(Logable):
 
         less_than_list = []
 
-        for count in counts:
-            if min_amount_of_pictures > count:
-                less_than_list.append((values[itt], count))
+        for itt in range(len(counts)):
+            if min_amount_of_pictures > counts[itt]:
+                less_than_list.append((values[itt], counts[itt]))
                 run_correction = True
             itt += 1
 
