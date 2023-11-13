@@ -43,24 +43,20 @@ class Model(Logable):
             tf.keras.layers.Dense(len(os.listdir("image_db")), activation="softmax")
         ])
         """
-        l_relu = keras.layers.LeakyReLU(alpha=0.1)
+        activ_fnc = keras.layers.ReLU()
         model = tf.keras.models.Sequential([
-            tf.keras.layers.Conv2D(32, kernel_size, activation=l_relu, data_format="channels_last",
+            tf.keras.layers.Conv2D(32, kernel_size, activation=activ_fnc, data_format="channels_last",
                                    input_shape=self.shape),
             tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(32, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(32, kernel_size, activation=activ_fnc),
             tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(64, kernel_size, activation=activ_fnc),
             tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
-            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
-            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
-            tf.keras.layers.Conv2D(64, kernel_size, activation=l_relu),
-            tf.keras.layers.Conv2D(128, kernel_size, activation=l_relu),
-            tf.keras.layers.Conv2D(128, kernel_size, activation=l_relu),
-            tf.keras.layers.Conv2D(128, kernel_size, activation=l_relu),
+            tf.keras.layers.Conv2D(64, kernel_size, activation=activ_fnc),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(64, kernel_size, activation=activ_fnc),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(128, activation=l_relu),
+            tf.keras.layers.Dense(64, activation=activ_fnc),
             tf.keras.layers.Dense(len(self.df['species'].unique()), activation="softmax")
         ])
 
@@ -247,7 +243,7 @@ class Model(Logable):
         cp_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=FULL_MODEL_CHECKPOINT_PATH,
             save_weights_only=True,
-            save_freq='epoch',
+            save_freq=1000,
             verbose=1)
 
         # loss_f = tf.keras.metrics.categorical_crossentropy()

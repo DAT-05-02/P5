@@ -8,11 +8,17 @@ import requests
 import pandas as pd
 import os
 from PIL import Image
+from ultralytics import YOLO
+from urllib3.exceptions import InsecureRequestWarning
+import urllib3
 
 from core.util.logging.logable import Logable
 from core.util.util import timing, setup_log, log_ent_exit
 from core.util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH, DIRNAME_DELIM
 from core.data.feature import FeatureExtractor
+from yolo import obj_det, yolo_crop
+
+urllib3.disable_warnings(category=InsecureRequestWarning)
 
 
 class Database(Logable):
@@ -135,13 +141,21 @@ class Database(Logable):
         @param col: which column the links are in
         """
         paths = np.full(len(df.index), fill_value=np.nan).tolist()
+        yolo_accepted = np.full(len(df.index), fill_value=np.nan).tolist()
 
         def save_img(row: pd.Series, index) -> Any:
             path = self.img_path_from_row(row, index)
             out = np.nan
+            accepted = False
             if not os.path.exists(path):
                 try:
+                    model = YOLO('yolo/medium250e.pt')
                     img = Image.open(requests.get(row[col], stream=True, timeout=40, verify=False).raw)
+                    res = obj_det(img, model, conf=0.50)
+                    xywhn = res[0].boxes.xywhn
+                    if xywhn.numel() > 0:
+                        img = yolo_crop(img, xywhn)
+                        accepted = True
                     img = FeatureExtractor.make_square_with_bb(img)
                     img = img.resize((416, 416))
                     img = np.asarray(img)
@@ -160,19 +174,26 @@ class Database(Logable):
                     print(f"Unknown error: {e}")
             else:
                 out = path
-            return out
+                accepted = True
+            return out, accepted
 
-        with ThreadPoolExecutor(100) as executor:
+        with ThreadPoolExecutor(50) as executor:
             futures = [executor.submit(save_img, row, index) for index, row in df.iterrows()]
             concurrent.futures.wait(futures, timeout=None, return_when=ALL_COMPLETED)
             for i, ft in enumerate(futures):
-                paths[i] = ft.result()
+                paths[i], yolo_accepted[i] = ft.result()
 
             df['path'] = paths
-            df.dropna(subset=['path'], inplace=True)
+            df['yolo_accepted'] = yolo_accepted
+            df.dropna(subset=['path', 'yolo_accepted'], inplace=True)
         df = self.ft_extractor.create_augmented_df(df=df, degrees=self.degrees)
         self.log.info(df)
         df.to_csv(DATASET_PATH, index=False)
+        return df
+
+    @log_ent_exit
+    def only_accepted(self, df) -> pd.DataFrame:
+        df = df.loc[df['yolo_accepted'].isin(['True', True])]
         return df
 
     @staticmethod
