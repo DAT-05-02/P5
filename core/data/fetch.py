@@ -33,6 +33,7 @@ class Database(Logable):
                  link_col="identifier",
                  num_rows=None,
                  crop=True,
+                 minimum_images=None,
                  sort=False,
                  log_level=logging.INFO):
         """ Database class
@@ -45,6 +46,7 @@ class Database(Logable):
             @param sort: if dataset should be sorted by species
             @param bfly: list of species that is included in dataset, have "all" in list for only butterflies (no moths)
             @param crop: boolean if yolo should run and crop images
+            @param minimum_images: number of minimum images per species, if no minimum put None
             """
         super().__init__()
         setup_log(log_level=log_level)
@@ -58,6 +60,7 @@ class Database(Logable):
         self.degrees = degrees
         self._num_rows = num_rows
         self.crop = crop
+        self.minimum_images = minimum_images
         self.num_rows = self.num_rows()
         self.sort = sort
 
@@ -100,11 +103,12 @@ class Database(Logable):
             df.drop(df.index[self._num_rows:], inplace=True)
         df.reset_index(inplace=True, drop=True)
 
-        df = self.pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH)
-
         df, df_label = self._make_dfs_from_raws()
         df = self._merge_dfs_on_gbif(df, df_label)
         df = self._sort_drop_rows(df)
+
+        if self.minimum_images is not None:
+            df = self.pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.minimum_images)
 
         df = self.fetch_images(df, self.link_col)
         df.reset_index(inplace=True, drop=True)
@@ -187,7 +191,6 @@ class Database(Logable):
                         if xywhn.numel() > 0:
                             img = yolo_crop(img, xywhn)
                             accepted = True
-                    img.show()
                     img = FeatureExtractor.make_square_with_bb(img)
                     img = img.resize((416, 416))
                     img = np.asarray(img)

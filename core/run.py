@@ -19,6 +19,7 @@ if __name__ == "__main__":
                   ft_extractor=ft_extractor,
                   num_rows=num_rows,
                   crop=False,
+                  minimum_images=None,
                   degrees="none",
                   bfly=["all"])
     df = db.setup_dataset()
