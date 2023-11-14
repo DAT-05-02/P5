@@ -31,7 +31,7 @@ def run_yolo(df) -> pd.DataFrame:
             yolo_accepted[idx] = True
         else:
             print(f"deleting {res[0].path}")
-            #os.remove(res[0].path)
+            # os.remove(res[0].path)
             yolo_accepted[idx] = False
             delete_count += 1
 
