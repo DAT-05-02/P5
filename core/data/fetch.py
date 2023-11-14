@@ -14,7 +14,7 @@ import urllib3
 
 from core.util.logging.logable import Logable
 from core.util.util import timing, setup_log, log_ent_exit
-from core.util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH, DIRNAME_DELIM
+from core.util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH, DIRNAME_DELIM, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH
 from core.data.feature import FeatureExtractor
 from yolo import obj_det, yolo_crop
 
@@ -73,6 +73,32 @@ class Database(Logable):
         if os.path.exists(self.dataset_csv_filename):
             os.remove(self.dataset_csv_filename)
 
+        df: pd.DataFrame = pd.read_csv(self.raw_dataset_path, sep="	", low_memory=False)
+        if os.path.exists(self.label_dataset_path):
+            df_label: pd.DataFrame = pd.read_csv(self.label_dataset_path, low_memory=False)
+        else:
+            df_label: pd.DataFrame = pd.read_csv(self.raw_label_path, sep="	", low_memory=False)
+            df_label.to_csv(self.label_dataset_path, index=False)
+        print(df[df.columns])
+        self.drop_cols([df, df_label])
+        df = df.merge(df_label[df_label['gbifID'].isin(df['gbifID'])], on=['gbifID'])
+        df = df.loc[~df['lifeStage'].isin(BFLY_LIFESTAGE)]
+        df = df.dropna(subset=['species'])
+        if self.bfly:
+            if "all" in self.bfly:
+                df = df.loc[df['family'].isin(BFLY_FAMILY)]
+            else:
+                df = df.loc[df['species'].isin(self.bfly)]
+        print(df.shape)
+        if self.sort:
+            df.sort_values(by=['species'], inplace=True)
+        print(f"found {len(df['species'].unique())} unique species")
+        if self._num_rows:
+            df.drop(df.index[self._num_rows:], inplace=True)
+        df.reset_index(inplace=True, drop=True)
+
+        df = self.pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH)
+
         df, df_label = self._make_dfs_from_raws()
         df = self._merge_dfs_on_gbif(df, df_label)
         df = self._sort_drop_rows(df)
@@ -80,6 +106,51 @@ class Database(Logable):
         df = self.fetch_images(df, self.link_col)
         df.reset_index(inplace=True, drop=True)
         df.to_csv(self.dataset_csv_filename, index=False)
+        return df
+
+    @staticmethod
+    def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, min_amount_of_pictures=3):
+        run_correction = False
+
+        values = df['species'].value_counts().keys().tolist()
+        counts = df['species'].value_counts().tolist()
+
+        less_than_list = []
+
+        for itt in range(len(counts)):
+            if min_amount_of_pictures > counts[itt]:
+                less_than_list.append((values[itt], counts[itt]))
+                run_correction = True
+
+        if run_correction:
+            world_df: pd.DataFrame = pd.read_csv(raw_dataset_path, sep="	", low_memory=False)
+            world_df_labels: pd.DataFrame = pd.read_csv(raw_label_path, sep=",", low_memory=False)
+
+            Database.drop_cols([world_df, world_df_labels])
+
+            world_df = world_df.merge(world_df_labels[world_df_labels['gbifID'].isin(world_df['gbifID'])],
+                                      on=['gbifID'])
+
+            out = df["species"].value_counts()
+
+            species_with_less_than_optimal_amount_of_images = []
+
+            totalRows = 0
+            for index, count in out.items():
+                if count < min_amount_of_pictures:
+                    species_with_less_than_optimal_amount_of_images.append(index)
+                    totalRows += 1
+
+            totalRows = totalRows * min_amount_of_pictures
+            print("Total number of extra rows: ", totalRows)
+            world_df = world_df.loc[world_df['species'].isin(species_with_less_than_optimal_amount_of_images)]
+            # loop that gets the species, which are below the required amount
+            for item, count in less_than_list:
+                world_specific = world_df.loc[world_df["species"] == item]
+                world_specific = world_specific.iloc[:min_amount_of_pictures - count]
+
+                df = pd.concat((df, world_specific))
+
         return df
 
     @timing

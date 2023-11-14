@@ -22,6 +22,7 @@ if __name__ == "__main__":
                   bfly=["all"])
     df = db.setup_dataset()
     df = ft_extractor.pre_process(df, feature, radius=2)
+
     df = db.only_accepted(df)
     model = Model(df, IMGDIR_PATH, feature=feature, kernel_size=(3, 3))
     # model.load()
