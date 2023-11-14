@@ -29,9 +29,16 @@ class FeatureExtractor(Logable):
                     df: pd.DataFrame,
                     feature="",
                     **kwargs):
+        """Perform feature extraction on a dataframe's files, saves result in a separate .npy file and insert resulting
+        paths into the dataframe. Saves the augmented df.
+        @param df: containing paths to .npy arrays to perform feature extraction on.
+        @param feature: to extract
+        @param kwargs: additional arguments for the given feature
+        @return: dataframe with paths to extracted features in separate column
+        """
         ft = getattr(self, feature, None)
         paths = np.full(len(df.index), fill_value=np.nan).tolist()
-        self.log.info(f"paths len: {len(paths)}")
+        self.info(f"paths len: {len(paths)}")
         for index, row in df.iterrows():
             p_new = self.path_from_row_ft(row, feature)
             if not os.path.exists(p_new):
@@ -56,25 +63,36 @@ class FeatureExtractor(Logable):
                 try:
                     paths[int(index)] = p_new
                 except IndexError as e:
-                    self.log.error(f"index: {index}")
+                    self.error(f"index: {index}")
                     raise e
         df[feature] = paths
         df.to_csv(DATASET_PATH, index=False)
         return df
 
-    def apply_feature(self, feature):
-        pass
-
     def l_dirpath_from_row(self, row: pd.Series, feature: str):
+        """Directory path given a label (species) and feature.
+        @param row: pd.series to draw data from
+        @param feature: name of feature folder
+        @return: parent feature path + label path
+        """
         l_name = str(row['path']).split(PATH_SEP)[-2]
         return self.dirpath_from_ft(feature) + l_name + PATH_SEP
 
     @log_ent_exit
     def path_from_row_ft(self, row: pd.Series, feature: str):
+        """Full path for an individual row
+        @param row: pd.Series to draw data from
+        @param feature: name of feature folder
+        @return: full file path
+        """
         f_name = str(row['path']).split(PATH_SEP)[-1].split('.')[0] + ".npy"
         return self.l_dirpath_from_row(row, feature) + f_name
 
     def dirpath_from_ft(self, feature):
+        """Outermost parent directory based on feature.
+        @param feature: which feature to create dir from
+        @return: path of dir
+        """
         if feature == "" or feature is None:
             out_ft = "db"
         else:
@@ -82,6 +100,9 @@ class FeatureExtractor(Logable):
         return f"{self.save_path}{DIRNAME_DELIM}{out_ft}/"
 
     def _mk_ft_dirs(self):
+        """Creates dirs for each available feature
+        @return: None
+        """
         for feature in FTS:
             dir_new = self.dirpath_from_ft(feature)
             if not os.path.exists(dir_new):
@@ -90,7 +111,7 @@ class FeatureExtractor(Logable):
     @staticmethod
     def lbp(img: np.ndarray, method="ror", radius=1):
         """Create Local Binary Pattern for an image
-        @param img: image to convert
+        @param img: to convert
         @param method: which method, accepts 'default', 'ror', 'uniform', 'nri_uniform' or 'var'.
         Read skimage.feature.local_binary_pattern for more information
         @param radius: how many pixels adjacent to center pixel to calculate from.
@@ -117,6 +138,12 @@ class FeatureExtractor(Logable):
 
     @staticmethod
     def glcm(img: np.ndarray, distance: list, angles: list):
+        """Creates Grey-Level-Co-Occurrence Matrix.
+        @param img: array of image to convert
+        @param distance: depth of matrix, how far away from pixel should it look for co-occurring values
+        @param angles: which directions to look
+        @return: glcm matrix
+        """
         if angles is None:
             angles = range(0, 361, 45)
         if distance is None:
@@ -127,13 +154,24 @@ class FeatureExtractor(Logable):
         return graycomatrix(img, distance, angles)
 
     def sift(self, img: Image.Image):
+        """Create SIFT features
+        @param img: Image to extract features from
+        @return: list of tuples of key points and features
+        """
         sift_detector = SIFT()
         img = img.convert("L")
         sift_detector.detect_and_extract(img)
         return np.array(list(zip(sift_detector.keypoints, sift_detector.descriptors)))
 
     @staticmethod
-    def make_square_with_bb(im, min_size=256, fill_color=(0, 0, 0, 0), mode="RGB"):
+    def make_square_with_bb(im, min_size=56, fill_color=(0, 0, 0, 0), mode="RGB"):
+        """Insert black bars around an image, if one dimension is shorter than the other
+        @param im: image
+        @param min_size: minimum size of image
+        @param fill_color: what color (default black) to paste
+        @param mode: which mode image resulting image should be
+        @return: resulting image with black bars
+        """
         x, y = im.size
         size = max(min_size, x, y)
         new_im = Image.new(mode, (size, size), fill_color)
@@ -184,7 +222,7 @@ class FeatureExtractor(Logable):
     @log_ent_exit
     def rotate_and_save_image(self, img_path: str, degree: int) -> str:
         """ Rotates an image 4 and saves the rotated images to a path
-        @param img_path: path for where to store the newly created image
+        @param img_path: where to store the newly created image
         @param degree: amount of degrees to rotate image
         @return: path to rotated image
         """
@@ -204,23 +242,28 @@ class FeatureExtractor(Logable):
 
     @log_ent_exit
     def rotate_path(self, img_path, degree):
+        """Path a rotated image should have
+        @param img_path: base path
+        @param degree: of image
+        @return: path depending on image path and degree
+        """
         parts = re.split('[/_.]', img_path)
-        self.log.debug(parts)
+        self.debug(parts)
         return f"{'/'.join(parts[:3])}_{degree}.{parts[4]}"
 
     @log_ent_exit
     def flip_and_save_image(self, img_path: str) -> str:
         """ Flips an image and saves to a path
-        @param img_path: path of image to flip
+        @param img_path: of image to flip
         @return: path to flipped image
         """
-        self.log.debug(img_path)
+        self.debug(img_path)
         new_path = f"{img_path.split('.')[0]}f.{img_path.split('.')[1]}"
         if os.path.exists(new_path):
             return new_path
         with open(img_path, 'rb') as f:
             try:
-                self.log.debug(img_path)
+                self.debug(img_path)
                 image = np.load(f, allow_pickle=True)
                 image = Image.fromarray(image)
                 image.transpose(method=Image.Transpose.FLIP_LEFT_RIGHT)
@@ -232,6 +275,12 @@ class FeatureExtractor(Logable):
 
     @log_ent_exit
     def shape_from_feature(self, df, feature='path', ):
+        """Aggregate shape, depending on which feature should be trained on.
+        @param df: dataframe
+        @param feature: which feature to check shape of
+        @raise ValueError: if not all extracted features are of same shape
+        @return: shape of feature
+        """
         paths = df[feature]
         unique_output_shapes = set()
 

@@ -8,7 +8,7 @@ from core.util.pysetup import PySetup
 
 if __name__ == "__main__":
     ops = PySetup()
-    num_rows = 50
+    num_rows = 6000
     feature = ""
     ft_extractor = FeatureExtractor(log_level=logging.INFO)
     db = Database(raw_dataset_path=RAW_DATA_PATH,
@@ -23,7 +23,8 @@ if __name__ == "__main__":
     df = db.setup_dataset()
     df = ft_extractor.pre_process(df, feature, radius=2)
 
-    model = Model(df, IMGDIR_PATH, feature=feature, kernel_size=(7, 7))
+    df = db.only_accepted(df)
+    model = Model(df, IMGDIR_PATH, feature=feature, kernel_size=(3, 3))
     # model.load()
     # model.print_dataset_info()
     model.compile()
