@@ -130,7 +130,6 @@ class Database(Logable):
 
             world_df = world_df.merge(world_df_labels[world_df_labels['gbifID'].isin(world_df['gbifID'])],
                                       on=['gbifID'])
-            # print("world_df: ", world_df.columns)
 
             out = df["species"].value_counts()
 
@@ -147,13 +146,11 @@ class Database(Logable):
             world_df = world_df.loc[world_df['species'].isin(species_with_less_than_optimal_amount_of_images)]
             # loop that gets the species, which are below the required amount
             for item, count in less_than_list:
-                # print("World pictures to add: ", min_amount_of_pictures - count)
                 world_specific = world_df.loc[world_df["species"] == item]
                 world_specific = world_specific.iloc[:min_amount_of_pictures - count]
 
                 df = pd.concat((df, world_specific))
 
-            # df = Database.fetch_images(df, "identifier")
         return df
 
     @timing
