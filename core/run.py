@@ -18,6 +18,7 @@ if __name__ == "__main__":
                   log_level=logging.DEBUG,
                   ft_extractor=ft_extractor,
                   num_rows=num_rows,
+                  crop=False,
                   degrees="none",
                   bfly=["all"])
     df = db.setup_dataset()
