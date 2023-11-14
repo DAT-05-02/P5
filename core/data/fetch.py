@@ -128,14 +128,13 @@ class Database(Logable):
         if extra:
             out += extra
         return out + "_0.npy"
+
     @staticmethod
     def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, min_amount_of_pictures=3):
         run_correction = False
 
         values = df['species'].value_counts().keys().tolist()
         counts = df['species'].value_counts().tolist()
-
-        itt = 0
 
         less_than_list = []
 
@@ -172,7 +171,9 @@ class Database(Logable):
                 # print("World pictures to add: ", min_amount_of_pictures - count)
                 world_specific = world_df.loc[world_df["species"] == item]
                 world_specific = world_specific.iloc[:min_amount_of_pictures - count]
-                df = df.append(world_specific, ignore_index=True)
+
+                df = pd.concat((df, world_specific))
+
             # df = Database.fetch_images(df, "identifier")
         return df
 
