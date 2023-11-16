@@ -86,7 +86,6 @@ class Database(Logable):
         else:
             df_label: pd.DataFrame = pd.read_csv(self.raw_label_path, sep="	", low_memory=False)
             df_label.to_csv(self.label_dataset_path, index=False)
-        print(df[df.columns])
         self.drop_cols([df, df_label])
         df = df.merge(df_label[df_label['gbifID'].isin(df['gbifID'])], on=['gbifID'])
         df = df.loc[~df['lifeStage'].isin(BFLY_LIFESTAGE)]
@@ -96,7 +95,6 @@ class Database(Logable):
                 df = df.loc[df['family'].isin(BFLY_FAMILY)]
             else:
                 df = df.loc[df['species'].isin(self.bfly)]
-        print(df.shape)
         if self.sort:
             df.sort_values(by=['species'], inplace=True)
         print(f"found {len(df['species'].unique())} unique species")
