@@ -3,7 +3,7 @@ import core
 
 from core.data.fetch import Database
 from core.util.constants import (RAW_DATA_PATH, RAW_LABEL_PATH, DATASET_PATH, LABEL_DATASET_PATH, IMGDIR_PATH,
-                                 NUM_IMAGES, CROPPED, KERNEL_SIZE, NUM_EPOCHS)
+                                 NUM_IMAGES, CROPPED, KERNEL_SIZE, NUM_EPOCHS, LEARNING_RATE)
 from core.data.feature import FeatureExtractor
 from core.model.model import Model
 from core.util.pysetup import PySetup
@@ -41,7 +41,7 @@ if __name__ == "__main__":
     model = Model(df, IMGDIR_PATH, feature=feature, kernel_size=(KERNEL_SIZE, KERNEL_SIZE))
     # model.load()
     # model.print_dataset_info()
-    model.compile()
+    model.compile(LEARNING_RATE)
     model.split_dataset()
     model.fit(NUM_EPOCHS)
     model.save()
