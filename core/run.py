@@ -1,7 +1,7 @@
 import logging
 
 from core.data.fetch import Database
-from core.util.constants import RAW_DATA_PATH, RAW_LABEL_PATH, DATASET_PATH, LABEL_DATASET_PATH
+from core.util.constants import RAW_DATA_PATH, RAW_LABEL_PATH, DATASET_PATH, LABEL_DATASET_PATH, IMGDIR_PATH
 from core.data.feature import FeatureExtractor
 from core.util.pysetup import PySetup
 
