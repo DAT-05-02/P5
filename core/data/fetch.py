@@ -35,7 +35,7 @@ class Database(Logable):
                  link_col="identifier",
                  num_rows=None,
                  crop=True,
-                 minimum_images=None,
+                 minimum_images=False,
                  sort=False,
                  log_level=logging.INFO):
         """ Database class
@@ -115,7 +115,7 @@ class Database(Logable):
         df = self._merge_dfs_on_gbif(df, df_label)
         df = self._sort_drop_rows(df)
 
-        if self.minimum_images is not None:
+        if self.minimum_images:
             species_n = df['species'].nunique()
             df = self.pad_dataset(df, df_dk, species_n, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH)
 

@@ -7,7 +7,7 @@ from core.util.pysetup import PySetup
 
 if __name__ == "__main__":
     ops = PySetup()
-    num_rows = 126
+    num_rows = 100
     feature = ""
     ft_extractor = FeatureExtractor(log_level=logging.INFO)
     db = Database(raw_dataset_path=RAW_DATA_PATH,
@@ -18,7 +18,7 @@ if __name__ == "__main__":
                   ft_extractor=ft_extractor,
                   num_rows=num_rows,
                   crop=False,
-                  minimum_images=1,
+                  minimum_images=True,
                   degrees="none",
                   bfly=["all"])
     df = db.setup_dataset()
