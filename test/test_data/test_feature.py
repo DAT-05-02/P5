@@ -6,7 +6,7 @@ import pytest
 import pandas as pd
 from core.data.feature import FeatureExtractor
 from core.data.fetch import Database
-from core.util.constants import RAW_DATA_PATH, RAW_LABEL_PATH, LABEL_DATASET_PATH, DATASET_PATH
+from core.util.constants import RAW_DATA_PATH, RAW_LABEL_PATH, LABEL_DATASET_PATH, DATASET_PATH, IMG_SIZE
 import shutil
 
 
@@ -14,7 +14,7 @@ import shutil
 def temp_dir(request):
     temp_dir = "temp-test-dir/temp-species-dir"
     os.makedirs(temp_dir, exist_ok=True)
-    image = np.full((416, 416, 3), fill_value=1, dtype=np.uint8)
+    image = np.full((IMG_SIZE, IMG_SIZE, 3), fill_value=1, dtype=np.uint8)
     logging.info(image.shape)
     np.save(f"{temp_dir}/test_0.npy", image)
 

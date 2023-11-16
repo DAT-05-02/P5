@@ -14,7 +14,8 @@ import urllib3
 
 from core.util.logging.logable import Logable
 from core.util.util import timing, setup_log, log_ent_exit
-from core.util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH, DIRNAME_DELIM, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH
+from core.util.constants import (IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH, DIRNAME_DELIM,
+                                 RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, IMG_SIZE)
 from core.data.feature import FeatureExtractor
 from core.yolo.yolo_func import obj_det, yolo_crop
 
@@ -182,7 +183,7 @@ class Database(Logable):
             if not os.path.exists(path):
                 try:
                     img = Image.open(requests.get(row[col], stream=True, timeout=40, verify=False).raw)
-                    if self.crop is True:
+                    if self.crop == 1:
                         model = YOLO('yolo/medium250e.pt')
                         res = obj_det(img, model, conf=0.50)
                         xywhn = res[0].boxes.xywhn
@@ -190,7 +191,7 @@ class Database(Logable):
                             img = yolo_crop(img, xywhn)
                             accepted = True
                     img = FeatureExtractor.make_square_with_bb(img)
-                    img = img.resize((416, 416))
+                    img = img.resize((IMG_SIZE, IMG_SIZE))
                     img = np.asarray(img)
                     np.save(path, img, allow_pickle=True)
                     out = path

@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+from core.util.constants import FULL_MODEL_CHECKPOINT_PATH, KERNEL_SIZE, IMG_SIZE
 from core.util.logging.logable import Logable
 from core.data.feature import FeatureExtractor
 from sklearn import preprocessing
@@ -18,7 +19,7 @@ class Model(Logable):
                  df: pd.DataFrame,
                  path: str,
                  feature="path",
-                 kernel_size=(3, 3)):
+                 kernel_size=(KERNEL_SIZE, KERNEL_SIZE)):
         super().__init__()
         os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
         self.df = df
@@ -32,7 +33,7 @@ class Model(Logable):
         self.val_dataset = None
         self.test_dataset = None
 
-    def _create_model(self, kernel_size=(3, 3)):
+    def _create_model(self, kernel_size=(KERNEL_SIZE, KERNEL_SIZE)):
         model = tf.keras.models.Sequential([
             tf.keras.layers.Conv2D(32, kernel_size, activation="relu", data_format="channels_last",
                                    input_shape=self.shape),
@@ -173,7 +174,7 @@ class Model(Logable):
 
     def predict_and_show(self, image_path):
         img = tf.keras.preprocessing.image.load_img(
-            image_path, target_size=(336, 336)
+            image_path, target_size=(IMG_SIZE, IMG_SIZE)
         )
         img_array = tf.keras.preprocessing.image.img_to_array(img)
         img_array = tf.expand_dims(img_array, 0)
@@ -196,7 +197,7 @@ class Model(Logable):
 
     def predict(self, image_path):
         img = tf.keras.preprocessing.image.load_img(
-            image_path, target_size=(416, 416)
+            image_path, target_size=(IMG_SIZE, IMG_SIZE)
         )
         img_array = tf.keras.preprocessing.image.img_to_array(img)
         img_array = tf.expand_dims(img_array, 0)
@@ -211,7 +212,7 @@ class Model(Logable):
     def setup_logs(self):
         # logging training data - only if it is not allready there
         if not os.path.exists("logs/train_data"):
-            tensorboard_training_images = np.reshape(self.train_dataset.as_numpy_iterator() / 255, (-1, 416, 416, 1))
+            tensorboard_training_images = np.reshape(self.train_dataset.as_numpy_iterator() / 255, (-1, IMG_SIZE, IMG_SIZE, 1))
 
             data_log = "logs/train_data/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             with tf.summary.create_file_writer(data_log).as_default():
