@@ -1,25 +1,27 @@
 import datetime
 from pprint import pprint
 import os
+import json
 
 import tensorflow as tf
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from core.util.constants import FULL_MODEL_CHECKPOINT_PATH, KERNEL_SIZE, IMG_SIZE
+from core.util.constants import FULL_MODEL_CHECKPOINT_PATH
 from core.util.logging.logable import Logable
 from core.data.feature import FeatureExtractor
 from sklearn import preprocessing
 
 
-
+with open('core/util/constants.txt', 'r') as f:
+    constants = json.load(f)
 class Model(Logable):
     def __init__(self,
                  df: pd.DataFrame,
                  path: str,
                  feature="path",
-                 kernel_size=(KERNEL_SIZE, KERNEL_SIZE)):
+                 kernel_size=(constants["KERNEL_SIZE"], constants["KERNEL_SIZE"])):
         super().__init__()
         os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
         self.df = df
@@ -33,7 +35,7 @@ class Model(Logable):
         self.val_dataset = None
         self.test_dataset = None
 
-    def _create_model(self, kernel_size=(KERNEL_SIZE, KERNEL_SIZE)):
+    def _create_model(self, kernel_size=(3, 3)):
         model = tf.keras.models.Sequential([
             tf.keras.layers.Conv2D(32, kernel_size, activation="relu", data_format="channels_last",
                                    input_shape=self.shape),
@@ -174,7 +176,7 @@ class Model(Logable):
 
     def predict_and_show(self, image_path):
         img = tf.keras.preprocessing.image.load_img(
-            image_path, target_size=(IMG_SIZE, IMG_SIZE)
+            image_path, target_size=(constants["IMG_SIZE"], constants["IMG_SIZE"])
         )
         img_array = tf.keras.preprocessing.image.img_to_array(img)
         img_array = tf.expand_dims(img_array, 0)
@@ -197,7 +199,7 @@ class Model(Logable):
 
     def predict(self, image_path):
         img = tf.keras.preprocessing.image.load_img(
-            image_path, target_size=(IMG_SIZE, IMG_SIZE)
+            image_path, target_size=(constants["IMG_SIZE"], constants["IMG_SIZE"])
         )
         img_array = tf.keras.preprocessing.image.img_to_array(img)
         img_array = tf.expand_dims(img_array, 0)
@@ -212,7 +214,8 @@ class Model(Logable):
     def setup_logs(self):
         # logging training data - only if it is not allready there
         if not os.path.exists("logs/train_data"):
-            tensorboard_training_images = np.reshape(self.train_dataset.as_numpy_iterator() / 255, (-1, IMG_SIZE, IMG_SIZE, 1))
+            tensorboard_training_images = np.reshape(self.train_dataset.as_numpy_iterator() / 255,
+                                                     (-1, constants["IMG_SIZE"], constants["IMG_SIZE"], 1))
 
             data_log = "logs/train_data/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             with tf.summary.create_file_writer(data_log).as_default():

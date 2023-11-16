@@ -15,11 +15,3 @@ FULL_MODEL_CHECKPOINT_PATH: str = MODEL_CHECKPOINT_PATH + "model.ckpt"
 
 RAW_WORLD_DATA_PATH="leopidotera-world/multimedia.txt"
 RAW_WORLD_LABEL_PATH="leopidotera-world/occurrence-world.csv"
-
-MODEL_ID = -1
-KERNEL_SIZE = -1
-LEARNING_RATE = -0.1
-NUM_EPOCHS = -1
-NUM_IMAGES = -1
-IMG_SIZE = -1
-CROPPED = False
