@@ -18,6 +18,8 @@ from core.util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFES
 from core.data.feature import FeatureExtractor
 from core.yolo.yolo_func import obj_det, yolo_crop
 
+import math
+
 urllib3.disable_warnings(category=InsecureRequestWarning)
 
 
@@ -99,16 +101,21 @@ class Database(Logable):
         if self.sort:
             df.sort_values(by=['species'], inplace=True)
         print(f"found {len(df['species'].unique())} unique species")
+
+        df_dk = df.copy()
+
         if self._num_rows:
             df.drop(df.index[self._num_rows:], inplace=True)
         df.reset_index(inplace=True, drop=True)
+
+        df_dk.drop(df_dk[df_dk['gbifID'].isin(df['gbifID'])].index, inplace=True)
 
         df, df_label = self._make_dfs_from_raws()
         df = self._merge_dfs_on_gbif(df, df_label)
         df = self._sort_drop_rows(df)
 
         if self.minimum_images is not None:
-            df = self.pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.minimum_images)
+            df = self.pad_dataset(df, df_dk, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.minimum_images)
 
         df = self.fetch_images(df, self.link_col)
         df.reset_index(inplace=True, drop=True)
@@ -116,7 +123,7 @@ class Database(Logable):
         return df
 
     @staticmethod
-    def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, min_amount_of_pictures=3):
+    def pad_dataset(df, df_dk, raw_dataset_path_world: str, raw_label_path_world: str, min_amount_of_pictures=3):
         run_correction = False
 
         values = df['species'].value_counts().keys().tolist()
@@ -124,19 +131,25 @@ class Database(Logable):
 
         less_than_list = []
 
+        min_amount_of_pictures = math.floor(len(df.index) / len(values))
+
+        print("hoe", min_amount_of_pictures, min_amount_of_pictures * len(values))
+
         for itt in range(len(counts)):
             if min_amount_of_pictures > counts[itt]:
                 less_than_list.append((values[itt], counts[itt]))
                 run_correction = True
 
         if run_correction:
-            world_df: pd.DataFrame = pd.read_csv(raw_dataset_path, sep="	", low_memory=False)
-            world_df_labels: pd.DataFrame = pd.read_csv(raw_label_path, sep=",", low_memory=False)
+            world_df: pd.DataFrame = pd.read_csv(raw_dataset_path_world, sep="	", low_memory=False)
+            world_df_labels: pd.DataFrame = pd.read_csv(raw_label_path_world, sep=",", low_memory=False)
 
             Database.drop_cols([world_df, world_df_labels])
 
             world_df = world_df.merge(world_df_labels[world_df_labels['gbifID'].isin(world_df['gbifID'])],
                                       on=['gbifID'])
+
+            world_df = pd.concat((df_dk, world_df))
 
             out = df["species"].value_counts()
 
@@ -144,9 +157,12 @@ class Database(Logable):
 
             totalRows = 0
             for index, count in out.items():
-                if count < min_amount_of_pictures:
-                    species_with_less_than_optimal_amount_of_images.append(index)
-                    totalRows += 1
+                species_with_less_than_optimal_amount_of_images.append(index)
+                totalRows += 1
+
+            print("joe1, ", df)
+            df = df[0:0]
+            print("joe, ", df)
 
             totalRows = totalRows * min_amount_of_pictures
             print("Total number of extra rows: ", totalRows)
@@ -154,7 +170,7 @@ class Database(Logable):
             # loop that gets the species, which are below the required amount
             for item, count in less_than_list:
                 world_specific = world_df.loc[world_df["species"] == item]
-                world_specific = world_specific.iloc[:min_amount_of_pictures - count]
+                world_specific = world_specific.iloc[:min_amount_of_pictures]
 
                 df = pd.concat((df, world_specific))
 
