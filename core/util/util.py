@@ -1,9 +1,11 @@
 import errno
 import os
+from argparse import Namespace
 from functools import wraps
 from logging.handlers import TimedRotatingFileHandler
 from time import time
 import logging
+import argparse
 
 
 def timing(f):
@@ -50,6 +52,26 @@ def setup_log(log_level):
     logging.getLogger().addHandler(logger_file)
     logging.getLogger().addFilter(LogFilter())
     logging.getLogger().setLevel(logging.INFO)
+
+
+def setup_argparse() -> Namespace:
+    parser = argparse.ArgumentParser(
+        description='MODEL_ID, KERNEL_SIZE, LEARNING_RATE, NUM_EPOCHS, NUM_IMAGES, IMG_SIZE, CROPPED')
+    parser.add_argument('MODEL_ID', metavar='ID', type=int,
+                        help='an integer for model id')
+    parser.add_argument('KERNEL_SIZE', metavar='Kernel', type=int,
+                        help='an integer N for kernel size (N, N)')
+    parser.add_argument('LEARNING_RATE', metavar='LearningRate', type=float,
+                        help='a float for learning rate')
+    parser.add_argument('NUM_EPOCHS', metavar='Epochs', type=int,
+                        help='an integer for amount of epochs')
+    parser.add_argument('NUM_IMAGES', metavar='ImageAmount', type=int,
+                        help='an integer for amount of images')
+    parser.add_argument('IMG_SIZE', metavar='ImageSize', type=int,
+                        help='an integer N for size of images N x N')
+    parser.add_argument('CROPPED', metavar='Cropped', type=int,
+                        help='crop images with YOLO model (0=false, 1=true)')
+    return parser.parse_args()
 
 
 class LogFilter(logging.Filter):

@@ -1,8 +1,8 @@
 import datetime
 from pprint import pprint
 import os
+import json
 
-import keras.layers
 import tensorflow as tf
 import pandas as pd
 import numpy as np
@@ -13,15 +13,15 @@ from core.util.logging.logable import Logable
 from core.data.feature import FeatureExtractor
 from sklearn import preprocessing
 
-from core.model.memoryCallbacks import GpuMemoryCallback, CpuMemoryCallback
 
-
+with open('core/util/constants.txt', 'r') as f:
+    constants = json.load(f)
 class Model(Logable):
     def __init__(self,
                  df: pd.DataFrame,
                  path: str,
                  feature="path",
-                 kernel_size=(3, 3)):
+                 kernel_size=(constants["KERNEL_SIZE"], constants["KERNEL_SIZE"])):
         super().__init__()
         os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
         self.df = df
@@ -36,27 +36,14 @@ class Model(Logable):
         self.test_dataset = None
 
     def _create_model(self, kernel_size=(3, 3)):
-        """
         model = tf.keras.models.Sequential([
-            tf.keras.layers.Flatten(input_shape=(size[0], size[1], depth)),
-            tf.keras.layers.Dense(5, activation='relu'),
-            tf.keras.layers.Dense(len(os.listdir("image_db")), activation="softmax")
-        ])
-        """
-        activ_fnc = keras.layers.ReLU()
-        model = tf.keras.models.Sequential([
-            tf.keras.layers.Conv2D(32, kernel_size, activation=activ_fnc, data_format="channels_last",
+            tf.keras.layers.Conv2D(32, kernel_size, activation="relu", data_format="channels_last",
                                    input_shape=self.shape),
             tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(32, kernel_size, activation=activ_fnc),
+            tf.keras.layers.Conv2D(64, kernel_size, activation="relu"),
             tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(64, kernel_size, activation=activ_fnc),
-            tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(64, kernel_size, activation=activ_fnc),
-            tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Conv2D(64, kernel_size, activation=activ_fnc),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(64, activation=activ_fnc),
+            tf.keras.layers.Dense(128, activation="relu"),
             tf.keras.layers.Dense(len(self.df['species'].unique()), activation="softmax")
         ])
 
@@ -130,11 +117,15 @@ class Model(Logable):
         )
 
     def fit(self, epochs=10):
+        datetimeString = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        log_dir = "logs/fit/" + datetimeString
+        callbacks = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+
         history = self.model.fit(
-            self.train_dataset,
+            self.train_dataset.prefetch(tf.data.AUTOTUNE),
             validation_data=self.val_dataset,
             epochs=epochs,
-            callbacks=self.callbacks()
+            callbacks=[callbacks]
         )
         return history
 
@@ -185,7 +176,7 @@ class Model(Logable):
 
     def predict_and_show(self, image_path):
         img = tf.keras.preprocessing.image.load_img(
-            image_path, target_size=(416, 416)
+            image_path, target_size=(constants["IMG_SIZE"], constants["IMG_SIZE"])
         )
         img_array = tf.keras.preprocessing.image.img_to_array(img)
         img_array = tf.expand_dims(img_array, 0)
@@ -208,7 +199,7 @@ class Model(Logable):
 
     def predict(self, image_path):
         img = tf.keras.preprocessing.image.load_img(
-            image_path, target_size=(416, 416)
+            image_path, target_size=(constants["IMG_SIZE"], constants["IMG_SIZE"])
         )
         img_array = tf.keras.preprocessing.image.img_to_array(img)
         img_array = tf.expand_dims(img_array, 0)
@@ -223,12 +214,13 @@ class Model(Logable):
     def setup_logs(self):
         # logging training data - only if it is not allready there
         if not os.path.exists("logs/train_data"):
-            tensorboard_training_images = np.reshape(self.train_dataset.as_numpy_iterator() / 255, (-1, 416, 416, 1))
+            tensorboard_training_images = np.reshape(self.train_dataset.as_numpy_iterator() / 255,
+                                                     (-1, constants["IMG_SIZE"], constants["IMG_SIZE"], 1))
 
             data_log = "logs/train_data/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             with tf.summary.create_file_writer(data_log).as_default():
                 tf.summary.image("Training data", tensorboard_training_images, max_outputs=12, step=0)
-
+"""
     def callbacks(self):
         datetimeString = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
@@ -236,24 +228,21 @@ class Model(Logable):
         log_dir = "logs/fit/" + datetimeString
         tensorboard_callback = tf.keras.callbacks.TensorBoard(
             log_dir=log_dir,
-            histogram_freq=1,
-            write_images=True)
+            histogram_freq=15)
 
         # creating a callback for checkpoints
         cp_callback = tf.keras.callbacks.ModelCheckpoint(
             filepath=FULL_MODEL_CHECKPOINT_PATH,
             save_weights_only=True,
             save_freq=1000,
-            verbose=1)
-
-        # loss_f = tf.keras.metrics.categorical_crossentropy()
+            verbose=2)
 
         # creating callbacks for cpu memory usage
         cpu_memory_dir = "logs/cpu_memory_usage/" + datetimeString
         cpu_memory_callback = CpuMemoryCallback(cpu_memory_dir, 5)
 
         # listing all callbacks
-        callbacks = [tensorboard_callback, cp_callback, cpu_memory_callback]
+        callbacks = [tensorboard_callback]
 
         # checking if there exist at least one GPU on the current machine or not
         if tf.config.list_physical_devices('GPU'):
@@ -261,3 +250,4 @@ class Model(Logable):
             callbacks.append(GpuMemoryCallback(gpu_memory_dir, 5))
 
         return callbacks
+"""

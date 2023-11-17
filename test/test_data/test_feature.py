@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 
 import numpy as np
 import pytest
@@ -9,12 +10,14 @@ from core.data.fetch import Database
 from core.util.constants import RAW_DATA_PATH, RAW_LABEL_PATH, LABEL_DATASET_PATH, DATASET_PATH
 import shutil
 
+with open('core/util/constants.txt', 'r') as f:
+    constants = json.load(f)
 
 @pytest.fixture
 def temp_dir(request):
     temp_dir = "temp-test-dir/temp-species-dir"
     os.makedirs(temp_dir, exist_ok=True)
-    image = np.full((416, 416, 3), fill_value=1, dtype=np.uint8)
+    image = np.full((constants["IMG_SIZE"], constants["IMG_SIZE"], 3), fill_value=1, dtype=np.uint8)
     logging.info(image.shape)
     np.save(f"{temp_dir}/test_0.npy", image)
 
