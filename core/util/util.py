@@ -49,6 +49,7 @@ def setup_log(log_level):
     logger_file.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     logging.getLogger().addHandler(logger_file)
     logging.getLogger().addFilter(LogFilter())
+    logging.getLogger().setLevel(logging.INFO)
 
 
 class LogFilter(logging.Filter):
