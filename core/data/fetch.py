@@ -79,35 +79,11 @@ class Database(Logable):
         if os.path.exists(self.dataset_csv_filename):
             os.remove(self.dataset_csv_filename)
 
-        df: pd.DataFrame = pd.read_csv(self.raw_dataset_path, sep="	", low_memory=False)
-        if os.path.exists(self.label_dataset_path):
-            df_label: pd.DataFrame = pd.read_csv(self.label_dataset_path, low_memory=False)
-        else:
-            df_label: pd.DataFrame = pd.read_csv(self.raw_label_path, sep="	", low_memory=False)
-            df_label.to_csv(self.label_dataset_path, index=False)
-        self.drop_cols([df, df_label])
-        df = df.merge(df_label[df_label['gbifID'].isin(df['gbifID'])], on=['gbifID'])
-        df = df.loc[~df['lifeStage'].isin(BFLY_LIFESTAGE)]
-        df = df.dropna(subset=['species'])
-        if self.bfly:
-            if "all" in self.bfly:
-                df = df.loc[df['family'].isin(BFLY_FAMILY)]
-            else:
-                df = df.loc[df['species'].isin(self.bfly)]
-        if self.sort:
-            df.sort_values(by=['species'], inplace=True)
-        print(f"found {len(df['species'].unique())} unique species")
-        if self._num_rows:
-            df.drop(df.index[self._num_rows:], inplace=True)
-        df.reset_index(inplace=True, drop=True)
-
         df, df_label = self._make_dfs_from_raws()
         df = self._merge_dfs_on_gbif(df, df_label)
         df = self._sort_drop_rows(df)
 
-        if self.minimum_images is not None:
-            df = self.pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.minimum_images)
-
+        df = self.pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH)
         df = self.fetch_images(df, self.link_col)
         df.reset_index(inplace=True, drop=True)
         df.to_csv(self.dataset_csv_filename, index=False)
