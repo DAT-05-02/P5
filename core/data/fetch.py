@@ -131,8 +131,13 @@ class Database(Logable):
                     self.error(f"Unknown error: {e}")
                     raise e
             else:
+                model = YOLO('yolo/medium250e.pt')
+                res = obj_det(Image.fromarray(np.load(path, allow_pickle=True)), model, conf=0.25, img_size=(640, 640))
+                xywhn = res[0].boxes.xywhn
+                if xywhn.numel() > 0:
+                    accepted = True
                 out = path
-                accepted = True
+                self.debug(out)
             return out, accepted
 
         with ThreadPoolExecutor(50) as executor:
