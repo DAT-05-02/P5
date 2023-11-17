@@ -9,7 +9,6 @@ import pandas as pd
 import os
 from PIL import Image
 from ultralytics import YOLO
-from urllib3.exceptions import InsecureRequestWarning
 import urllib3
 
 from core.util.logging.logable import Logable
@@ -18,7 +17,7 @@ from core.util.constants import IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFES
 from core.data.feature import FeatureExtractor
 from yolo import obj_det, yolo_crop
 
-urllib3.disable_warnings(category=InsecureRequestWarning)
+urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
 
 
 class Database(Logable):
