@@ -14,14 +14,12 @@ from core.data.feature import FeatureExtractor
 from sklearn import preprocessing
 
 
-with open('core/util/constants.txt', 'r') as f:
-    constants = json.load(f)
 class Model(Logable):
     def __init__(self,
                  df: pd.DataFrame,
                  path: str,
                  feature="path",
-                 kernel_size=(constants["KERNEL_SIZE"], constants["KERNEL_SIZE"])):
+                 kernel_size=(3, 3)):
         super().__init__()
         os.environ['TF_GPU_ALLOCATOR'] = 'cuda_malloc_async'
         self.df = df
@@ -34,16 +32,36 @@ class Model(Logable):
         self.train_dataset: tf.data.Dataset = None
         self.val_dataset = None
         self.test_dataset = None
+        with open('util/constants.txt', 'r') as f:
+            self.constants = json.load(f)
 
     def _create_model(self, kernel_size=(3, 3)):
         model = tf.keras.models.Sequential([
             tf.keras.layers.Conv2D(32, kernel_size, activation="relu", data_format="channels_last",
-                                   input_shape=self.shape),
+                                   input_shape=self.shape, padding="same"),
+            tf.keras.layers.Conv2D(32, kernel_size, activation="relu"),
             tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Dropout(0.2),
+
+            tf.keras.layers.Conv2D(64, kernel_size, padding="same", activation="relu"),
             tf.keras.layers.Conv2D(64, kernel_size, activation="relu"),
             tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Dropout(0.2),
+
+            tf.keras.layers.Conv2D(128, kernel_size, padding="same", activation="relu"),
+            tf.keras.layers.Conv2D(128, kernel_size, activation="relu"),
+            tf.keras.layers.Activation("relu"),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Dropout(0.2),
+
+            tf.keras.layers.Conv2D(512, (5, 5), padding="same", activation="relu"),
+            tf.keras.layers.Conv2D(512, (5, 5), activation="relu"),
+            tf.keras.layers.MaxPooling2D((4, 4)),
+            tf.keras.layers.Dropout(0.2),
+
             tf.keras.layers.Flatten(),
-            tf.keras.layers.Dense(128, activation="relu"),
+            tf.keras.layers.Dense(1024, activation="relu"),
+            tf.keras.layers.Dropout(0.2),
             tf.keras.layers.Dense(len(self.df['species'].unique()), activation="softmax")
         ])
 
@@ -109,7 +127,7 @@ class Model(Logable):
                                                                 buffer_size=len(self.df[self.feature]))
 
     def compile(self, lr=0.001):
-        custom_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+        custom_optimizer = tf.keras.optimizers.RMSprop(learning_rate=lr)
         self.model.compile(
             custom_optimizer,
             loss=tf.keras.losses.CategoricalCrossentropy(),
@@ -176,7 +194,7 @@ class Model(Logable):
 
     def predict_and_show(self, image_path):
         img = tf.keras.preprocessing.image.load_img(
-            image_path, target_size=(constants["IMG_SIZE"], constants["IMG_SIZE"])
+            image_path, target_size=(self.constants["IMG_SIZE"], self.constants["IMG_SIZE"])
         )
         img_array = tf.keras.preprocessing.image.img_to_array(img)
         img_array = tf.expand_dims(img_array, 0)
@@ -199,7 +217,7 @@ class Model(Logable):
 
     def predict(self, image_path):
         img = tf.keras.preprocessing.image.load_img(
-            image_path, target_size=(constants["IMG_SIZE"], constants["IMG_SIZE"])
+            image_path, target_size=(self.constants["IMG_SIZE"], self.constants["IMG_SIZE"])
         )
         img_array = tf.keras.preprocessing.image.img_to_array(img)
         img_array = tf.expand_dims(img_array, 0)
@@ -215,7 +233,7 @@ class Model(Logable):
         # logging training data - only if it is not allready there
         if not os.path.exists("logs/train_data"):
             tensorboard_training_images = np.reshape(self.train_dataset.as_numpy_iterator() / 255,
-                                                     (-1, constants["IMG_SIZE"], constants["IMG_SIZE"], 1))
+                                                     (-1, self.constants["IMG_SIZE"], self.constants["IMG_SIZE"], 1))
 
             data_log = "logs/train_data/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             with tf.summary.create_file_writer(data_log).as_default():
