@@ -3,6 +3,7 @@ import logging
 from concurrent.futures import ThreadPoolExecutor, ALL_COMPLETED
 from typing import Any
 
+import json
 import numpy as np
 import requests
 import pandas as pd
@@ -15,7 +16,7 @@ import urllib3
 from core.util.logging.logable import Logable
 from core.util.util import timing, setup_log, log_ent_exit
 from core.util.constants import (IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH, DIRNAME_DELIM,
-                                 RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, IMG_SIZE)
+                                 RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH) 
 from core.data.feature import FeatureExtractor
 from core.yolo.yolo_func import obj_det, yolo_crop
 
@@ -64,6 +65,8 @@ class Database(Logable):
         self.minimum_images = minimum_images
         self.num_rows = self.num_rows()
         self.sort = sort
+        with open('util/constants.txt', 'r') as f:
+            self.constants = json.load(f)
 
     def setup_dataset(self):
         """Constructs dataframe. Makes necessary directories, checks if current .csv file fits with self, and returns
@@ -191,7 +194,7 @@ class Database(Logable):
                             img = yolo_crop(img, xywhn)
                             accepted = True
                     img = FeatureExtractor.make_square_with_bb(img)
-                    img = img.resize((IMG_SIZE, IMG_SIZE))
+                    img = img.resize((self.constants['IMG_SIZE'], self.constants["IMG_SIZE"]))
                     img = np.asarray(img)
                     np.save(path, img, allow_pickle=True)
                     out = path
