@@ -26,7 +26,6 @@ if __name__ == "__main__":
     with open('core/util/constants.txt', 'r') as f:
         constants = json.load(f)
 
-
     ops = PySetup()
     num_rows = constants["NUM_IMAGES"]
     feature = ""
@@ -40,17 +39,18 @@ if __name__ == "__main__":
                   num_rows=num_rows,
                   crop=constants["CROPPED"],
                   minimum_images=None,
-                  degrees="none",
+                  degrees="all",
                   bfly=["all"])
     df = db.setup_dataset()
     df = ft_extractor.pre_process(df, feature, radius=2)
 
-    df = db.only_accepted(df)
+    if constants["CROPPED"] == 1:
+        df = db.only_accepted(df)
+
     model = Model(df, IMGDIR_PATH, feature=feature, kernel_size=(constants["KERNEL_SIZE"], constants["KERNEL_SIZE"]))
-    # model.load()
-    # model.print_dataset_info()
+    #model.load()
     model.compile(constants["LEARNING_RATE"])
     model.split_dataset()
     model.fit(constants["NUM_EPOCHS"])
     model.save()
-    # model.evaluate_and_show_predictions(num_samples=3)
+    model.evaluate()
