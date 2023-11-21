@@ -1,21 +1,21 @@
 import datetime
 from pprint import pprint
 import os
-import json
 
 import tensorflow as tf
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from core.util.constants import FULL_MODEL_CHECKPOINT_PATH
 from core.util.logging.logable import Logable
 from core.data.feature import FeatureExtractor
 from sklearn import preprocessing
 
+from core.util.util import ConstantSingleton
 
-with open('core/util/constants.txt', 'r') as f:
-    constants = json.load(f)
+constants = ConstantSingleton()
+
+
 class Model(Logable):
     def __init__(self,
                  df: pd.DataFrame,
