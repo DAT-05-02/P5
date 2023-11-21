@@ -12,13 +12,14 @@ from ultralytics import YOLO
 import urllib3
 
 from core.util.logging.logable import Logable
-from core.util.util import timing, setup_log, log_ent_exit
+from core.util.util import timing, setup_log, log_ent_exit, ConstantSingleton
 from core.util.constants import (IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH, DIRNAME_DELIM,
-                                 RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, IMG_SIZE)
+                                 RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH)
 from core.data.feature import FeatureExtractor
 from core.yolo.yolo_func import obj_det, yolo_crop
 
 urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
+constants = ConstantSingleton()
 
 
 class Database(Logable):
@@ -166,7 +167,7 @@ class Database(Logable):
                             img = yolo_crop(img, xywhn)
                             accepted = True
                     img = FeatureExtractor.make_square_with_bb(img)
-                    img = img.resize((IMG_SIZE, IMG_SIZE))
+                    img = img.resize((constants['IMG_SIZE'], constants['IMG_SIZE']))
                     img = np.asarray(img)
                     np.save(path, img, allow_pickle=True)
                     out = path
