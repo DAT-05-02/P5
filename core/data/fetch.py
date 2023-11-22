@@ -13,7 +13,8 @@ import urllib3
 
 from core.util.logging.logable import Logable
 from core.util.util import timing, setup_log, log_ent_exit, ConstantSingleton
-from core.util.constants import (IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH, DIRNAME_DELIM)
+from core.util.constants import (IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH, DIRNAME_DELIM,
+                                 RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH)
 from core.data.feature import FeatureExtractor
 from core.yolo.yolo_func import obj_det, yolo_crop
 
@@ -87,7 +88,8 @@ class Database(Logable):
             df = self._merge_dfs_on_gbif(df, df_label)
             df = self._sort_drop_rows(df)
 
-        # df = self.pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH)
+        if self.minimum_images is not None:
+            df = self.pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.minimum_images)
         df = self.fetch_images(df, self.link_col)
         df.reset_index(inplace=True, drop=True)
         df.to_csv(self.dataset_csv_filename, index=False)
@@ -169,6 +171,8 @@ class Database(Logable):
                         if xywhn.numel() > 0:
                             img = yolo_crop(img, xywhn)
                             accepted = True
+                    else:
+                        accepted = True
                     img = img.resize((constants['IMG_SIZE'], constants['IMG_SIZE']))
                     img = img.convert("RGB")
                     img = np.asarray(img)
@@ -192,16 +196,21 @@ class Database(Logable):
             else:
                 try:
                     out = row['path']
-                    accepted = row['yolo_accepted']
                 except KeyError:
                     out = path
-                    model = YOLO('yolo/medium250e.pt')
-                    res = obj_det(Image.fromarray(np.load(path, allow_pickle=True)), model, conf=0.25,
-                                  img_size=(640, 640))
-                    xywhn = res[0].boxes.xywhn
-                    if xywhn.numel() > 0:
-                        accepted = True
-                    self.info(f"{out}: {accepted}")
+                if self.crop == 1:
+                    try:
+                        accepted = row['yolo_accepted']
+                    except KeyError:
+                        model = YOLO('yolo/medium250e.pt')
+                        res = obj_det(Image.fromarray(np.load(path, allow_pickle=True)), model, conf=0.25,
+                                      img_size=(640, 640))
+                        xywhn = res[0].boxes.xywhn
+                        if xywhn.numel() > 0:
+                            accepted = True
+                        self.info(f"{out}: {accepted}")
+                else:
+                    accepted = True
             return out, accepted
 
         with ThreadPoolExecutor(50) as executor:
