@@ -168,6 +168,7 @@ class Database(Logable):
                             accepted = True
                     img = FeatureExtractor.make_square_with_bb(img)
                     img = img.resize((constants['IMG_SIZE'], constants['IMG_SIZE']))
+                    img = img.convert("RGB")
                     img = np.asarray(img)
                     np.save(path, img, allow_pickle=True)
                     out = path

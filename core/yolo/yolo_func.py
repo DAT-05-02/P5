@@ -31,5 +31,4 @@ def load_img(img, xywhn) -> Tuple[float, float, float, float]:
 def yolo_crop(img: Image.Image, xywhn, rs_size=(416, 416)):
     corners = load_img(img, xywhn)
     img1 = img.crop(corners)
-    img1 = img1.resize(rs_size, resample=3)
     return img1
