@@ -289,7 +289,8 @@ class FeatureExtractor(Logable):
                 img = np.load(f)
                 output_shape = img.shape
                 if output_shape not in unique_output_shapes:
-                    print("unique shape: ", output_shape)
+                    self.info("unique shape: ", output_shape)
+                    self.info(f"at path: {path}")
                     unique_output_shapes.add(output_shape)
 
         if len(unique_output_shapes) > 1:
