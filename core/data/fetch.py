@@ -81,15 +81,14 @@ class Database(Logable):
         if os.path.exists(self.dataset_csv_filename):
             os.remove(self.dataset_csv_filename)
 
-        # The full danish dataset
-        df_dk = df.copy()
-
-        df_dk.drop(df_dk[df_dk['gbifID'].isin(df['gbifID'])].index, inplace=True)
-
         df, df_label = self._make_dfs_from_raws()
         df = self._merge_dfs_on_gbif(df, df_label)
         df = self._sort_drop_rows(df)
 
+        # The full danish dataset
+        df_dk = df.copy()
+
+        df_dk.drop(df_dk[df_dk['gbifID'].isin(df['gbifID'])].index, inplace=True)
 
         if self.minimum_images:
             species_n = df['species'].nunique()
