@@ -84,7 +84,8 @@ class Database(Logable):
         df = self._merge_dfs_on_gbif(df, df_label)
         df = self._sort_drop_rows(df)
 
-        df = self.pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH)
+        if self.minimum_images is not None:
+            df = self.pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.minimum_images)
         df = self.fetch_images(df, self.link_col)
         df.reset_index(inplace=True, drop=True)
         df.to_csv(self.dataset_csv_filename, index=False)
@@ -186,13 +187,8 @@ class Database(Logable):
                     self.error(f"Unknown error: {e}")
                     raise e
             else:
-                model = YOLO('yolo/medium250e.pt')
-                res = obj_det(Image.fromarray(np.load(path, allow_pickle=True)), model, conf=0.25, img_size=(640, 640))
-                xywhn = res[0].boxes.xywhn
-                if xywhn.numel() > 0:
-                    accepted = True
                 out = path
-                self.debug(out)
+                accepted = True
             return out, accepted
 
         with ThreadPoolExecutor(50) as executor:

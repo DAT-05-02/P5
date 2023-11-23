@@ -101,12 +101,12 @@ class Model(Logable):
         remaining_dataset = self.dataset.skip(train_size)
         self.val_dataset = remaining_dataset.take(val_size)
         self.test_dataset = remaining_dataset.skip(val_size)
-        self.train_dataset = self.train_dataset.shuffle(reshuffle_each_iteration=True,
-                                                        buffer_size=len(self.df[self.feature])).batch(32)
-        self.val_dataset = self.val_dataset.shuffle(reshuffle_each_iteration=True,
-                                                    buffer_size=len(self.df[self.feature])).batch(32)
-        self.test_dataset = self.test_dataset.shuffle(reshuffle_each_iteration=True,
-                                                      buffer_size=len(self.df[self.feature])).batch(32)
+        self.train_dataset = self.train_dataset.batch(32).shuffle(reshuffle_each_iteration=True,
+                                                                  buffer_size=len(self.df[self.feature]))
+        self.val_dataset = self.val_dataset.batch(32).shuffle(reshuffle_each_iteration=True,
+                                                              buffer_size=len(self.df[self.feature]))
+        self.test_dataset = self.test_dataset.batch(32).shuffle(reshuffle_each_iteration=True,
+                                                                buffer_size=len(self.df[self.feature]))
 
     def compile(self, lr=0.001):
         custom_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
@@ -220,6 +220,8 @@ class Model(Logable):
             data_log = "logs/train_data/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             with tf.summary.create_file_writer(data_log).as_default():
                 tf.summary.image("Training data", tensorboard_training_images, max_outputs=12, step=0)
+
+
 """
     def callbacks(self):
         datetimeString = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
