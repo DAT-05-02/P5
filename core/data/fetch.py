@@ -81,9 +81,8 @@ class Database(Logable):
             df = self._merge_dfs_on_gbif(df, df_label)
             df = self._sort_drop_rows(df)
             df = df.merge(df_base, how='left')
+            self.info(df)
         else:
-            if os.path.exists(self.dataset_csv_filename):
-                os.remove(self.dataset_csv_filename)
             df, df_label = self._make_dfs_from_raws()
             df = self._merge_dfs_on_gbif(df, df_label)
             df = self._sort_drop_rows(df)
@@ -171,8 +170,6 @@ class Database(Logable):
                         if xywhn.numel() > 0:
                             img = yolo_crop(img, xywhn)
                             accepted = True
-                    else:
-                        accepted = True
                     img = img.resize((constants['IMG_SIZE'], constants['IMG_SIZE']))
                     img = img.convert("RGB")
                     img = np.asarray(img)
@@ -186,21 +183,28 @@ class Database(Logable):
                 except urllib3.exceptions.ReadTimeoutError:
                     self.warning(f"Read timed out on {index}")
                 except ValueError as e:
-                    self.error(f"Image name not applicable: {e}")
-                    raise e
+                    self.error(f"Image name not applicable: {e}", stack_info=True, exc_info=True)
+                    return out, accepted
                 except OSError as e:
-                    self.error(f"Could not save file: {e}")
-                    raise e
+                    self.error(f"Could not save file: {e}", stack_info=True, exc_info=True)
+                    return out, accepted
                 except Exception as e:
                     self.error(f"Unknown error: {e}", stack_info=True, exc_info=True)
+                    return out, accepted
             else:
                 try:
                     out = row['path']
+                    if pd.isna(out):
+                        raise KeyError
                 except KeyError:
                     out = path
                 if self.crop == 1:
                     try:
-                        accepted = row['yolo_accepted']
+                        accepted_tmp = row['yolo_accepted']
+                        if pd.isna(accepted_tmp):
+                            raise KeyError
+                        else:
+                            accepted = accepted_tmp
                     except KeyError:
                         model = YOLO('yolo/medium250e.pt')
                         res = obj_det(Image.fromarray(np.load(path, allow_pickle=True)), model, conf=0.25,
@@ -208,9 +212,13 @@ class Database(Logable):
                         xywhn = res[0].boxes.xywhn
                         if xywhn.numel() > 0:
                             accepted = True
+
                         self.info(f"{out}: {accepted}")
+                    except TypeError:
+                        accepted = False
                 else:
                     accepted = True
+            self.debug(f'{out}: {accepted}')
             return out, accepted
 
         with ThreadPoolExecutor(50) as executor:
@@ -223,7 +231,8 @@ class Database(Logable):
                 paths[i], yolo_accepted[i] = ft.result()
 
             try:
-                df.drop([df.columns[11], df.columns[12]], axis=1, inplace=True)
+                df.drop("path", axis=1, inplace=True)
+                df.drop("yolo_accepted", axis=1, inplace=True)
             except IndexError:
                 pass
 
@@ -323,6 +332,7 @@ class Database(Logable):
     @log_ent_exit
     def only_accepted(self, df) -> pd.DataFrame:
         df = df.loc[df['yolo_accepted'].isin(['True', True])]
+        self.info(f"{len(df)} yolo_accepted")
         return df
 
     @staticmethod
