@@ -9,7 +9,6 @@ def obj_det(img, model: YOLO, conf=0.25):
 
 def load_img(img, xywhn) -> Tuple[float, float, float, float]:
     img_width, img_height = img.size
-
     x_coordinate = float(xywhn[0][0])
     y_coordinate = float(xywhn[0][1])
     label_width = float(xywhn[0][2])

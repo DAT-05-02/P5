@@ -5,10 +5,12 @@ from core.util.constants import RAW_DATA_PATH, RAW_LABEL_PATH, DATASET_PATH, LAB
 from core.data.feature import FeatureExtractor
 from core.model.model import Model
 from core.util.pysetup import PySetup
+from core.util.util import ConstantSingleton
 
 if __name__ == "__main__":
+    constants = ConstantSingleton()
     ops = PySetup()
-    num_rows = 100
+    num_rows = constants["NUM_IMAGES"]
     feature = ""
     ft_extractor = FeatureExtractor(log_level=logging.INFO)
     db = Database(raw_dataset_path=RAW_DATA_PATH,
@@ -18,21 +20,18 @@ if __name__ == "__main__":
                   log_level=logging.DEBUG,
                   ft_extractor=ft_extractor,
                   num_rows=num_rows,
-                  crop=False,
-                  minimum_images=True,
+                  crop=constants["CROPPED"],
+                  minimum_images=False,
                   degrees="none",
                   bfly=["all"])
     df = db.setup_dataset()
     df = ft_extractor.pre_process(df, feature, radius=2)
-
     df = db.only_accepted(df)
-    '''
-    model = Model(df, IMGDIR_PATH, feature=feature, kernel_size=(3, 3))
+    model = Model(df, IMGDIR_PATH, feature=feature, kernel_size=(constants["KERNEL_SIZE"], constants["KERNEL_SIZE"]))
     # model.load()
     # model.print_dataset_info()
-    model.compile()
+    model.compile(constants["LEARNING_RATE"])
     model.split_dataset()
-    model.fit(50)  # Epochs
+    model.fit(constants["NUM_EPOCHS"])
     model.save()
     # model.evaluate_and_show_predictions(num_samples=3)
-    '''
