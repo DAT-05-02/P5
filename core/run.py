@@ -21,7 +21,7 @@ if __name__ == "__main__":
                   ft_extractor=ft_extractor,
                   num_rows=num_rows,
                   crop=constants["CROPPED"],
-                  minimum_images=None,
+                  minimum_images=False,
                   degrees="none",
                   bfly=["all"])
     df = db.setup_dataset()

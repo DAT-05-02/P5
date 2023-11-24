@@ -18,6 +18,7 @@ from core.util.constants import (IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFE
 from core.data.feature import FeatureExtractor
 from core.yolo.yolo_func import obj_det, yolo_crop
 
+import math
 urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
 constants = ConstantSingleton()
 
@@ -34,7 +35,7 @@ class Database(Logable):
                  link_col="identifier",
                  num_rows=None,
                  crop=True,
-                 minimum_images=None,
+                 minimum_images=False,
                  sort=False,
                  log_level=logging.INFO):
         """ Database class
@@ -72,6 +73,7 @@ class Database(Logable):
         and returns the dataframe.
         @return:
         """
+
         self._make_img_dir()
         df = self._csv_fits_self()
         if df is not None:
@@ -82,58 +84,60 @@ class Database(Logable):
 
         df, df_label = self._make_dfs_from_raws()
         df = self._merge_dfs_on_gbif(df, df_label)
+
+        # The full danish dataset
+        df_dk = df.copy()
+
         df = self._sort_drop_rows(df)
 
-        if self.minimum_images is not None:
-            df = self.pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.minimum_images)
+        df_dk.drop(df_dk[df_dk['gbifID'].isin(df['gbifID'])].index, inplace=True)
+
+        if self.minimum_images:
+            df = self.pad_dataset(df, df_dk, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH)
         df = self.fetch_images(df, self.link_col)
         df.reset_index(inplace=True, drop=True)
         df.to_csv(self.dataset_csv_filename, index=False)
         return df
 
     @staticmethod
-    def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, min_amount_of_pictures=3):
-        run_correction = False
+    def pad_dataset(df, df_dk, raw_dataset_path_world: str, raw_label_path_world: str):
+        species_n = df_dk["species"].nunique()
 
-        values = df['species'].value_counts().keys().tolist()
-        counts = df['species'].value_counts().tolist()
+        values = df_dk['species'].value_counts().keys().tolist()
+        counts = df_dk['species'].value_counts().tolist()
 
         less_than_list = []
 
+        total_rows = len(df.index)
+
+        min_amount_of_pictures = math.floor(total_rows / species_n)
+
         for itt in range(len(counts)):
-            if min_amount_of_pictures > counts[itt]:
-                less_than_list.append((values[itt], counts[itt]))
-                run_correction = True
+            less_than_list.append((values[itt], counts[itt]))
 
-        if run_correction:
-            world_df: pd.DataFrame = pd.read_csv(raw_dataset_path, sep="	", low_memory=False)
-            world_df_labels: pd.DataFrame = pd.read_csv(raw_label_path, sep=",", low_memory=False)
+        world_df: pd.DataFrame = pd.read_csv(raw_dataset_path_world, sep="	", low_memory=False)
+        world_df_labels: pd.DataFrame = pd.read_csv(raw_label_path_world, sep=",", low_memory=False)
 
-            Database.drop_cols([world_df, world_df_labels])
+        Database.drop_cols([world_df, world_df_labels])
 
-            world_df = world_df.merge(world_df_labels[world_df_labels['gbifID'].isin(world_df['gbifID'])],
-                                      on=['gbifID'])
+        world_df = world_df.merge(world_df_labels[world_df_labels['gbifID'].isin(world_df['gbifID'])],
+                                  on=['gbifID'])
 
-            out = df["species"].value_counts()
+        world_df = pd.concat((df_dk, world_df))
 
-            species_with_less_than_optimal_amount_of_images = []
+        df = df[0:0]
 
-            totalRows = 0
-            for index, count in out.items():
-                if count < min_amount_of_pictures:
-                    species_with_less_than_optimal_amount_of_images.append(index)
-                    totalRows += 1
+        rows_to_add_extra = total_rows % species_n
 
-            totalRows = totalRows * min_amount_of_pictures
-            print("Total number of extra rows: ", totalRows)
-            world_df = world_df.loc[world_df['species'].isin(species_with_less_than_optimal_amount_of_images)]
-            # loop that gets the species, which are below the required amount
-            for item, count in less_than_list:
-                world_specific = world_df.loc[world_df["species"] == item]
-                world_specific = world_specific.iloc[:min_amount_of_pictures - count]
-
-                df = pd.concat((df, world_specific))
-
+        # Loop that fills the dataframe with the images
+        for item, count in less_than_list:
+            padding_df = world_df.loc[world_df["species"] == item]
+            if rows_to_add_extra > 0:
+                padding_df = padding_df.iloc[:min_amount_of_pictures + 1]
+                rows_to_add_extra = rows_to_add_extra - 1
+            else:
+                padding_df = padding_df.iloc[:min_amount_of_pictures]
+            df = pd.concat((df, padding_df))
         return df
 
     @timing
