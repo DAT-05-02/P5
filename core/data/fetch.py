@@ -9,19 +9,18 @@ import pandas as pd
 import os
 from PIL import Image
 from ultralytics import YOLO
-from urllib3.exceptions import InsecureRequestWarning
 import urllib3
 
 from core.util.logging.logable import Logable
-from core.util.util import timing, setup_log, log_ent_exit
+from core.util.util import timing, setup_log, log_ent_exit, ConstantSingleton
 from core.util.constants import (IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH, DIRNAME_DELIM,
-                                 RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, IMG_SIZE)
+                                 RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH)
 from core.data.feature import FeatureExtractor
 from core.yolo.yolo_func import obj_det, yolo_crop
 
 import math
-
-urllib3.disable_warnings(category=InsecureRequestWarning)
+urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
+constants = ConstantSingleton()
 
 
 class Database(Logable):
@@ -82,42 +81,18 @@ class Database(Logable):
         if os.path.exists(self.dataset_csv_filename):
             os.remove(self.dataset_csv_filename)
 
-        df: pd.DataFrame = pd.read_csv(self.raw_dataset_path, sep="	", low_memory=False)
-        if os.path.exists(self.label_dataset_path):
-            df_label: pd.DataFrame = pd.read_csv(self.label_dataset_path, low_memory=False)
-        else:
-            df_label: pd.DataFrame = pd.read_csv(self.raw_label_path, sep="	", low_memory=False)
-            df_label.to_csv(self.label_dataset_path, index=False)
-        self.drop_cols([df, df_label])
-        df = df.merge(df_label[df_label['gbifID'].isin(df['gbifID'])], on=['gbifID'])
-        df = df.loc[~df['lifeStage'].isin(BFLY_LIFESTAGE)]
-        df = df.dropna(subset=['species'])
-        if self.bfly:
-            if "all" in self.bfly:
-                df = df.loc[df['family'].isin(BFLY_FAMILY)]
-            else:
-                df = df.loc[df['species'].isin(self.bfly)]
-        if self.sort:
-            df.sort_values(by=['species'], inplace=True)
-        print(f"found {len(df['species'].unique())} unique species")
-
-        # The full danish dataset
-        df_dk = df.copy()
-
-        if self._num_rows:
-            df.drop(df.index[self._num_rows:], inplace=True)
-        df.reset_index(inplace=True, drop=True)
-
-        df_dk.drop(df_dk[df_dk['gbifID'].isin(df['gbifID'])].index, inplace=True)
-
         df, df_label = self._make_dfs_from_raws()
         df = self._merge_dfs_on_gbif(df, df_label)
         df = self._sort_drop_rows(df)
 
+        # The full danish dataset
+        df_dk = df.copy()
+
+        df_dk.drop(df_dk[df_dk['gbifID'].isin(df['gbifID'])].index, inplace=True)
+
         if self.minimum_images:
             species_n = df['species'].nunique()
             df = self.pad_dataset(df, df_dk, species_n, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH)
-
         df = self.fetch_images(df, self.link_col)
         df.reset_index(inplace=True, drop=True)
         df.to_csv(self.dataset_csv_filename, index=False)
@@ -209,7 +184,7 @@ class Database(Logable):
                             img = yolo_crop(img, xywhn)
                             accepted = True
                     img = FeatureExtractor.make_square_with_bb(img)
-                    img = img.resize((IMG_SIZE, IMG_SIZE))
+                    img = img.resize((constants['IMG_SIZE'], constants['IMG_SIZE']))
                     img = np.asarray(img)
                     np.save(path, img, allow_pickle=True)
                     out = path
