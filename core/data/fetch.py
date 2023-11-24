@@ -230,12 +230,8 @@ class Database(Logable):
             for i, ft in enumerate(futures):
                 paths[i], yolo_accepted[i] = ft.result()
 
-            try:
-                df.drop("path", axis=1, inplace=True)
-                df.drop("yolo_accepted", axis=1, inplace=True)
-            except IndexError:
-                pass
-
+            df.drop("path", axis=1, inplace=True, errors="ignore")
+            df.drop("yolo_accepted", axis=1, inplace=True, errors="ignore")
             df['path'] = paths
             df['yolo_accepted'] = yolo_accepted
             df.dropna(subset=['path', 'yolo_accepted'], inplace=True)
