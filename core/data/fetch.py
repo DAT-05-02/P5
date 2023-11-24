@@ -127,17 +127,17 @@ class Database(Logable):
 
         df = df[0:0]
 
-        rows_to_fill = total_rows % species_n
+        rows_to_add_extra = total_rows % species_n
 
         # Loop that fills the dataframe with the images
         for item, count in less_than_list:
-            world_specific = world_df.loc[world_df["species"] == item]
-            if rows_to_fill > 0:
-                world_specific = world_specific.iloc[:min_amount_of_pictures + 1]
-                rows_to_fill = rows_to_fill - 1
+            padding_df = world_df.loc[world_df["species"] == item]
+            if rows_to_add_extra > 0:
+                padding_df = padding_df.iloc[:min_amount_of_pictures + 1]
+                rows_to_add_extra = rows_to_add_extra - 1
             else:
-                world_specific = world_specific.iloc[:min_amount_of_pictures]
-            df = pd.concat((df, world_specific))
+                padding_df = padding_df.iloc[:min_amount_of_pictures]
+            df = pd.concat((df, padding_df))
         return df
 
     @timing
