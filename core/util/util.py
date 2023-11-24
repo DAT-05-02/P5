@@ -29,6 +29,7 @@ class ConstantSingleton(object):
         if self.args is not None:
             json_constants = {
                 "MODEL_ID": self.args.MODEL_ID,
+                "NUM_WORKERS": self.args.NUM_WORKERS,
                 "KERNEL_SIZE": self.args.KERNEL_SIZE,
                 "LEARNING_RATE": self.args.LEARNING_RATE,
                 "NUM_EPOCHS": self.args.NUM_EPOCHS,
@@ -47,9 +48,12 @@ class ConstantSingleton(object):
     @staticmethod
     def _setup_argparse() -> Namespace:
         parser = argparse.ArgumentParser(
-            description='MODEL_ID, KERNEL_SIZE, LEARNING_RATE, NUM_EPOCHS, NUM_IMAGES, IMG_SIZE, CROPPED')
+            description='MODEL_ID, NUM_WORKERS, KERNEL_SIZE, LEARNING_RATE, NUM_EPOCHS, NUM_IMAGES, IMG_SIZE, CROPPED')
         parser.add_argument('MODEL_ID', metavar='ID', type=int,
                             help='an integer for model id')
+        parser.add_argument('NUM_WORKERS', metavar='Workers', type=int,
+                            help='an integer for number of workers for threadpool'
+                                 '3-4 is recommended for 8gb systems, 40-50 for 32gb.')
         parser.add_argument('KERNEL_SIZE', metavar='Kernel', type=int,
                             help='an integer N for kernel size (N, N)')
         parser.add_argument('LEARNING_RATE', metavar='LearningRate', type=float,

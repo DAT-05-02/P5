@@ -221,7 +221,7 @@ class Database(Logable):
             self.debug(f'{out}: {accepted}')
             return out, accepted
 
-        with ThreadPoolExecutor(50) as executor:
+        with ThreadPoolExecutor(constants['NUM_WORKERS']) as executor:
             """Iterates through all rows, starts a thread to download, yolo-predict, save etc. each individual row, 
             then collects all results in a list, and insert these as a column 'path'. Drops rows with NaN value to get 
             rid of failed downloads, no yolo result or any uncaught exception"""
