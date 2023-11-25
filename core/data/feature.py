@@ -23,7 +23,6 @@ class FeatureExtractor(Logable):
         setup_log(log_level=log_level)
         self.save_path = feature_dir_path
         self.img_path = img_dir_path
-        self._mk_ft_dirs()
 
     def pre_process(self,
                     df: pd.DataFrame,
@@ -98,15 +97,6 @@ class FeatureExtractor(Logable):
         else:
             out_ft = feature
         return f"{self.save_path}{DIRNAME_DELIM}{out_ft}/"
-
-    def _mk_ft_dirs(self):
-        """Creates dirs for each available feature
-        @return: None
-        """
-        for feature in FTS:
-            dir_new = self.dirpath_from_ft(feature)
-            if not os.path.exists(dir_new):
-                os.makedirs(dir_new)
 
     @staticmethod
     def lbp(img: np.ndarray, method="ror", radius=1):
