@@ -35,10 +35,9 @@ class Database(Logable):
                  ft_extractor: FeatureExtractor,
                  degrees: str,
                  link_col="identifier",
-                 num_rows=None,
                  crop=True,
-                 minimum_images=None,
-                 sort=False,
+                 num_species=None,
+                 num_images=None,
                  log_level=logging.INFO):
         """ Database class
             @param raw_label_path: path to original label dataset file
@@ -46,11 +45,10 @@ class Database(Logable):
             @param label_dataset_path: path to label csv file
             @param dataset_csv_filename: filename for the csv file
             @param link_col: name of column containing links
-            @param num_rows: number of rows to include
-            @param sort: if dataset should be sorted by species
+            @param num_images: number of images to include
+            @param num_species: number of species to include
             @param bfly: list of species that is included in dataset, have "all" in list for only butterflies (no moths)
             @param crop: boolean if yolo should run and crop images
-            @param minimum_images: number of minimum images per species, if no minimum put None
             """
         super().__init__()
         setup_log(log_level=log_level)
@@ -60,13 +58,13 @@ class Database(Logable):
         self.dataset_csv_filename = dataset_csv_filename
         self.link_col = link_col
         self.ft_extractor = ft_extractor
+        self.num_species = num_species
+        self.num_images = num_images
         self.bfly = bfly
         self.degrees = degrees
-        self._num_rows = num_rows
+        self._num_rows = num_images
         self.crop = crop
-        self.minimum_images = minimum_images
         self.num_rows = self.num_rows()
-        self.sort = sort
 
     def setup_dataset(self):
         """Constructs dataframe. Makes necessary directories, checks if current .csv file fits with self, and returns
