@@ -372,9 +372,9 @@ class Database(Logable):
         if self._num_rows is None:
             return None
         elif self.degrees == "all":
-            return self._num_rows * 8
+            return self.num_images * self.num_species * 8
         elif self.degrees == "flip":
-            return self._num_rows * 2
+            return self.num_images * self.num_species * 2
         elif self.degrees == "rotate":
-            return self._num_rows * 4
-        return self._num_rows
+            return self.num_images * self.num_species * 4
+        return self.num_images * self.num_species
