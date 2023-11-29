@@ -23,7 +23,6 @@ class FeatureExtractor(Logable):
         setup_log(log_level=log_level)
         self.save_path = feature_dir_path
         self.img_path = img_dir_path
-        self._mk_ft_dirs()
 
     def pre_process(self,
                     df: pd.DataFrame,
