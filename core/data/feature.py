@@ -276,13 +276,14 @@ class FeatureExtractor(Logable):
                 raise e
 
     @log_ent_exit
-    def shape_from_feature(self, df, feature='path', ):
+    def shape_from_feature(self, df, feature='path'):
         """Aggregate shape, depending on which feature should be trained on.
         @param df: dataframe
         @param feature: which feature to check shape of
         @raise ValueError: if not all extracted features are of same shape
         @return: shape of feature
         """
+        feature = 'path' if feature == '' else feature
         paths = df[feature]
         unique_output_shapes = set()
 
