@@ -25,16 +25,21 @@ class FeatureExtractor(Logable):
         self.img_path = img_dir_path
 
     def pre_process(self,
+                    db: pd.DataFrame,
                     df: pd.DataFrame,
                     feature="",
                     **kwargs):
         """Perform feature extraction on a dataframe's files, saves result in a separate .npy file and insert resulting
         paths into the dataframe. Saves the augmented df.
-        @param df: containing paths to .npy arrays to perform feature extraction on.
+        @param db: base dataframe from file
+        @param df: working window from db based on num species/images
         @param feature: to extract
         @param kwargs: additional arguments for the given feature
         @return: dataframe with paths to extracted features in separate column
         """
+        if feature is None or feature in ['', 'path']:
+            return df
+        idx = df.index
         ft = getattr(self, feature, None)
         paths = np.full(len(df.index), fill_value=np.nan).tolist()
         self.info(f"paths len: {len(paths)}")
@@ -52,12 +57,9 @@ class FeatureExtractor(Logable):
                 elif feature == "glcm":
                     out: np.ndarray = ft(img, kwargs.get('distances', None), kwargs.get('angles', None))
                     paths[int(index)] = p_new
-                elif feature == "" or feature is None:
-                    out: np.ndarray = np.array(img)
                 else:
                     raise ValueError(f'"{feature}" is not supported')
                 np.save(p_new, out, allow_pickle=True)
-
             else:
                 try:
                     paths[int(index)] = p_new
@@ -65,7 +67,9 @@ class FeatureExtractor(Logable):
                     self.error(f"index: {index}")
                     raise e
         df[feature] = paths
-        df.to_csv(DATASET_PATH, index=False)
+        df.set_index(idx, inplace=True)
+        db = db.merge(df, how="left")
+        db.to_csv(DATASET_PATH, index=False)
         return df
 
     def l_dirpath_from_row(self, row: pd.Series, feature: str):
