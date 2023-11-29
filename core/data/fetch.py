@@ -122,14 +122,14 @@ class Database(Logable):
 
             species_with_less_than_optimal_amount_of_images = []
 
-            totalRows = 0
+            total_rows = 0
             for index, count in out.items():
                 if count < min_amount_of_pictures:
                     species_with_less_than_optimal_amount_of_images.append(index)
-                    totalRows += 1
+                    total_rows += 1
 
-            totalRows = totalRows * min_amount_of_pictures
-            print("Total number of extra rows: ", totalRows)
+            total_rows = total_rows * min_amount_of_pictures
+            print("Total number of extra rows: ", total_rows)
             world_df = world_df.loc[world_df['species'].isin(species_with_less_than_optimal_amount_of_images)]
             # loop that gets the species, which are below the required amount
             for item, count in less_than_list:
