@@ -307,16 +307,16 @@ class Database(Logable):
         self.info(f'df shape: {df.shape}')
         return df
 
-    def _sort_drop_rows(self, df: pd.DataFrame):
-        """If self is initialized with sort, sort species. If self has num_rows, drop rest of rows.
+    def _get_working_df(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Get current working window in db based on num species/images
         @param df: dataframe
         @return resulting dataframe after sort/drop"""
-        if self.sort:
-            df.sort_values(by=['species'], inplace=True)
         self.info(f"found {len(df['species'].unique())} unique species")
-        if self._num_rows:
-            df.drop(df.index[self._num_rows:], inplace=True)
-        df.reset_index(inplace=True, drop=True)
+        if self.num_images and self.num_species:
+            species = df['species'].unique()[:self.num_species]
+            df = df.loc[df['species'].isin(species)].groupby('species').head(self.num_images)
+        else:
+            df = df.loc[df['species']].groupby('species').head(self.num_images)
         return df
 
     def _make_dfs_from_raws(self):
