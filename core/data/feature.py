@@ -99,15 +99,6 @@ class FeatureExtractor(Logable):
             out_ft = feature
         return f"{self.save_path}{DIRNAME_DELIM}{out_ft}/"
 
-    def _mk_ft_dirs(self):
-        """Creates dirs for each available feature
-        @return: None
-        """
-        for feature in FTS:
-            dir_new = self.dirpath_from_ft(feature)
-            if not os.path.exists(dir_new):
-                os.makedirs(dir_new)
-
     @staticmethod
     def lbp(img: np.ndarray, method="ror", radius=1):
         """Create Local Binary Pattern for an image
