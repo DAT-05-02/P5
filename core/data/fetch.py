@@ -75,25 +75,32 @@ class Database(Logable):
         """
         self._make_img_dir()
         if self._csv_fits_self():
-            df = pd.read_csv(self.dataset_csv_filename, low_memory=False)
+            db = pd.read_csv(self.dataset_csv_filename, low_memory=False)
+            df = self._get_working_df(db)
+            df.dropna(subset=['path'], inplace=True)
+            self.info(db.shape)
+            self.info(df.shape)
+            return db, df
         elif self._partial_df():
-            df_base = pd.read_csv(self.dataset_csv_filename, low_memory=False)
-            df, df_label = self._make_dfs_from_raws()
-            df = self._merge_dfs_on_gbif(df, df_label)
-            df = self._sort_drop_rows(df)
-            df = df.merge(df_base, how='left')
-            self.info(df)
+            db = pd.read_csv(self.dataset_csv_filename, low_memory=False)
+            db = self.pad_dataset(db, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.num_images)
+            db.drop_duplicates(subset=[self.link_col], keep="first")
+            # self.info(df)
         else:
-            df, df_label = self._make_dfs_from_raws()
-            df = self._merge_dfs_on_gbif(df, df_label)
-            df = self._sort_drop_rows(df)
+            db, df_label = self._make_dfs_from_raws()
+            db = self._merge_dfs_on_gbif(db, df_label)
+            db = self.pad_dataset(db, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.num_images)
+            db = db.reset_index(drop=True)
 
-        if self.minimum_images is not None:
-            df = self.pad_dataset(df, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.minimum_images)
-        df = self.fetch_images(df, self.link_col)
-        df.reset_index(inplace=True, drop=True)
-        df.to_csv(self.dataset_csv_filename, index=False)
-        return df
+        df = self.fetch_images(self._get_working_df(db), self.link_col)
+        db = db.merge(df, how="left")
+        db.update(df)
+        db.to_csv(self.dataset_csv_filename, index=False)
+        df = df.dropna(subset=['path'])
+        df = df.loc[~df['path'].isin(ERR_VALUES)]
+        self.info(db.shape)
+        self.info(df.shape)
+        return db, df
 
     @staticmethod
     def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, min_amount_of_pictures=3):
