@@ -346,8 +346,9 @@ class Database(Logable):
 
     @log_ent_exit
     def only_accepted(self, df) -> pd.DataFrame:
-        df = df.loc[df['yolo_accepted'].isin(['True', True])]
-        self.info(f"{len(df)} yolo_accepted")
+        if constants['CROPPED'] == 1:
+            df = df.loc[df['yolo_accepted'].isin(['True', True])]
+            self.info(f"{len(df)} yolo_accepted")
         return df
 
     @staticmethod
