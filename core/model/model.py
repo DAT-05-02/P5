@@ -79,6 +79,7 @@ class Model(Logable):
         self.log.info(label)
         # np.arrays and labels to same dataset
         dataset = tf.data.Dataset.zip((data, label))
+        dataset.shuffle(dataset.cardinality())
         return dataset
 
     def print_dataset_info(self):
@@ -129,7 +130,7 @@ class Model(Logable):
         self.model.compile(
             custom_optimizer,
             loss=tf.keras.losses.CategoricalCrossentropy(),
-            metrics=['accuracy']
+            metrics=['accuracy', tf.keras.metrics.Precision()]
         )
 
     def fit(self, epochs=10):
