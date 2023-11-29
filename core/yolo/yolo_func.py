@@ -5,8 +5,9 @@ from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
 
 
-def obj_det(img, model: YOLO, conf=0.25, img_size=(640, 640)):
-    res = model.predict(source=img, save=False, save_txt=False, imgsz=img_size, conf=conf, device="cpu")
+def obj_det(img, model: YOLO, conf=0.25, img_size=(640, 640), verbose=False):
+    res = model.predict(source=img, save=False, save_txt=False,
+                        imgsz=img_size, conf=conf, device="cpu", verbose=verbose)
     return res
 
 
