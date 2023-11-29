@@ -8,6 +8,7 @@ import requests
 import pandas as pd
 import os
 from PIL import Image
+from tqdm import tqdm
 from ultralytics import YOLO
 import urllib3
 
@@ -234,14 +235,17 @@ class Database(Logable):
             self.debug(f'{out}: {accepted}')
             return out, accepted
 
-        with ThreadPoolExecutor(50) as executor:
-            """Iterates through all rows, starts a thread to download, yolo-predict, save etc. each individual row, 
-            then collects all results in a list, and insert these as a column 'path'. Drops rows with NaN value to get 
-            rid of failed downloads, no yolo result or any uncaught exception"""
-            futures = [executor.submit(save_img, row, index) for index, row in df.iterrows()]
-            concurrent.futures.wait(futures, timeout=None, return_when=ALL_COMPLETED)
-            for i, ft in enumerate(futures):
-                paths[i], yolo_accepted[i] = ft.result()
+        with tqdm(total=len(df), smoothing=0.0) as pbar:
+            with ThreadPoolExecutor(50) as executor:
+                """Iterates through all rows, starts a thread to download, yolo-predict, save etc. each individual row, 
+                then collects all results in a list, and insert these as a column 'path'. Drops rows with NaN value to get 
+                rid of failed downloads, no yolo result or any uncaught exception"""
+                futures = [executor.submit(save_img, row, index) for index, row in df.iterrows()]
+                for _ in concurrent.futures.as_completed(futures):
+                    pbar.update(1)
+                concurrent.futures.wait(futures, timeout=None, return_when=ALL_COMPLETED)
+                for i, ft in enumerate(futures):
+                    paths[i], yolo_accepted[i] = ft.result()
 
             try:
                 df.drop("path", axis=1, inplace=True)
