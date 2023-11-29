@@ -10,23 +10,25 @@ from core.util.util import ConstantSingleton
 if __name__ == "__main__":
     constants = ConstantSingleton()
     ops = PySetup()
-    num_rows = constants["NUM_IMAGES"]
-    feature = ""
+    num_images = constants['NUM_IMAGES']
+    num_species = constants['NUM_SPECIES']
+    feature = "path"
     ft_extractor = FeatureExtractor(log_level=logging.INFO)
-    db = Database(raw_dataset_path=RAW_DATA_PATH,
-                  raw_label_path=RAW_LABEL_PATH,
-                  label_dataset_path=LABEL_DATASET_PATH,
-                  dataset_csv_filename=DATASET_PATH,
-                  log_level=logging.DEBUG,
-                  ft_extractor=ft_extractor,
-                  num_rows=num_rows,
-                  crop=constants["CROPPED"],
-                  minimum_images=None,
-                  degrees="none",
-                  bfly=["all"])
-    df = db.setup_dataset()
-    df = ft_extractor.pre_process(df, feature, radius=2)
-    df = db.only_accepted(df)
+    database = Database(raw_dataset_path=RAW_DATA_PATH,
+                        raw_label_path=RAW_LABEL_PATH,
+                        label_dataset_path=LABEL_DATASET_PATH,
+                        dataset_csv_filename=DATASET_PATH,
+                        log_level=logging.DEBUG,
+                        ft_extractor=ft_extractor,
+                        num_species=num_species,
+                        num_images=num_images,
+                        crop=constants["CROPPED"],
+                        degrees="none",
+                        bfly=["all"])
+    db, df = database.setup_dataset()
+    print(df.shape)
+    df = ft_extractor.pre_process(db, df, feature, radius=2)
+    df = database.only_accepted(df)
     model = Model(df, IMGDIR_PATH, feature=feature, kernel_size=(constants["KERNEL_SIZE"], constants["KERNEL_SIZE"]))
     # model.load()
     # model.print_dataset_info()
@@ -34,4 +36,4 @@ if __name__ == "__main__":
     model.split_dataset()
     model.fit(constants["NUM_EPOCHS"])
     model.save()
-    # model.evaluate_and_show_predictions(num_samples=3)
+    model.evaluate_and_show_predictions(num_samples=3)
