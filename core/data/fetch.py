@@ -197,7 +197,7 @@ class Database(Logable):
                     self.warning(f"Timeout occurred for index {index}")
                     return "TIMEOUT", False
                 except requests.exceptions.RequestException as e:
-                    self.warning(f"Error occurred: {e}")
+                    self.warning(f"Error occurred: {e} at index {index}")
                     return "REQUESTEXCEPTION", False
                 except urllib3.exceptions.ReadTimeoutError:
                     self.warning(f"Read timed out on {index}")
