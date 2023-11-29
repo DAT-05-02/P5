@@ -21,6 +21,8 @@ from core.yolo.yolo_func import obj_det, yolo_crop
 urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
 constants = ConstantSingleton()
 
+ERR_VALUES = ['ERROR', 'TIMEOUT', 'REQUESTEXCEPTION']
+
 
 class Database(Logable):
     def __init__(self,
@@ -159,10 +161,15 @@ class Database(Logable):
             """
             path = self.img_path_from_row(row, index)
             out = np.nan
-            accepted = False
+            accepted = np.nan
+            if 'path' in df.columns:
+                if row['path'] in ERR_VALUES:
+                    return row['path'], False
+
             if not os.path.exists(path):
                 try:
-                    img = Image.open(requests.get(row[col], stream=True, timeout=40, verify=False).raw)
+                    res = requests.get(row[col], stream=True, timeout=40, verify=False).raw
+                    img = Image.open(res)
                     if self.crop == 1:
                         model = YOLO('yolo/medium250e.pt')
                         res = obj_det(img, model, conf=0.50)
@@ -175,22 +182,28 @@ class Database(Logable):
                     img = np.asarray(img)
                     np.save(path, img, allow_pickle=True)
                     out = path
-                    self.info(out)
+                    self.debug(f"{out}: {accepted}")
                 except requests.exceptions.Timeout:
                     self.warning(f"Timeout occurred for index {index}")
+                    return "TIMEOUT", False
                 except requests.exceptions.RequestException as e:
                     self.warning(f"Error occurred: {e}")
+                    return "REQUESTEXCEPTION", False
                 except urllib3.exceptions.ReadTimeoutError:
                     self.warning(f"Read timed out on {index}")
-                except ValueError as e:
-                    self.error(f"Image name not applicable: {e}", stack_info=True, exc_info=True)
-                    return out, accepted
-                except OSError as e:
-                    self.error(f"Could not save file: {e}", stack_info=True, exc_info=True)
-                    return out, accepted
-                except Exception as e:
-                    self.error(f"Unknown error: {e}", stack_info=True, exc_info=True)
-                    return out, accepted
+                    return "TIMEOUT", False
+                except ValueError:
+                    self.error(f"Image name not applicable: {path}", stack_info=True, exc_info=True)
+                    self.info(f"{out}: {accepted}")
+                    return "ERROR", False
+                except OSError:
+                    self.error(f"Could not save file: {path}", stack_info=True, exc_info=True)
+                    self.info(f"{out}: {accepted}")
+                    return "ERROR", False
+                except Exception:
+                    self.error("Unknown error:", stack_info=True, exc_info=True)
+                    self.info(f"{out}: {accepted}")
+                    return "ERROR", False
             else:
                 try:
                     out = row['path']
