@@ -75,8 +75,12 @@ class FeatureExtractor(Logable):
         @param feature: name of feature folder
         @return: parent feature path + label path
         """
-        l_name = str(row['path']).split(PATH_SEP)[-2]
-        return self.dirpath_from_ft(feature) + l_name + PATH_SEP
+        try:
+            l_name = str(row['path']).split(PATH_SEP)[-2]
+            return self.dirpath_from_ft(feature) + l_name + PATH_SEP
+        except IndexError as e:
+            self.error(f"row: {row}", stack_info=True, exc_info=True)
+            raise e
 
     @log_ent_exit
     def path_from_row_ft(self, row: pd.Series, feature: str):
@@ -85,8 +89,12 @@ class FeatureExtractor(Logable):
         @param feature: name of feature folder
         @return: full file path
         """
-        f_name = str(row['path']).split(PATH_SEP)[-1].split('.')[0] + ".npy"
-        return self.l_dirpath_from_row(row, feature) + f_name
+        try:
+            f_name = str(row['path']).split(PATH_SEP)[-1].split('.')[0] + ".npy"
+            return self.l_dirpath_from_row(row, feature) + f_name
+        except IndexError as e:
+            self.error(f"row: {row}", stack_info=True, exc_info=True)
+            raise e
 
     def dirpath_from_ft(self, feature):
         """Outermost parent directory based on feature.
