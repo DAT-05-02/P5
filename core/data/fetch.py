@@ -156,11 +156,13 @@ class Database(Logable):
         @param col: which column the links are in
         """
         paths = np.full(len(df.index), fill_value=np.nan).tolist()
+        idx = df.index
         yolo_accepted = np.full(len(df.index), fill_value=np.nan).tolist()
 
         def save_img(row: pd.Series, index) -> Any:
-            """ThreadPoolExecutor function, if file exists, returns the path. Tries to download, extract YOLO prediction,
-            and if this returns a found butterfly, inserts black bars, resizes and saves. Returns the saved path.
+            """ThreadPoolExecutor function, if file exists, returns the path. Tries to download, extract YOLO
+            prediction, and if this returns a found butterfly, inserts black bars, resizes and saves.
+            Returns the saved path.
             @param row: with download link
             @param index: base name of file
             @return: saved path of .npy file
@@ -183,6 +185,8 @@ class Database(Logable):
                         if xywhn.numel() > 0:
                             img = yolo_crop(img, xywhn)
                             accepted = True
+                        else:
+                            accepted = False
                     img = img.resize((constants['IMG_SIZE'], constants['IMG_SIZE']))
                     img = img.convert("RGB")
                     img = np.asarray(img)
@@ -231,12 +235,12 @@ class Database(Logable):
                         xywhn = res[0].boxes.xywhn
                         if xywhn.numel() > 0:
                             accepted = True
+                        else:
+                            accepted = False
 
-                        self.info(f"{out}: {accepted}")
+                        self.debug(f"inherit {out}: {accepted}")
                     except TypeError:
                         accepted = False
-                else:
-                    accepted = True
             self.debug(f'{out}: {accepted}')
             return out, accepted
 
@@ -252,18 +256,10 @@ class Database(Logable):
                 for i, ft in enumerate(futures):
                     paths[i], yolo_accepted[i] = ft.result()
 
-            try:
-                df.drop("path", axis=1, inplace=True)
-                df.drop("yolo_accepted", axis=1, inplace=True)
-            except IndexError:
-                pass
-
-            df['path'] = paths
-            df['yolo_accepted'] = yolo_accepted
-            df.dropna(subset=['path', 'yolo_accepted'], inplace=True)
+        df['path'] = paths
+        df['yolo_accepted'] = yolo_accepted
         df = self.ft_extractor.create_augmented_df(df=df, degrees=self.degrees)
-        self.info(df)
-        df.to_csv(DATASET_PATH, index=False)
+        df.set_index(idx, inplace=True)
         return df
 
     def _csv_fits_self(self) -> bool:
