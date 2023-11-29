@@ -236,6 +236,8 @@ class Model(Logable):
             data_log = "logs/train_data/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
             with tf.summary.create_file_writer(data_log).as_default():
                 tf.summary.image("Training data", tensorboard_training_images, max_outputs=12, step=0)
+
+
 """
     def callbacks(self):
         datetimeString = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
