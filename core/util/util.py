@@ -33,6 +33,7 @@ class ConstantSingleton(object):
                 "LEARNING_RATE": self.args.LEARNING_RATE,
                 "NUM_EPOCHS": self.args.NUM_EPOCHS,
                 "NUM_IMAGES": self.args.NUM_IMAGES,
+                "NUM_SPECIES": self.args.NUM_SPECIES,
                 "IMG_SIZE": self.args.IMG_SIZE,
                 "CROPPED": self.args.CROPPED
             }
@@ -58,6 +59,8 @@ class ConstantSingleton(object):
                             help='an integer for amount of epochs')
         parser.add_argument('NUM_IMAGES', metavar='ImageAmount', type=int,
                             help='an integer for amount of images')
+        parser.add_argument('NUM_SPECIES', metavar='SpeciesAmount', type=int,
+                            help='an integer for amount of species')
         parser.add_argument('IMG_SIZE', metavar='ImageSize', type=int,
                             help='an integer N for size of images N x N')
         parser.add_argument('CROPPED', metavar='Cropped', type=int,
