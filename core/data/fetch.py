@@ -267,10 +267,17 @@ class Database(Logable):
         @return: df if compliant, otherwise None
         """
         if os.path.exists(self.dataset_csv_filename):
-            df = pd.read_csv(self.dataset_csv_filename, low_memory=False)
-            self.info(f"len(df): {len(df)}, self.num_rows: {self.num_rows}")
-            if self._num_rows and len(df) == self.num_rows:
-                return True
+            db = pd.read_csv(self.dataset_csv_filename, low_memory=False)
+            df = self._get_working_df(db)
+            try:
+                if df['path'].isnull().values.any():
+                    return False
+                if self.crop == 1 and df['yolo_accepted'].isnull().values.any():
+                    return False
+                if self._num_rows and len(df) == self.num_rows:
+                    return True
+            except KeyError:
+                return False
         return False
 
     def _partial_df(self) -> bool:
