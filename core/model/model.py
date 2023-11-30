@@ -49,6 +49,35 @@ class Model(Logable):
 
         return model
 
+    def _create_model2(self, kernel_size=(3, 3)):
+        model = tf.keras.models.Sequential([
+            tf.keras.layers.Conv2D(32, kernel_size, activation="relu", data_format="channels_last",
+                                   input_shape=self.shape),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(64, kernel_size, activation="relu"),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(128, kernel_size, activation="relu"),
+            tf.keras.layers.Conv2D(128, kernel_size, activation="relu"),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(128, kernel_size, activation="relu"),
+            tf.keras.layers.Conv2D(128, kernel_size, activation="relu"),
+            tf.keras.layers.Dropout(0.1),
+            tf.keras.layers.Conv2D(128, kernel_size, activation="relu"),
+            tf.keras.layers.Conv2D(128, kernel_size, activation="relu"),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(256, kernel_size, activation="relu"),
+            tf.keras.layers.Conv2D(256, kernel_size, activation="relu"),
+            tf.keras.layers.Dropout(0.1),
+            tf.keras.layers.Conv2D(256, kernel_size, activation="relu"),
+            tf.keras.layers.Conv2D(516, kernel_size, activation="relu"),
+            tf.keras.layers.Conv2D(516, kernel_size, activation="relu"),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(1032, activation="relu"),
+            tf.keras.layers.Dense(len(self.df['species'].unique()), activation="softmax")
+        ])
+
+        return model
+
     @staticmethod
     def _data_generator(df):
         for row in df:
@@ -115,15 +144,15 @@ class Model(Logable):
         self.train_dataset = self.train_dataset.shuffle(
             reshuffle_each_iteration=True,
             buffer_size=len(self.df[self.feature])
-        ).batch(32).prefetch(tf.data.AUTOTUNE)
+        ).batch(64).prefetch(tf.data.AUTOTUNE)
         self.val_dataset = self.val_dataset.shuffle(
             reshuffle_each_iteration=True,
             buffer_size=len(self.df[self.feature])
-        ).batch(32).prefetch(tf.data.AUTOTUNE)
+        ).batch(64).prefetch(tf.data.AUTOTUNE)
         self.test_dataset = self.test_dataset.shuffle(
             reshuffle_each_iteration=True,
             buffer_size=len(self.df[self.feature])
-        ).batch(32).prefetch(tf.data.AUTOTUNE)
+        ).batch(64).prefetch(tf.data.AUTOTUNE)
 
     def compile(self, lr=0.001):
         custom_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
@@ -139,7 +168,7 @@ class Model(Logable):
         callbacks = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
 
         history = self.model.fit(
-            self.train_dataset.prefetch(tf.data.AUTOTUNE),
+            self.train_dataset,
             validation_data=self.val_dataset,
             epochs=epochs,
             callbacks=[callbacks]
