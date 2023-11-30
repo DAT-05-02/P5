@@ -77,6 +77,7 @@ class Database(Logable):
 
         self._make_img_dir()
         if self._csv_fits_self():
+            """Case if current num images/species fits with results. Basically just returns the working window"""
             db = pd.read_csv(self.dataset_csv_filename, low_memory=False)
             df = self._get_working_df(db)
             df.dropna(subset=['path'], inplace=True)
@@ -84,11 +85,15 @@ class Database(Logable):
             self.info(df.shape)
             return db, df
         elif self._partial_df():
+            """Case if we have parts of the required information, merge with more rows from world dataset, and keep 
+            the first result if we accidentally merged previously merged rows. The first duplicate will always be the
+            one with most information (yolo crop), so keep this and continue as normal"""
             db = pd.read_csv(self.dataset_csv_filename, low_memory=False)
             db = self.pad_dataset(db, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.num_images)
             db.drop_duplicates(subset=[self.link_col], keep="first")
             # self.info(df)
         else:
+            """Case if we are starting from fresh"""
             db, df_label = self._make_dfs_from_raws()
             db = self._merge_dfs_on_gbif(db, df_label)
             db = self.pad_dataset(db, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.num_images)
@@ -96,6 +101,7 @@ class Database(Logable):
 
         df = self.fetch_images(self._get_working_df(db), self.link_col)
         db = db.merge(df, how="left")
+        # update db rows with newly acquired information
         db.update(df)
         db.to_csv(self.dataset_csv_filename, index=False)
         df = df.dropna(subset=['path'])
@@ -163,11 +169,11 @@ class Database(Logable):
 
         def save_img(row: pd.Series, index) -> Any:
             """ThreadPoolExecutor function, if file exists, returns the path. Tries to download, extract YOLO
-            prediction, and if this returns a found butterfly, inserts black bars, resizes and saves.
+            prediction, and if this returns a found butterfly, crop, resizes and saves.
             Returns the saved path.
             @param row: with download link
             @param index: base name of file
-            @return: saved path of .npy file
+            @return: saved path of .npy file, and yolo_result
             """
             path = self.img_path_from_row(row, index)
             out = np.nan
@@ -249,8 +255,7 @@ class Database(Logable):
         with tqdm(total=len(df), smoothing=0.02) as pbar:
             with ThreadPoolExecutor(40) as executor:
                 """Iterates through all rows, starts a thread to download, yolo-predict, save etc. each individual row, 
-                then collects all results in a list, and insert these as a column 'path'. Drops rows with NaN value to get 
-                rid of failed downloads, no yolo result or any uncaught exception"""
+                then collects all results in a list, and insert these as columns 'path', 'yolo_accepted'."""
                 futures = [executor.submit(save_img, row, index) for index, row in df.iterrows()]
                 for _ in concurrent.futures.as_completed(futures):
                     pbar.update(1)
@@ -265,8 +270,8 @@ class Database(Logable):
         return df
 
     def _csv_fits_self(self) -> bool:
-        """Checks if .csv file exists returns if aggregated number of rows fits with the read file.
-        @return: df if compliant, otherwise None
+        """Checks if .csv file exists returns if num images/species fits with the read file.
+        @return: True if compliant, otherwise False
         """
         if os.path.exists(self.dataset_csv_filename):
             db = pd.read_csv(self.dataset_csv_filename, low_memory=False)
@@ -285,8 +290,8 @@ class Database(Logable):
         return False
 
     def _partial_df(self) -> bool:
-        """Checks if .csv file exists returns if aggregated number of rows fits with the read file.
-        @return: df if compliant, otherwise None
+        """Checks if .csv file exists
+        @return: True if compliant, otherwise False
         """
         return os.path.exists(self.dataset_csv_filename)
 
@@ -312,7 +317,7 @@ class Database(Logable):
     def _get_working_df(self, df: pd.DataFrame) -> pd.DataFrame:
         """Get current working window in db based on num species/images
         @param df: dataframe
-        @return resulting dataframe after sort/drop"""
+        @return working window of db"""
         self.info(f"found {len(df['species'].unique())} unique species")
         if self.num_images and self.num_species:
             species = df['species'].unique()[:self.num_species]
