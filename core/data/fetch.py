@@ -19,6 +19,7 @@ from core.util.constants import (IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFE
 from core.data.feature import FeatureExtractor
 from core.yolo.yolo_func import obj_det, yolo_crop
 
+import math
 urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
 constants = ConstantSingleton()
 
@@ -73,6 +74,7 @@ class Database(Logable):
         and returns the dataframe.
         @return:
         """
+
         self._make_img_dir()
         if self._csv_fits_self():
             db = pd.read_csv(self.dataset_csv_filename, low_memory=False)
@@ -129,7 +131,6 @@ class Database(Logable):
             out = df["species"].value_counts()
 
             species_with_less_than_optimal_amount_of_images = []
-
             total_rows = 0
             for index, count in out.items():
                 if count < min_amount_of_pictures:

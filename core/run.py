@@ -26,7 +26,6 @@ if __name__ == "__main__":
                         degrees="none",
                         bfly=["all"])
     db, df = database.setup_dataset()
-    print(df.shape)
     df = ft_extractor.pre_process(db, df, feature, radius=2)
     df = database.only_accepted(df)
     model = Model(df, IMGDIR_PATH, feature=feature, kernel_size=(constants["KERNEL_SIZE"], constants["KERNEL_SIZE"]))
@@ -36,4 +35,4 @@ if __name__ == "__main__":
     model.split_dataset()
     model.fit(constants["NUM_EPOCHS"])
     model.save()
-    model.evaluate_and_show_predictions(num_samples=3)
+    # model.evaluate_and_show_predictions(num_samples=3)
