@@ -80,7 +80,6 @@ class Database(Logable):
             """Case if current num images/species fits with results. Basically just returns the working window"""
             db = pd.read_csv(self.dataset_csv_filename, low_memory=False)
             df = self._get_working_df(db)
-            df.dropna(subset=['path'], inplace=True)
             self.info(db.shape)
             self.info(df.shape)
             return db, df
@@ -96,6 +95,7 @@ class Database(Logable):
             """Case if we are starting from fresh"""
             db, df_label = self._make_dfs_from_raws()
             db = self._merge_dfs_on_gbif(db, df_label)
+            db.dropna(subset=[self.link_col, 'species'])
             db = self.pad_dataset(db, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.num_images)
             db = db.reset_index(drop=True)
 
@@ -104,7 +104,6 @@ class Database(Logable):
         # update db rows with newly acquired information
         db.update(df)
         db.to_csv(self.dataset_csv_filename, index=False)
-        df = df.dropna(subset=['path'])
         df = df.loc[~df['path'].isin(ERR_VALUES)]
         self.info(db.shape)
         self.info(df.shape)
