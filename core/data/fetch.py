@@ -102,12 +102,13 @@ class Database(Logable):
         self.info(df.shape)
         return db, df
 
-    @staticmethod
-    def pad_dataset(df, raw_dataset_path: str, raw_label_path: str, min_amount_of_pictures=3):
+    def pad_dataset(self, df: pd.DataFrame, raw_dataset_path: str, raw_label_path: str, min_amount_of_pictures=3):
         run_correction = False
 
         values = df['species'].value_counts().keys().tolist()
         counts = df['species'].value_counts().tolist()
+        self.info(len(values))
+        self.info(counts)
 
         less_than_list = []
 
@@ -120,11 +121,11 @@ class Database(Logable):
             world_df: pd.DataFrame = pd.read_csv(raw_dataset_path, sep="	", low_memory=False)
             world_df_labels: pd.DataFrame = pd.read_csv(raw_label_path, sep=",", low_memory=False)
 
-            Database.drop_cols([world_df, world_df_labels])
+            self.drop_cols([world_df, world_df_labels])
 
             world_df = world_df.merge(world_df_labels[world_df_labels['gbifID'].isin(world_df['gbifID'])],
                                       on=['gbifID'])
-
+            world_df.dropna(subset=[self.link_col, 'species'])
             out = df["species"].value_counts()
 
             species_with_less_than_optimal_amount_of_images = []
@@ -143,7 +144,7 @@ class Database(Logable):
                 world_specific = world_df.loc[world_df["species"] == item]
                 world_specific = world_specific.iloc[:min_amount_of_pictures - count]
 
-                df = pd.concat((df, world_specific))
+                df = pd.concat((df, world_specific), ignore_index=True)
 
         return df
 
@@ -244,8 +245,8 @@ class Database(Logable):
             self.debug(f'{out}: {accepted}')
             return out, accepted
 
-        with tqdm(total=len(df), smoothing=0.0) as pbar:
-            with ThreadPoolExecutor(50) as executor:
+        with tqdm(total=len(df), smoothing=0.02) as pbar:
+            with ThreadPoolExecutor(40) as executor:
                 """Iterates through all rows, starts a thread to download, yolo-predict, save etc. each individual row, 
                 then collects all results in a list, and insert these as a column 'path'. Drops rows with NaN value to get 
                 rid of failed downloads, no yolo result or any uncaught exception"""
@@ -271,8 +272,10 @@ class Database(Logable):
             df = self._get_working_df(db)
             try:
                 if df['path'].isnull().values.any():
+                    self.info(f"nulls in path: {len(df['path'].isnull())}")
                     return False
                 if self.crop == 1 and df['yolo_accepted'].isnull().values.any():
+                    self.info(f"nulls in yolo: {len(df['yolo_accepted'].isnull())}")
                     return False
                 if self._num_rows and len(df) == self.num_rows:
                     return True
@@ -284,9 +287,7 @@ class Database(Logable):
         """Checks if .csv file exists returns if aggregated number of rows fits with the read file.
         @return: df if compliant, otherwise None
         """
-        if os.path.exists(self.dataset_csv_filename):
-            return True
-        return False
+        return os.path.exists(self.dataset_csv_filename)
 
     def _merge_dfs_on_gbif(self, df: pd.DataFrame, df_label: pd.DataFrame) -> pd.DataFrame:
         """Merges 2 dataframes into one given the gbifID. Essentially connects links with species and other relevant
