@@ -8,12 +8,13 @@ import requests
 import pandas as pd
 import os
 from PIL import Image
+from tqdm import tqdm
 from ultralytics import YOLO
 import urllib3
 
 from core.util.logging.logable import Logable
 from core.util.util import timing, setup_log, log_ent_exit, ConstantSingleton
-from core.util.constants import (IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DATASET_PATH, DIRNAME_DELIM,
+from core.util.constants import (IMGDIR_PATH, MERGE_COLS, BFLY_FAMILY, BFLY_LIFESTAGE, DIRNAME_DELIM,
                                  RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH)
 from core.data.feature import FeatureExtractor
 from core.yolo.yolo_func import obj_det, yolo_crop
@@ -21,6 +22,8 @@ from core.yolo.yolo_func import obj_det, yolo_crop
 import math
 urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
 constants = ConstantSingleton()
+
+ERR_VALUES = ['ERROR', 'TIMEOUT', 'REQUESTEXCEPTION']
 
 
 class Database(Logable):
@@ -33,10 +36,9 @@ class Database(Logable):
                  ft_extractor: FeatureExtractor,
                  degrees: str,
                  link_col="identifier",
-                 num_rows=None,
                  crop=True,
-                 minimum_images=False,
-                 sort=False,
+                 num_species=None,
+                 num_images=None,
                  log_level=logging.INFO):
         """ Database class
             @param raw_label_path: path to original label dataset file
@@ -44,11 +46,10 @@ class Database(Logable):
             @param label_dataset_path: path to label csv file
             @param dataset_csv_filename: filename for the csv file
             @param link_col: name of column containing links
-            @param num_rows: number of rows to include
-            @param sort: if dataset should be sorted by species
+            @param num_images: number of images to include
+            @param num_species: number of species to include
             @param bfly: list of species that is included in dataset, have "all" in list for only butterflies (no moths)
             @param crop: boolean if yolo should run and crop images
-            @param minimum_images: number of minimum images per species, if no minimum put None
             """
         super().__init__()
         setup_log(log_level=log_level)
@@ -58,13 +59,13 @@ class Database(Logable):
         self.dataset_csv_filename = dataset_csv_filename
         self.link_col = link_col
         self.ft_extractor = ft_extractor
+        self.num_species = num_species
+        self.num_images = num_images
         self.bfly = bfly
         self.degrees = degrees
-        self._num_rows = num_rows
+        self._num_rows = num_images
         self.crop = crop
-        self.minimum_images = minimum_images
         self.num_rows = self.num_rows()
-        self.sort = sort
 
     def setup_dataset(self):
         """Constructs dataframe. Makes necessary directories, checks if current .csv file fits with self, and returns
@@ -75,69 +76,82 @@ class Database(Logable):
         """
 
         self._make_img_dir()
-        df = self._csv_fits_self()
-        if df is not None:
-            return df
+        if self._csv_fits_self():
+            """Case if current num images/species fits with results. Basically just returns the working window"""
+            db = pd.read_csv(self.dataset_csv_filename, low_memory=False)
+            df = self._get_working_df(db)
+            self.info(db.shape)
+            self.info(df.shape)
+            return db, df
+        elif self._partial_df():
+            """Case if we have parts of the required information, merge with more rows from world dataset, and keep 
+            the first result if we accidentally merged previously merged rows. The first duplicate will always be the
+            one with most information (yolo crop), so keep this and continue as normal"""
+            db = pd.read_csv(self.dataset_csv_filename, low_memory=False)
+            db = self.pad_dataset(db, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.num_images)
+            db.drop_duplicates(subset=[self.link_col], keep="first")
+            # self.info(df)
+        else:
+            """Case if we are starting from fresh"""
+            db, df_label = self._make_dfs_from_raws()
+            db = self._merge_dfs_on_gbif(db, df_label)
+            db.dropna(subset=[self.link_col, 'species'])
+            db = self.pad_dataset(db, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH, self.num_images)
+            db = db.reset_index(drop=True)
 
-        if os.path.exists(self.dataset_csv_filename):
-            os.remove(self.dataset_csv_filename)
+        df = self.fetch_images(self._get_working_df(db), self.link_col)
+        db = db.merge(df, how="left")
+        # update db rows with newly acquired information
+        db.update(df)
+        db.to_csv(self.dataset_csv_filename, index=False)
+        df = df.loc[~df['path'].isin(ERR_VALUES)]
+        self.info(db.shape)
+        self.info(df.shape)
+        return db, df
 
-        df, df_label = self._make_dfs_from_raws()
-        df = self._merge_dfs_on_gbif(df, df_label)
+    def pad_dataset(self, df: pd.DataFrame, raw_dataset_path: str, raw_label_path: str, min_amount_of_pictures=3):
+        run_correction = False
 
-        # The full danish dataset
-        df_dk = df.copy()
-
-        df = self._sort_drop_rows(df)
-
-        df_dk.drop(df_dk[df_dk['gbifID'].isin(df['gbifID'])].index, inplace=True)
-
-        if self.minimum_images:
-            df = self.pad_dataset(df, df_dk, RAW_WORLD_DATA_PATH, RAW_WORLD_LABEL_PATH)
-        df = self.fetch_images(df, self.link_col)
-        df.reset_index(inplace=True, drop=True)
-        df.to_csv(self.dataset_csv_filename, index=False)
-        return df
-
-    @staticmethod
-    def pad_dataset(df, df_dk, raw_dataset_path_world: str, raw_label_path_world: str):
-        species_n = df_dk["species"].nunique()
-
-        values = df_dk['species'].value_counts().keys().tolist()
-        counts = df_dk['species'].value_counts().tolist()
+        values = df['species'].value_counts().keys().tolist()
+        counts = df['species'].value_counts().tolist()
+        self.info(len(values))
+        self.info(counts)
 
         less_than_list = []
 
-        total_rows = len(df.index)
-
-        min_amount_of_pictures = math.floor(total_rows / species_n)
-
         for itt in range(len(counts)):
-            less_than_list.append((values[itt], counts[itt]))
+            if min_amount_of_pictures > counts[itt]:
+                less_than_list.append((values[itt], counts[itt]))
+                run_correction = True
 
-        world_df: pd.DataFrame = pd.read_csv(raw_dataset_path_world, sep="	", low_memory=False)
-        world_df_labels: pd.DataFrame = pd.read_csv(raw_label_path_world, sep=",", low_memory=False)
+        if run_correction:
+            world_df: pd.DataFrame = pd.read_csv(raw_dataset_path, sep="	", low_memory=False)
+            world_df_labels: pd.DataFrame = pd.read_csv(raw_label_path, sep=",", low_memory=False)
 
-        Database.drop_cols([world_df, world_df_labels])
+            self.drop_cols([world_df, world_df_labels])
 
-        world_df = world_df.merge(world_df_labels[world_df_labels['gbifID'].isin(world_df['gbifID'])],
-                                  on=['gbifID'])
+            world_df = world_df.merge(world_df_labels[world_df_labels['gbifID'].isin(world_df['gbifID'])],
+                                      on=['gbifID'])
+            world_df.dropna(subset=[self.link_col, 'species'])
+            out = df["species"].value_counts()
 
-        world_df = pd.concat((df_dk, world_df))
+            species_with_less_than_optimal_amount_of_images = []
+            total_rows = 0
+            for index, count in out.items():
+                if count < min_amount_of_pictures:
+                    species_with_less_than_optimal_amount_of_images.append(index)
+                    total_rows += 1
 
-        df = df[0:0]
+            total_rows = total_rows * min_amount_of_pictures
+            print("Total number of extra rows: ", total_rows)
+            world_df = world_df.loc[world_df['species'].isin(species_with_less_than_optimal_amount_of_images)]
+            # loop that gets the species, which are below the required amount
+            for item, count in less_than_list:
+                world_specific = world_df.loc[world_df["species"] == item]
+                world_specific = world_specific.iloc[:min_amount_of_pictures - count]
 
-        rows_to_add_extra = total_rows % species_n
+                df = pd.concat((df, world_specific), ignore_index=True)
 
-        # Loop that fills the dataframe with the images
-        for item, count in less_than_list:
-            padding_df = world_df.loc[world_df["species"] == item]
-            if rows_to_add_extra > 0:
-                padding_df = padding_df.iloc[:min_amount_of_pictures + 1]
-                rows_to_add_extra = rows_to_add_extra - 1
-            else:
-                padding_df = padding_df.iloc[:min_amount_of_pictures]
-            df = pd.concat((df, padding_df))
         return df
 
     @timing
@@ -149,21 +163,28 @@ class Database(Logable):
         @param col: which column the links are in
         """
         paths = np.full(len(df.index), fill_value=np.nan).tolist()
+        idx = df.index
         yolo_accepted = np.full(len(df.index), fill_value=np.nan).tolist()
 
         def save_img(row: pd.Series, index) -> Any:
-            """ThreadPoolExecutor function, if file exists, returns the path. Tries to download, extract YOLO prediction,
-            and if this returns a found butterfly, inserts black bars, resizes and saves. Returns the saved path.
+            """ThreadPoolExecutor function, if file exists, returns the path. Tries to download, extract YOLO
+            prediction, and if this returns a found butterfly, crop, resizes and saves.
+            Returns the saved path.
             @param row: with download link
             @param index: base name of file
-            @return: saved path of .npy file
+            @return: saved path of .npy file, and yolo_result
             """
             path = self.img_path_from_row(row, index)
             out = np.nan
-            accepted = False
+            accepted = np.nan
+            if 'path' in df.columns:
+                if row['path'] in ERR_VALUES:
+                    return row['path'], False
+
             if not os.path.exists(path):
                 try:
-                    img = Image.open(requests.get(row[col], stream=True, timeout=40, verify=False).raw)
+                    res = requests.get(row[col], stream=True, timeout=40, verify=False).raw
+                    img = Image.open(res)
                     if self.crop == 1:
                         model = YOLO('yolo/medium250e.pt')
                         res = obj_det(img, model, conf=0.50)
@@ -171,59 +192,109 @@ class Database(Logable):
                         if xywhn.numel() > 0:
                             img = yolo_crop(img, xywhn)
                             accepted = True
-                    img = FeatureExtractor.make_square_with_bb(img)
+                        else:
+                            accepted = False
                     img = img.resize((constants['IMG_SIZE'], constants['IMG_SIZE']))
+                    img = img.convert("RGB")
                     img = np.asarray(img)
                     np.save(path, img, allow_pickle=True)
                     out = path
-                    self.info(out)
+                    self.debug(f"{out}: {accepted}")
                 except requests.exceptions.Timeout:
-                    self.debug(f"Timeout occurred for index {index}")
+                    self.warning(f"Timeout occurred for index {index}")
+                    return "TIMEOUT", False
                 except requests.exceptions.RequestException as e:
-                    self.debug(f"Error occurred: {e}")
-                except ValueError as e:
-                    self.error(f"Image name not applicable: {e}")
-                    raise e
-                except OSError as e:
-                    self.error(f"Could not save file: {e}")
-                    raise e
-                except Exception as e:
-                    self.error(f"Unknown error: {e}")
-                    raise e
+                    self.warning(f"Error occurred: {e} at index {index}")
+                    return "REQUESTEXCEPTION", False
+                except urllib3.exceptions.ReadTimeoutError:
+                    self.warning(f"Read timed out on {index}")
+                    return "TIMEOUT", False
+                except ValueError:
+                    self.error(f"Image name not applicable: {path}", stack_info=True, exc_info=True)
+                    self.info(f"{out}: {accepted}")
+                    return "ERROR", False
+                except OSError:
+                    self.error(f"Could not save file: {path}", stack_info=True, exc_info=True)
+                    self.info(f"{out}: {accepted}")
+                    return "ERROR", False
+                except Exception:
+                    self.error("Unknown error:", stack_info=True, exc_info=True)
+                    self.info(f"{out}: {accepted}")
+                    return "ERROR", False
             else:
-                out = path
-                accepted = True
+                try:
+                    out = row['path']
+                    if pd.isna(out):
+                        raise KeyError
+                except KeyError:
+                    out = path
+                if self.crop == 1:
+                    try:
+                        accepted_tmp = row['yolo_accepted']
+                        if pd.isna(accepted_tmp):
+                            raise KeyError
+                        else:
+                            accepted = accepted_tmp
+                    except KeyError:
+                        model = YOLO('yolo/medium250e.pt')
+                        res = obj_det(Image.fromarray(np.load(path, allow_pickle=True)), model, conf=0.25,
+                                      img_size=(640, 640))
+                        xywhn = res[0].boxes.xywhn
+                        if xywhn.numel() > 0:
+                            accepted = True
+                        else:
+                            accepted = False
+
+                        self.debug(f"inherit {out}: {accepted}")
+                    except TypeError:
+                        accepted = False
+            self.debug(f'{out}: {accepted}')
             return out, accepted
 
-        with ThreadPoolExecutor(50) as executor:
-            """Iterates through all rows, starts a thread to download, yolo-predict, save etc. each individual row, 
-            then collects all results in a list, and insert these as a column 'path'. Drops rows with NaN value to get 
-            rid of failed downloads, no yolo result or any uncaught exception"""
-            futures = [executor.submit(save_img, row, index) for index, row in df.iterrows()]
-            concurrent.futures.wait(futures, timeout=None, return_when=ALL_COMPLETED)
-            for i, ft in enumerate(futures):
-                paths[i], yolo_accepted[i] = ft.result()
+        with tqdm(total=len(df), smoothing=0.02) as pbar:
+            with ThreadPoolExecutor(40) as executor:
+                """Iterates through all rows, starts a thread to download, yolo-predict, save etc. each individual row, 
+                then collects all results in a list, and insert these as columns 'path', 'yolo_accepted'."""
+                futures = [executor.submit(save_img, row, index) for index, row in df.iterrows()]
+                for _ in concurrent.futures.as_completed(futures):
+                    pbar.update(1)
+                concurrent.futures.wait(futures, timeout=None, return_when=ALL_COMPLETED)
+                for i, ft in enumerate(futures):
+                    paths[i], yolo_accepted[i] = ft.result()
 
-            df['path'] = paths
-            df['yolo_accepted'] = yolo_accepted
-            df.dropna(subset=['path', 'yolo_accepted'], inplace=True)
+        df['path'] = paths
+        df['yolo_accepted'] = yolo_accepted
         df = self.ft_extractor.create_augmented_df(df=df, degrees=self.degrees)
-        self.info(df)
-        df.to_csv(DATASET_PATH, index=False)
+        df.set_index(idx, inplace=True)
         return df
 
-    def _csv_fits_self(self):
-        """Checks if .csv file exists returns if aggregated number of rows fits with the read file.
-        @return: df if compliant, otherwise None
+    def _csv_fits_self(self) -> bool:
+        """Checks if .csv file exists returns if num images/species fits with the read file.
+        @return: True if compliant, otherwise False
         """
         if os.path.exists(self.dataset_csv_filename):
-            df = pd.read_csv(self.dataset_csv_filename, low_memory=False)
-            self.debug(f"len(df): {len(df)}, self.num_rows: {self.num_rows}")
-            if self._num_rows and len(df) == self.num_rows:
-                return df
-        return None
+            db = pd.read_csv(self.dataset_csv_filename, low_memory=False)
+            df = self._get_working_df(db)
+            try:
+                if df['path'].isnull().values.any():
+                    self.info(f"nulls in path: {len(df['path'].isnull())}")
+                    return False
+                if self.crop == 1 and df['yolo_accepted'].isnull().values.any():
+                    self.info(f"nulls in yolo: {len(df['yolo_accepted'].isnull())}")
+                    return False
+                if self._num_rows and len(df) == self.num_rows:
+                    return True
+            except KeyError:
+                return False
+        return False
 
-    def _merge_dfs_on_gbif(self, df: pd.DataFrame, df_label: pd.DataFrame):
+    def _partial_df(self) -> bool:
+        """Checks if .csv file exists
+        @return: True if compliant, otherwise False
+        """
+        return os.path.exists(self.dataset_csv_filename)
+
+    def _merge_dfs_on_gbif(self, df: pd.DataFrame, df_label: pd.DataFrame) -> pd.DataFrame:
         """Merges 2 dataframes into one given the gbifID. Essentially connects links with species and other relevant
         information. Removes moths from resulting dataframe, or based on self.bfly containing butterfly families
         to be included.
@@ -242,16 +313,16 @@ class Database(Logable):
         self.info(f'df shape: {df.shape}')
         return df
 
-    def _sort_drop_rows(self, df: pd.DataFrame):
-        """If self is initialized with sort, sort species. If self has num_rows, drop rest of rows.
+    def _get_working_df(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Get current working window in db based on num species/images
         @param df: dataframe
-        @return resulting dataframe after sort/drop"""
-        if self.sort:
-            df.sort_values(by=['species'], inplace=True)
+        @return working window of db"""
         self.info(f"found {len(df['species'].unique())} unique species")
-        if self._num_rows:
-            df.drop(df.index[self._num_rows:], inplace=True)
-        df.reset_index(inplace=True, drop=True)
+        if self.num_images and self.num_species:
+            species = df['species'].unique()[:self.num_species]
+            df = df.loc[df['species'].isin(species)].groupby('species').head(self.num_images)
+        else:
+            df = df.loc[df['species']].groupby('species').head(self.num_images)
         return df
 
     def _make_dfs_from_raws(self):
@@ -291,7 +362,9 @@ class Database(Logable):
 
     @log_ent_exit
     def only_accepted(self, df) -> pd.DataFrame:
-        df = df.loc[df['yolo_accepted'].isin(['True', True])]
+        if constants['CROPPED'] == 1:
+            df = df.loc[df['yolo_accepted'].isin(['True', True])]
+            self.info(f"{len(df)} yolo_accepted")
         return df
 
     @staticmethod
@@ -316,9 +389,9 @@ class Database(Logable):
         if self._num_rows is None:
             return None
         elif self.degrees == "all":
-            return self._num_rows * 8
+            return self.num_images * self.num_species * 8
         elif self.degrees == "flip":
-            return self._num_rows * 2
+            return self.num_images * self.num_species * 2
         elif self.degrees == "rotate":
-            return self._num_rows * 4
-        return self._num_rows
+            return self.num_images * self.num_species * 4
+        return self.num_images * self.num_species

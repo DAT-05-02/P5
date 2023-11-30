@@ -49,10 +49,48 @@ class Model(Logable):
 
         return model
 
+    def _create_model2(self, kernel_size=(3, 3)):
+        model = tf.keras.models.Sequential([
+            tf.keras.layers.Conv2D(32, kernel_size, activation="relu", data_format="channels_last",
+                                   input_shape=self.shape),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(64, kernel_size, activation="relu"),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(128, kernel_size, activation="relu"),
+            tf.keras.layers.Conv2D(128, kernel_size, activation="relu"),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(128, kernel_size, activation="relu"),
+            tf.keras.layers.Conv2D(128, kernel_size, activation="relu"),
+            tf.keras.layers.Dropout(0.1),
+            tf.keras.layers.Conv2D(128, kernel_size, activation="relu"),
+            tf.keras.layers.Conv2D(128, kernel_size, activation="relu"),
+            tf.keras.layers.MaxPooling2D((2, 2)),
+            tf.keras.layers.Conv2D(256, kernel_size, activation="relu"),
+            tf.keras.layers.Conv2D(256, kernel_size, activation="relu"),
+            tf.keras.layers.Dropout(0.1),
+            tf.keras.layers.Conv2D(256, kernel_size, activation="relu"),
+            tf.keras.layers.Conv2D(516, kernel_size, activation="relu"),
+            tf.keras.layers.Conv2D(516, kernel_size, activation="relu"),
+            tf.keras.layers.Flatten(),
+            tf.keras.layers.Dense(1032, activation="relu"),
+            tf.keras.layers.Dense(len(self.df['species'].unique()), activation="softmax")
+        ])
+
+        return model
+
+    @staticmethod
+    def _data_generator(df):
+        for row in df:
+            arr: np.ndarray = np.asarray(np.load(row, allow_pickle=True)).astype(np.uint8)
+            arr: tf.Tensor = tf.convert_to_tensor(arr, dtype=np.uint8)
+            yield arr
+
     def _setup_dataset(self):
-        # Load arrays and slice to tensors
-        data = np.array(list(map(lambda x: np.load(x, allow_pickle=True), self.df[self.feature])))
-        data = tf.data.Dataset.from_tensor_slices(data)
+        data = tf.data.Dataset.from_generator(
+            generator=self._data_generator,
+            args=[tf.convert_to_tensor(self.df[self.feature].to_numpy())],
+            output_signature=(tf.TensorSpec(shape=self.shape, dtype=np.uint8))
+        )
         # Encode labels from strings to integers, then as tensors
         label_encoder = preprocessing.LabelEncoder()
         self.df['species'] = label_encoder.fit_transform(self.df['species'])
@@ -62,7 +100,7 @@ class Model(Logable):
         self.log.info(data.element_spec)
         self.log.info(label.element_spec)
         self.log.info(f"unique species: {len(self.df['species'].unique())}")
-        # Convert to one-hot tensors, essentially selector matrices with a 1 corresponding to the label index
+        # Convert label to one-hot tensors, essentially selector matrices with a 1 corresponding to the label index
         label = label.map(
             lambda x: tf.one_hot(x, len(self.df['species'].unique())),
             num_parallel_calls=tf.data.AUTOTUNE,
@@ -70,6 +108,7 @@ class Model(Logable):
         self.log.info(label)
         # np.arrays and labels to same dataset
         dataset = tf.data.Dataset.zip((data, label))
+        dataset.shuffle(dataset.cardinality())
         return dataset
 
     def print_dataset_info(self):
@@ -93,27 +132,34 @@ class Model(Logable):
         self.model = tf.keras.models.load_model(model_path)
 
     def split_dataset(self, validation_split=0.15, test_split=0.15, shuffle=True):
-        val_size = int(validation_split * len(self.dataset))
-        test_size = int(test_split * len(self.dataset))
-        train_size = len(self.dataset) - val_size - test_size
+        _len = len(self.df[self.feature])
+        val_size = int(validation_split * _len)
+        test_size = int(test_split * _len)
+        train_size = _len - val_size - test_size
         self.log.info(self.dataset.element_spec)
         self.train_dataset = self.dataset.take(train_size)
         remaining_dataset = self.dataset.skip(train_size)
         self.val_dataset = remaining_dataset.take(val_size)
         self.test_dataset = remaining_dataset.skip(val_size)
-        self.train_dataset = self.train_dataset.batch(32).shuffle(reshuffle_each_iteration=True,
-                                                                  buffer_size=len(self.df[self.feature]))
-        self.val_dataset = self.val_dataset.batch(32).shuffle(reshuffle_each_iteration=True,
-                                                              buffer_size=len(self.df[self.feature]))
-        self.test_dataset = self.test_dataset.batch(32).shuffle(reshuffle_each_iteration=True,
-                                                                buffer_size=len(self.df[self.feature]))
+        self.train_dataset = self.train_dataset.shuffle(
+            reshuffle_each_iteration=True,
+            buffer_size=len(self.df[self.feature])
+        ).batch(64).prefetch(tf.data.AUTOTUNE)
+        self.val_dataset = self.val_dataset.shuffle(
+            reshuffle_each_iteration=True,
+            buffer_size=len(self.df[self.feature])
+        ).batch(64).prefetch(tf.data.AUTOTUNE)
+        self.test_dataset = self.test_dataset.shuffle(
+            reshuffle_each_iteration=True,
+            buffer_size=len(self.df[self.feature])
+        ).batch(64).prefetch(tf.data.AUTOTUNE)
 
     def compile(self, lr=0.001):
         custom_optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
         self.model.compile(
             custom_optimizer,
             loss=tf.keras.losses.CategoricalCrossentropy(),
-            metrics=['accuracy']
+            metrics=['accuracy', tf.keras.metrics.Precision()]
         )
 
     def fit(self, epochs=10):
@@ -122,7 +168,7 @@ class Model(Logable):
         callbacks = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
 
         history = self.model.fit(
-            self.train_dataset.prefetch(tf.data.AUTOTUNE),
+            self.train_dataset,
             validation_data=self.val_dataset,
             epochs=epochs,
             callbacks=[callbacks]
